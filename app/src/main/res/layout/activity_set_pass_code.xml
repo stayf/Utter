@@ -1,0 +1,49 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF5B95C2">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FF5B95C2"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Spinner
+                android:id="@+id/t_set_pass_code_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:dropDownVerticalOffset="-35dp"
+                android:dropDownWidth="200dp"
+                android:spinnerMode="dropdown"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="-20dp"
+                android:layout_toRightOf="@+id/t_set_pass_code_spinner"
+                android:src="@mipmap/ic_arrow_drop_down"/>
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <com.stayfprod.utter.ui.view.DisabledViewPager
+        android:id="@+id/a_set_pass_code_pager"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/a_actionBar"/>
+
+</RelativeLayout>

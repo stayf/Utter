@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--AbstractChatHolder-->
+    <item type="id" name="i_chat_main_layout" />
+    <item type="id" name="i_chat_main_chat_icon" />
+    <item type="id" name="i_chat_main_text_view_name" />
+    <item type="id" name="i_chat_main_text_view_date" />
+    <item type="id" name="i_chat_main_image_view_msg_status" />
+    <!--\AbstractChatHolder-->
+
+    <!--TextChatHolder-->
+    <item type="id" name="s_chat_text_text" />
+    <!--\TextChatHolder-->
+
+    <!--AudioChatHolder-->
+    <item type="id" name="s_chat_audio_timer" />
+    <item type="id" name="s_chat_audio_progress" />
+    <item type="id" name="s_chat_audio_seek_bar" />
+    <!--\AudioChatHolder-->
+
+    <!--DocumentChatHolder-->
+    <item type="id" name="s_chat_document_progress" />
+    <item type="id" name="s_chat_document_file_name" />
+    <item type="id" name="s_chat_document_file_size" />
+    <!--\DocumentChatHolder-->
+
+    <!--GeoChatHolder-->
+    <item type="id" name="s_chat_geo_image" />
+    <!--\GeoChatHolder-->
+
+    <!--StickerChatHolder-->
+    <item type="id" name="s_chat_sticker_image" />
+    <!--\StickerChatHolder-->
+
+    <!--PhotoChatHolder-->
+    <item type="id" name="s_chat_photo_image" />
+    <item type="id" name="s_chat_photo_progress" />
+    <!--\PhotoChatHolder-->
+
+    <!--AbstractForwardChatHolder-->
+    <item type="id" name="s_chat_forward_icon" />
+    <item type="id" name="s_chat_forward_name" />
+    <item type="id" name="s_chat_forward_date" />
+    <item type="id" name="s_chat_forward_top_layout" />
+    <!--\AbstractForwardChatHolder-->
+
+    <!--ForwardTextChatHolder-->
+    <item type="id" name="s_chat_forward_text_text" />
+    <!--\ForwardTextChatHolder-->
+
+    <!--SystemMsgChatHolder-->
+    <item type="id" name="i_chat_sys_msg_1" />
+    <item type="id" name="i_chat_sys_msg_2" />
+    <item type="id" name="i_chat_sys_msg_3" />
+    <!--\SystemMsgChatHolder-->
+
+    <!--ChatListHolder-->
+    <item type="id" name="i_chat_list_main_layout" />
+    <item type="id" name="i_chat_list_icon" />
+    <item type="id" name="i_chat_list_name" />
+    <item type="id" name="i_chat_list_msg_text" />
+    <item type="id" name="i_chat_list_date" />
+    <item type="id" name="i_chat_list_msg_counter" />
+    <item type="id" name="i_chat_list_msg_status" />
+    <item type="id" name="i_chat_list_group_image" />
+    <!--\ChatListHolder-->
+
+
+    <!--ToolBarAdapter-->
+    <item type="id" name="i_toolbar_icon" />
+    <item type="id" name="i_toolbar_title" />
+    <!--\ToolBarAdapter-->
+
+    <item type="id" name="circleProgressBar" />
+
+    <item type="id" name="media_view" />
+    <item type="id" name="selected_circle_view" />
+
+    <item type="id" name="image_micro_thumb" />
+
+</resources>

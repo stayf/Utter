@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    android:id="@+id/p_open_main_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:orientation="vertical"
+        android:layout_alignParentLeft="true"
+        android:background="#FFFFFF"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:id="@+id/p_mute_hour_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_mute_hour_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/mute_for_1_hour"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_mute_8_hours_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_mute_8_hours_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/mute_for_8_hours"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_mute_2_days_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_mute_2_days_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/mute_for_2_days"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_mute_disable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_mute_disable_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/disable"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>

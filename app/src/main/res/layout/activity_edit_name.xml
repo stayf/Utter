@@ -1,0 +1,92 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/theme_actionbar_color"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/t_toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="16dp"
+                android:text="@string/edit_name"/>
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+
+    <ImageView
+        android:id="@+id/a_edit_name_user"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/a_actionBar"
+        android:layout_marginLeft="18dp"
+        android:layout_marginTop="18dp"
+        android:padding="4dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/a_edit_name_phone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/a_actionBar"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="36dp"
+        android:layout_toRightOf="@+id/a_edit_name_user"
+        android:text="+9138652868"
+        android:visibility="gone"/>
+
+
+    <ImageView
+        android:id="@+id/a_edit_name_ic_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/a_edit_name_user"
+        android:layout_marginLeft="18dp"
+        android:layout_marginTop="30dp"
+        android:src="@mipmap/ic_user"/>
+
+    <EditText
+        android:id="@+id/a_set_name_first"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/a_edit_name_user"
+        android:layout_marginLeft="72dp"
+        android:layout_marginRight="18dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/edittext_bottom_line"
+        android:hint="@string/first_name"
+        android:inputType="textPersonName"
+        android:textColorHint="#b2b2b2"
+        android:textCursorDrawable="@null"/>
+
+    <EditText
+        android:id="@+id/a_set_name_second"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/a_set_name_first"
+        android:layout_below="@+id/a_set_name_first"
+        android:layout_marginRight="18dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/edittext_bottom_line"
+        android:hint="@string/last_name_opt"
+        android:inputType="textPersonName"
+        android:textColorHint="#b2b2b2"
+        android:textCursorDrawable="@null"/>
+
+</RelativeLayout>

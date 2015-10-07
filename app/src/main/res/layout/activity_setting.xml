@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    android:id="@+id/a_setting_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.stayfprod.utter.ui.view.ObservableScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <RelativeLayout
+            android:id="@+id/body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <View
+                android:id="@+id/shadow"
+                android:layout_width="match_parent"
+                android:layout_height="1.5dp"
+                android:background="@drawable/shadow_bottom"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/a_setting_ic_user"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginTop="48dp"
+                    android:src="@mipmap/ic_user"/>
+
+                <TextView
+                    android:id="@+id/a_setting_hash_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@id/a_setting_ic_user"
+                    android:layout_marginLeft="64dp"
+                    android:layout_marginTop="46dp"
+                    android:text="a@pettercarlson"/>
+
+                <TextView
+                    android:id="@+id/a_setting_username"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/a_setting_hash_tag"
+                    android:layout_below="@+id/a_setting_hash_tag"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/username"/>
+
+                <View
+                    android:id="@+id/a_setting_divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1.5dp"
+                    android:layout_alignLeft="@+id/a_setting_username"
+                    android:layout_below="@+id/a_setting_username"
+                    android:layout_marginTop="20dp"
+                    android:background="#FFEAEAEA"/>
+
+                <ImageView
+                    android:id="@+id/a_setting_ic_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@id/a_setting_ic_user"
+                    android:layout_below="@id/a_setting_ic_user"
+                    android:layout_marginTop="56dp"
+                    android:src="@mipmap/ic_phone"/>
+
+                <TextView
+                    android:id="@+id/a_setting_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/a_setting_divider"
+                    android:layout_below="@+id/a_setting_divider"
+                    android:layout_marginTop="14dp"
+                    android:text="+777 (342) 23 315"/>
+
+                <TextView
+                    android:id="@+id/a_setting_phone2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/a_setting_phone"
+                    android:layout_below="@+id/a_setting_phone"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/phone"/>
+
+                <View
+                    android:id="@+id/a_setting_shadow2"
+                    android:layout_width="match_parent"
+                    android:layout_height="2.5dp"
+                    android:layout_below="@+id/a_setting_phone2"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/shadow_bottom"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/a_setting_shadow2"
+                    android:background="#FFF4F4F4">
+
+                    <View
+                        android:id="@+id/a_setting_shadow3"
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/shadow_top"/>
+
+                    <RelativeLayout
+                        android:id="@+id/a_setting_content_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:layout_below="@+id/a_setting_shadow3"
+                        android:background="@drawable/item_click_white"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:id="@+id/a_setting_lock_img"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="16dp"
+                            android:src="@mipmap/ic_setlock"/>
+
+                        <TextView
+                            android:id="@+id/a_setting_passcode_lock"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignLeft="@+id/a_setting_lock_img"
+                            android:layout_marginLeft="64dp"
+                            android:text="@string/passcode_lock"/>
+
+                        <TextView
+                            android:id="@+id/a_setting_passcode_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginRight="16dp"
+                            android:text="@string/disabled"/>
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_below="@+id/a_setting_content_2"
+                        android:background="@drawable/shadow_bottom"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </com.stayfprod.utter.ui.view.ObservableScrollView>
+
+    <View
+        android:id="@+id/flexible_space"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#FF5B95C2"/>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/theme_actionbar_color"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+    </android.support.v7.widget.Toolbar>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:id="@+id/t_parallax_icon"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginLeft="54dp"
+                android:layout_marginTop="2dp"
+                android:padding="4dp"/>
+
+            <TextView
+                android:id="@+id/t_parallax_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="?attr/actionBarSize"
+                android:layout_marginTop="2dp"
+                android:layout_toEndOf="@+id/t_parallax_icon"
+                android:layout_toRightOf="@+id/t_parallax_icon"
+                android:singleLine="true"
+                android:text="New Text1"/>
+
+            <TextView
+                android:id="@+id/t_parallax_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/t_parallax_title"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="?attr/actionBarSize"
+                android:layout_toEndOf="@+id/t_parallax_icon"
+                android:layout_toRightOf="@+id/t_parallax_icon"
+                android:text="@string/online"/>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="@android:color/transparent"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.stayfprod.utter.ui.view.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        android:scaleType="center"/>
+</FrameLayout>

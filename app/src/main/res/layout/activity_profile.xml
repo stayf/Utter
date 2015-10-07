@@ -1,0 +1,97 @@
+<FrameLayout
+    android:id="@+id/a_setting_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.stayfprod.utter.ui.view.ObservableRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFF4F4F4"
+        android:scrollbars="none"/>
+
+    <View
+        android:id="@+id/flexible_space"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#FF5B95C2"/>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/theme_actionbar_color"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+    </android.support.v7.widget.Toolbar>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:id="@+id/t_parallax_icon"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginLeft="54dp"
+                android:layout_marginTop="2dp"
+                android:padding="4dp"/>
+
+            <TextView
+                android:id="@+id/t_parallax_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="100dp"
+                android:layout_marginTop="2dp"
+                android:layout_toEndOf="@+id/t_parallax_icon"
+                android:layout_toRightOf="@+id/t_parallax_icon"
+                android:singleLine="true"
+                android:text="New Text"/>
+
+            <TextView
+                android:id="@+id/t_parallax_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/t_parallax_title"
+                android:layout_marginLeft="5dp"
+                android:layout_toEndOf="@+id/t_parallax_icon"
+                android:layout_toRightOf="@+id/t_parallax_icon"
+                android:text="@string/online"/>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="@android:color/transparent"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.stayfprod.utter.ui.view.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        android:scaleType="center"/>
+</FrameLayout>

@@ -1,0 +1,36 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.stayfprod.utter.ui.activity.ContactListActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
+        android:background="@color/theme_actionbar_color"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <TextView
+            android:id="@+id/a_contact_list_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:paddingLeft="18dp"
+            android:text="@string/contacts"/>
+
+    </android.support.v7.widget.Toolbar>
+
+    <com.stayfprod.utter.ui.view.SimpleRecyclerView
+        android:id="@+id/a_contact_list_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/a_actionBar"
+        android:scrollbars="vertical"/>
+</RelativeLayout>

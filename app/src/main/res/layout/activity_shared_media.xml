@@ -1,0 +1,83 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.stayfprod.utter.ui.view.DisabledViewPager
+        android:id="@+id/a_shared_pager"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/a_music_bar_layout"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_below="@+id/t_shared_toolbar_frame"
+        android:background="@mipmap/shadow_bottom"/>
+
+    <RelativeLayout
+        android:id="@+id/a_music_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/t_shared_toolbar_frame"
+        android:background="@drawable/item_click_white"
+        android:visibility="gone">
+
+        <com.stayfprod.utter.ui.view.MusicBar
+            android:id="@+id/music_bar"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/music_bar"
+            android:background="@drawable/shadow_bottom"/>
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/t_shared_toolbar_frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/a_actionBarTwo"
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#FFFFFFFF"
+            app:contentInsetEnd="0dp"
+            app:contentInsetStart="0dp"
+            app:popupTheme="@style/Toolbar_Popup">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Spinner
+                    android:id="@+id/t_shared_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:dropDownVerticalOffset="-35dp"
+                    android:dropDownWidth="200dp"
+                    android:spinnerMode="dropdown"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="-20dp"
+                    android:layout_toRightOf="@+id/t_shared_spinner"
+                    android:src="@mipmap/ic_arrow_drop_down_grey"/>
+
+            </RelativeLayout>
+        </android.support.v7.widget.Toolbar>
+
+        <include layout="@layout/toolbar_forward"/>
+    </FrameLayout>
+
+
+</RelativeLayout>

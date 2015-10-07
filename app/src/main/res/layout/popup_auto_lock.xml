@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    android:id="@+id/p_open_main_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:orientation="vertical"
+        android:layout_alignParentLeft="true"
+        android:background="#FFFFFF"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:id="@+id/p_lock_hour_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_lock_hour_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/in_1_hour"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_lock_30_min_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_lock_30_min_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/in_30_minutes"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_lock_15_min_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_lock_15_min_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/in_15_minutes"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_lock_5_min_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_lock_5_min_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/in_5_minutes"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/p_lock_disable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/item_click_transparent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/p_lock_disable_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="25dp"
+                android:text="@string/disable"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>

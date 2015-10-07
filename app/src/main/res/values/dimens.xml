@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="overflow_menu_padding_left">0dp</dimen>
+    <dimen name="overflow_menu_padding_right">0dp</dimen>
+</resources>

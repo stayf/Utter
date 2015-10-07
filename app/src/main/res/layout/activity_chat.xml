@@ -1,0 +1,370 @@
+<RelativeLayout
+    android:id="@+id/activity_chat_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.stayfprod.utter.ui.activity.ChatActivity">
+
+    <TextView
+        android:id="@+id/a_chat_no_msges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="@string/no_messages_here_yet"
+        android:visibility="gone"/>
+
+    <com.stayfprod.utter.ui.view.SimpleRecyclerView
+        android:id="@+id/a_chat_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/a_chat_input_holder"
+        android:layout_below="@+id/a_music_bar_layout"
+        android:scrollbars="vertical"/>
+
+    <RelativeLayout
+        android:id="@+id/bot_popup_commands_up_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bot_popup_commands_layout"
+        android:layout_alignParentTop="true"
+        android:visibility="gone">
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/bot_popup_commands_layout"
+        android:layout_width="match_parent"
+        android:layout_height="124dp"
+        android:layout_above="@+id/a_chat_input_holder"
+        android:background="#FFFFFFFF"
+        android:visibility="gone">
+
+        <com.stayfprod.utter.ui.view.SimpleRecyclerView
+            android:id="@+id/bot_popup_commands_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/a_music_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/a_actionBar"
+        android:background="@drawable/item_click_white"
+        android:visibility="gone">
+
+        <com.stayfprod.utter.ui.view.MusicBar
+            android:id="@+id/music_bar"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/music_bar"
+            android:background="@drawable/shadow_bottom"/>
+    </RelativeLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/theme_actionbar_color"
+        android:padding="0dp"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <RelativeLayout
+            android:id="@+id/t_layout_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/item_click_transparent"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/t_chat_icon"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="2dp"
+                android:padding="4dp"/>
+
+            <TextView
+                android:id="@+id/t_chat_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="2dp"
+                android:layout_toEndOf="@+id/t_chat_icon"
+                android:layout_toRightOf="@+id/t_chat_icon"
+                android:singleLine="true"
+                android:text="New Text1"/>
+
+            <TextView
+                android:id="@+id/t_chat_subtext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/t_chat_title"
+                android:layout_marginLeft="5dp"
+                android:layout_toEndOf="@+id/t_chat_icon"
+                android:layout_toRightOf="@+id/t_chat_icon"
+                android:singleLine="true"
+                android:text="New Text"/>
+
+            <ImageView
+                android:id="@+id/t_ic_mute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/t_chat_title"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="7dp"
+                android:layout_toEndOf="@+id/t_chat_title"
+                android:layout_toRightOf="@+id/t_chat_title"
+                android:src="@mipmap/ic_mute_blue"/>
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+
+    <RelativeLayout
+        android:id="@+id/a_chat_input_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:background="#FFFFFFFF">
+
+
+        <View
+            android:id="@+id/a_chat_editmsg_line"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#FFEFEFEF"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/emoji_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_gravity="bottom"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="0.05"
+                android:gravity="bottom"
+                android:paddingBottom="12dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="12dp"
+                android:src="@mipmap/ic_smiles"/>
+
+            <com.stayfprod.emojicon.EmojiconEditText
+                android:id="@+id/emojicon_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_vertical"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="10"
+                android:background="@null"
+                android:gravity="bottom"
+                android:hint="@string/message"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
+                android:textColorHint="#b2b2b2"
+                android:textCursorDrawable="@null"
+                emojicon:emojiconSize="20sp"/>
+
+            <FrameLayout
+                android:id="@+id/a_chat_frame_command"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="0.05"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:id="@+id/a_chat_ic_comand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="12dp"
+                    android:src="@mipmap/ic_command"
+                    android:visibility="gone"/>
+
+                <ImageView
+                    android:id="@+id/a_chat_ic_slash"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="12dp"
+                    android:src="@mipmap/ic_slash"
+                    android:visibility="gone"/>
+
+                <ImageView
+                    android:id="@+id/a_chat_ic_panel_kb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="12dp"
+                    android:src="@mipmap/ic_msg_panel_kb"
+                    android:visibility="gone"/>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/a_chat_frame"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="0.05"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:id="@+id/a_chat_attach"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="12dp"
+                    android:src="@mipmap/ic_attach"/>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/a_chat_frame_record"
+                android:layout_width="40dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_marginRight="6dp"
+                android:layout_weight="0.05"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:id="@+id/a_chat_send"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="12dp"
+                    android:src="@mipmap/ic_send"
+                    android:visibility="gone"/>
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slide_to_cancel_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/a_chat_editmsg_line"
+            android:background="#FFFFFF"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.05">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/cycle_red"/>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/slide_to_cancel_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_vertical"
+                android:layout_weight="0.1"
+                android:background="@null"
+                android:gravity="bottom"
+                android:maxLines="3"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
+                android:text="00:00"
+                android:textColorHint="#b2b2b2"/>
+
+            <LinearLayout
+                android:id="@+id/slide_to_cancel_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.2"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="14dp"
+                    android:layout_gravity="center"
+                    android:src="@mipmap/ic_arrow_down_90"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_vertical"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:background="@null"
+                    android:gravity="bottom"
+                    android:paddingBottom="12dp"
+                    android:paddingTop="12dp"
+                    android:text="@string/slide_to_cancel"
+                    android:textColorHint="#b2b2b2"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <com.stayfprod.utter.ui.view.RecordVoiceView
+        android:id="@+id/a_chat_record"
+        android:layout_width="match_parent"
+        android:layout_height="86dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"/>
+
+
+    <ImageView
+        android:id="@+id/a_chat_ic_scroll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/a_chat_input_holder"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
+        android:src="@mipmap/ic_scroll"
+        android:visibility="gone"/>
+
+</RelativeLayout>

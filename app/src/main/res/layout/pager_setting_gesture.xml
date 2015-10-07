@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="5">
+
+        <ImageView
+            android:id="@+id/gesture_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@mipmap/ic_logo"
+            android:visibility="gone"/>
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/gesture_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="@string/draw_your_gesture"/>
+
+        <android.gesture.GestureOverlayView
+            android:id="@+id/gesture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gestureColor="#ffffffff"
+            android:gestureStrokeType="single"
+            android:gestureStrokeWidth="8.0"
+            android:uncertainGestureColor="#ffffffff"/>
+    </RelativeLayout>
+
+</LinearLayout>

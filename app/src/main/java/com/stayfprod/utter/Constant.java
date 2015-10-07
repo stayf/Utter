@@ -1,0 +1,51 @@
+package com.stayfprod.utter;
+
+
+import com.stayfprod.utter.util.AndroidUtil;
+
+public class Constant {
+    public static final int
+            DP_180 = AndroidUtil.dp(180),
+            DP_150 = AndroidUtil.dp(150),
+            DP_100 = AndroidUtil.dp(100),
+            DP_82 = AndroidUtil.dp(82),
+            DP_80 = AndroidUtil.dp(80),
+            DP_76 = AndroidUtil.dp(76),
+            DP_74 = AndroidUtil.dp(74),
+            DP_72 = AndroidUtil.dp(72),
+            DP_70 = AndroidUtil.dp(70),
+            DP_65 = AndroidUtil.dp(65),
+            DP_64 = AndroidUtil.dp(64),
+            DP_60 = AndroidUtil.dp(60),
+            DP_56 = AndroidUtil.dp(56),
+            DP_54 = AndroidUtil.dp(54),
+            DP_45 = AndroidUtil.dp(45),
+            DP_44 = AndroidUtil.dp(44),
+            DP_40 = AndroidUtil.dp(40),
+            DP_36 = AndroidUtil.dp(36),
+            DP_28 = AndroidUtil.dp(28),
+            DP_27 = AndroidUtil.dp(27),
+            DP_24 = AndroidUtil.dp(24),
+            DP_23 = AndroidUtil.dp(23),
+            DP_20 = AndroidUtil.dp(20),
+            DP_19 = AndroidUtil.dp(19),
+            DP_18 = AndroidUtil.dp(18),
+            DP_17_5 = AndroidUtil.dp(17.5f),
+            DP_17 = AndroidUtil.dp(17),
+            DP_16_5 = AndroidUtil.dp(16.5f),
+            DP_16 = AndroidUtil.dp(16),
+            DP_15 = AndroidUtil.dp(15),
+            DP_14 = AndroidUtil.dp(14),
+            DP_13 = AndroidUtil.dp(13),
+            DP_12 = AndroidUtil.dp(12),
+            DP_11 = AndroidUtil.dp(11),
+            DP_10 = AndroidUtil.dp(10),
+            DP_8 = AndroidUtil.dp(8),
+            DP_7 = AndroidUtil.dp(7),
+            DP_6 = AndroidUtil.dp(6),
+            DP_5 = AndroidUtil.dp(5),
+            DP_4 = AndroidUtil.dp(3),
+            DP_3 = AndroidUtil.dp(3),
+            DP_2 = AndroidUtil.dp(2),
+            DP_1 = AndroidUtil.dp(1);
+}

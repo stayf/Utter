@@ -1,0 +1,119 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.stayfprod.utter.ui.activity.auth.PhoneNumberActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/theme_actionbar_color"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/t_toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="18dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/phone_number"/>
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <EditText
+        android:id="@+id/a_phone_number_phone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/a_phone_number_country_code"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/a_phone_number_country"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="18dp"
+        android:layout_marginTop="15dp"
+        android:layout_toRightOf="@+id/a_phone_number_country_code"
+        android:background="@drawable/edittext_bottom_line"
+        android:hint="@string/phone_number"
+        android:inputType="phone"
+        android:textColorHint="#b2b2b2"
+        android:textCursorDrawable="@null"/>
+
+    <TextView
+        android:id="@+id/a_phone_number_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/a_phone_number_country"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="90dp"
+        android:text="@string/we_will_send_an_sms"
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+    <EditText
+        android:id="@+id/a_phone_number_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/a_actionBar"
+        android:layout_marginLeft="18dp"
+        android:layout_marginRight="18dp"
+        android:layout_marginTop="22dp"
+        android:background="@drawable/edittext_bottom_line"
+        android:clickable="true"
+        android:cursorVisible="false"
+        android:editable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="true"
+        android:hint="@string/country"
+        android:inputType="none"
+        android:textColorHint="#b2b2b2"
+        android:textCursorDrawable="@null"/>
+
+    <EditText
+        android:id="@+id/a_phone_number_country_code"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/a_phone_number_country"
+        android:layout_alignStart="@+id/a_phone_number_country"
+        android:layout_below="@+id/a_phone_number_country"
+        android:layout_marginTop="15dp"
+        android:background="@drawable/edittext_bottom_line"
+        android:clickable="false"
+        android:cursorVisible="false"
+        android:editable="false"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:hint="@string/code"
+        android:inputType="none"
+        android:textColorHint="#b2b2b2"
+        android:textCursorDrawable="@null"/>
+
+    <TextView
+        android:id="@+id/a_phone_number_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/a_phone_number_phone"
+        android:layout_alignStart="@+id/a_phone_number_phone"
+        android:layout_below="@+id/a_phone_number_phone"
+        android:layout_marginTop="5dp"
+        android:text="@string/invalid_phone_num"
+        android:visibility="gone"/>
+
+</RelativeLayout>

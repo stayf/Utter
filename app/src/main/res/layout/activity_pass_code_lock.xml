@@ -1,0 +1,179 @@
+<RelativeLayout
+    android:id="@+id/a_pass_code_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/a_actionBar"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
+        android:background="@color/theme_actionbar_color"
+
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:popupTheme="@style/Toolbar_Popup">
+
+        <TextView
+            android:id="@+id/t_pass_code_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="18dp"
+            android:text="New Text"/>
+
+    </android.support.v7.widget.Toolbar>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/a_actionBar"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <RelativeLayout
+            android:id="@+id/a_pass_code_rl_1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:id="@+id/a_change_pass_code_rl_lock"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="@drawable/item_click_white"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/a_pass_code_lock_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginLeft="18dp"
+                    android:text="@string/passcode_lock"/>
+
+                <com.stayfprod.utter.ui.view.Switch
+                    android:id="@+id/a_pass_code_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="18dp"/>
+            </RelativeLayout>
+
+
+            <View
+                android:id="@+id/a_change_pass_divider"
+                android:layout_width="match_parent"
+                android:layout_height="1.5dp"
+                android:layout_below="@+id/a_change_pass_code_rl_lock"
+                android:background="#FFEAEAEA"/>
+
+            <RelativeLayout
+                android:id="@+id/a_change_pass_code_rl_change_pass"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_below="@+id/a_change_pass_divider"
+                android:background="@drawable/item_click_white"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/a_change_pass_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="18dp"
+                    android:text="@string/change_passcode"/>
+            </RelativeLayout>
+
+            <View
+                android:id="@+id/a_change_pass_code_shadow"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_below="@+id/a_change_pass_code_rl_change_pass"
+                android:background="@mipmap/shadow_top"/>
+
+            <RelativeLayout
+                android:id="@+id/a_change_pass_code_rl_1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_below="@+id/a_change_pass_code_shadow"
+                android:background="#FFF4F4F4"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:id="@+id/a_change_pass_code_text1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="18dp"
+                    android:text="@string/when_you_set_up_an_additional_passcode"/>
+
+                <TextView
+                    android:id="@+id/a_change_pass_code_text2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/a_change_pass_code_text1"
+                    android:layout_marginTop="10dp"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="18dp"
+                    android:text="@string/note_if_you_forget_the_passcode"/>
+
+                <View
+                    android:id="@+id/a_change_pass_code_shadow_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="1.5dp"
+                    android:layout_below="@+id/a_change_pass_code_text2"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/shadow_top"/>
+
+                <RelativeLayout
+                    android:id="@+id/a_change_pass_code_rl_auto_lock"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:layout_below="@+id/a_change_pass_code_shadow_2"
+                    android:background="@drawable/item_click_white"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/a_change_pass_code_auto_lock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@+id/a_setting_lock_img"
+                        android:paddingLeft="18dp"
+                        android:text="@string/auto_lock"/>
+
+                    <TextView
+                        android:id="@+id/a_change_pass_code_auto_lock_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:paddingRight="18dp"
+                        android:text="@string/in_1_hour"/>
+                </RelativeLayout>
+
+                <View
+                    android:id="@+id/a_change_pass_code_shadow_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_below="@+id/a_change_pass_code_rl_auto_lock"
+                    android:background="@mipmap/shadow_bottom"/>
+
+                <TextView
+                    android:id="@+id/a_change_pass_code_text3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/a_change_pass_code_shadow_3"
+                    android:layout_marginTop="10dp"
+                    android:paddingLeft="18dp"
+                    android:paddingRight="18dp"
+                    android:text="@string/require_passcode_if_you_away"/>
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </ScrollView>
+
+</RelativeLayout>
