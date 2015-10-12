@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/a_actionBar"
+        android:id="@+id/a_action_bar"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
         android:id="@+id/a_edit_name_user"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_below="@+id/a_actionBar"
+        android:layout_below="@+id/a_action_bar"
         android:layout_marginLeft="18dp"
         android:layout_marginTop="18dp"
         android:padding="4dp"
@@ -44,7 +44,7 @@
         android:id="@+id/a_edit_name_phone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/a_actionBar"
+        android:layout_below="@+id/a_action_bar"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="36dp"
         android:layout_toRightOf="@+id/a_edit_name_user"

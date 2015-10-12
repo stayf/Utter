@@ -5,7 +5,6 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
@@ -19,8 +18,6 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.model.PushNotification;
 import com.stayfprod.utter.ui.activity.ChatListActivity;
-import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
@@ -45,48 +42,28 @@ public class NotificationManager extends ResultController {
     private static final String GROUP_KEY = "GROUP_KEY";
     private static final int NOTIFICATION_ID = 7788911;
 
-    private static volatile NotificationManager manager;
-
-    private List<PushNotification> pushNotifications = new ArrayList<PushNotification>();
-    private LongSparseArray chatIdList = new LongSparseArray();
-
-    private static BitmapDrawable bigIcon;
-
+    private static volatile NotificationManager sManager;
+    private static BitmapDrawable sBigIcon;
 
     public static NotificationManager getManager() {
-        if (manager == null) {
+        if (sManager == null) {
             synchronized (NotificationManager.class) {
-                if (manager == null) {
-                    manager = new NotificationManager();
+                if (sManager == null) {
+                    sManager = new NotificationManager();
                 }
             }
         }
-        return manager;
+        return sManager;
     }
 
-
-    /*if(icon != null){
-        Resources res = getApplicationContext().getResources();
-        int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
-        int width = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
-        int realwidth=icon.getWidth();
-        int realheight=icon.getHeight();
-        if(realwidth>realheight){
-            height=height * realheight / realwidth;
-        }else{
-            width=width * realwidth / realheight;
-        }
-        icon=Bitmap.createScaledBitmap(icon, width, height, true);
-    }*/
-
+    private List<PushNotification> sPushNotifications = new ArrayList<PushNotification>();
+    private LongSparseArray mChatIdList = new LongSparseArray();
 
     @Override
     public boolean hasChanged() {
         return true;
     }
 
-    //@show_previews Display text in notifications
-    // @events_mask Mask of the event-set requiring notification. See https://core.telegram.org/constructor/peerNotifySettings for a full description
     public void setMuteForChat(final int muteFor, final Long chatId) {
         if (chatId != null) {
             TdApi.SetNotificationSettings setNotificationSettings = new TdApi.SetNotificationSettings();
@@ -135,12 +112,12 @@ public class NotificationManager extends ResultController {
     }
 
     public void cleanStorage() {
-        pushNotifications.clear();
-        chatIdList.clear();
+        sPushNotifications.clear();
+        mChatIdList.clear();
     }
 
     public void cancelNotification(Context context) {
-        if (pushNotifications.size() > 0) {
+        if (sPushNotifications.size() > 0) {
             android.app.NotificationManager mNotificationManager = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(NOTIFICATION_ID);
             cleanStorage();
@@ -149,9 +126,9 @@ public class NotificationManager extends ResultController {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public void sendNotification(Context context, PushNotification notification) {
-        pushNotifications.add(0, notification);
-        if (chatIdList.get(notification.chatId) == null) {
-            chatIdList.put(notification.chatId, notification.chatId);
+        sPushNotifications.add(0, notification);
+        if (mChatIdList.get(notification.chatId) == null) {
+            mChatIdList.put(notification.chatId, notification.chatId);
         }
 
         try {
@@ -164,18 +141,14 @@ public class NotificationManager extends ResultController {
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
 
             mBuilder.setAutoCancel(true).setDefaults(Notification.DEFAULT_ALL);
-            // set the shown date
             mBuilder.setWhen(System.currentTimeMillis());
-            // the title of the notification
             mBuilder.setContentTitle(AndroidUtil.getApplicationName(context));
-            // set the text for pre API 16 devices
             if (TextUtil.isNotBlank(notification.who) && !notification.isGroup) {
                 mBuilder.setContentText(notification.who + ": " + notification.msg);
             } else {
                 mBuilder.setContentText(notification.msg);
             }
 
-            // set the notifications icon
             if (App.CURRENT_VERSION_SDK >= Build.VERSION_CODES.LOLLIPOP) {
                 mBuilder.setSmallIcon(R.mipmap.ic_logo);
                 mBuilder.setColor(0xFF5B95C2);
@@ -183,11 +156,9 @@ public class NotificationManager extends ResultController {
                 mBuilder.setSmallIcon(R.mipmap.ic_launcher);
             }
 
-            if (bigIcon != null && bigIcon.getBitmap() != null) {
-                mBuilder.setLargeIcon(bigIcon.getBitmap());
+            if (sBigIcon != null && sBigIcon.getBitmap() != null) {
+                mBuilder.setLargeIcon(sBigIcon.getBitmap());
             }
-
-            // set the small ticker text which runs in the tray for a few seconds
 
             if (TextUtil.isNotBlank(notification.who)) {
                 mBuilder.setTicker(notification.who + ": " + notification.msg);
@@ -195,63 +166,27 @@ public class NotificationManager extends ResultController {
                 mBuilder.setTicker(notification.msg);
             }
 
-            mBuilder.setContentInfo(String.valueOf(pushNotifications.size()));
-            //mBuilder.setSubText("test");
-            // set the priority for API 16 devices
+            mBuilder.setContentInfo(String.valueOf(sPushNotifications.size()));
             if (App.CURRENT_VERSION_SDK >= 16) {
                 mBuilder.setPriority(Notification.PRIORITY_DEFAULT);
             }
 
-
-            /*// Create an InboxStyle notification
-            Notification summaryNotification = new NotificationCompat.Builder(mContext)
-                    .setContentTitle("2 new messages")
-                    .setSmallIcon(R.drawable.ic_small_icon)
-                    .setLargeIcon(largeIcon)
-                    .setStyle(new NotificationCompat.InboxStyle()
-                            .addLine("Alex Faaborg   Check this out")
-                            .addLine("Jeff Chang   Launch Party")
-                            .setBigContentTitle("2 new messages")
-                            .setSummaryText("johndoe@gmail.com"))
-                    .setGroup(GROUP_KEY_EMAILS)
-                    .setGroupSummary(true)
-                    .build();
-
-            notificationManager.notify(notificationId3, summaryNotification);*/
-
-
-          /*  NotificationCompat.WearableExtender wearableExtender =
-                    new NotificationCompat.WearableExtender()
-                            .setBackground(background);
-
-            // Create an InboxStyle notification
-            Notification summaryNotificationWithBackground =
-                    new NotificationCompat.Builder(mContext)
-                            .setContentTitle("2 new messages")
-            ...
-            .extend(wearableExtender)
-                    .setGroup(GROUP_KEY_EMAILS)
-                    .setGroupSummary(true)
-                    .build();*/
-
-
             NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-            // summary is below the action
-            if (pushNotifications.size() > 1) {
-                inboxStyle.setSummaryText(pushNotifications.size() + " new messages from " + chatIdList.size() + " chats");
+
+            if (sPushNotifications.size() > 1) {
+                inboxStyle.setSummaryText(sPushNotifications.size() + " new messages from " + mChatIdList.size() + " chats");
             } else {
-                inboxStyle.setSummaryText(pushNotifications.size() + " new message");
+                inboxStyle.setSummaryText(sPushNotifications.size() + " new message");
             }
 
             mBuilder.setStyle(inboxStyle);
 
             mBuilder.setGroup(GROUP_KEY);
             mBuilder.setGroupSummary(true);
-            mBuilder.setNumber(pushNotifications.size());
+            mBuilder.setNumber(sPushNotifications.size());
 
-            // Lines are above the action and below the title
-            for (int i = 0; i < pushNotifications.size(); i++) {
-                PushNotification pushNotification = pushNotifications.get(i);
+            for (int i = 0; i < sPushNotifications.size(); i++) {
+                PushNotification pushNotification = sPushNotifications.get(i);
                 if (TextUtil.isNotBlank(pushNotification.who) && !pushNotification.isGroup) {
                     inboxStyle.addLine(pushNotification.who + ": " + pushNotification.msg);
                 } else {
@@ -262,10 +197,7 @@ public class NotificationManager extends ResultController {
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
             stackBuilder.addNextIntent(notificationIntent);
             PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-            // set the action for clicking the notification
             mBuilder.setContentIntent(resultPendingIntent);
-
-
 
             mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
         } catch (Exception e) {

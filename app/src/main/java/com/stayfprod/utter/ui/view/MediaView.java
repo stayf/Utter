@@ -3,7 +3,6 @@ package com.stayfprod.utter.ui.view;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
@@ -17,7 +16,7 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.model.SharedMedia;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -29,13 +28,13 @@ public class MediaView extends View implements ImageUpdatable {
     private static final BitmapDrawable PLAY_ICON;
 
     static {
-        PLAY_ICON = FileUtils.decodeImageResource(R.mipmap.ic_playsm);
+        PLAY_ICON = FileUtil.decodeImageResource(R.mipmap.ic_playsm);
         TEXT_PAINT.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
         TEXT_PAINT.setColor(0xFFFFFFFF);
         TEXT_PAINT.setTextSize(Constant.DP_10);
     }
 
-    private BitmapDrawable bitmapDrawable;
+    private BitmapDrawable mBitmapDrawable;
     public SharedMedia sharedMedia;
 
     public MediaView(Context context) {
@@ -71,7 +70,7 @@ public class MediaView extends View implements ImageUpdatable {
         switch (this.sharedMedia.message.message.getConstructor()) {
             case TdApi.MessageVideo.CONSTRUCTOR:
                 TdApi.MessageVideo messageVideo = (TdApi.MessageVideo) this.sharedMedia.message.message;
-                if (FileUtils.isTDFileEmpty(messageVideo.video.thumb.photo)) {
+                if (FileUtil.isTDFileEmpty(messageVideo.video.thumb.photo)) {
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.SHARED_VIDEO_THUMB,
                             messageVideo.video.thumb.photo.id, i, this.sharedMedia.message.id, messageVideo.video.thumb, this, getItemViewTag());
                 } else {
@@ -83,13 +82,13 @@ public class MediaView extends View implements ImageUpdatable {
                 final TdApi.PhotoSize[] photoSizes = messagePhoto.photo.photos;
                 final TdApi.PhotoSize photoSize = photoSizes[this.sharedMedia.photoIndex];
 
-                if (FileUtils.isTDFileLocal(photoSize.photo)) {
+                if (FileUtil.isTDFileLocal(photoSize.photo)) {
                     setLocalBitmapDrawable(FileManager.getManager().getImageFromFile(photoSize.photo.path, this, getItemViewTag()));
                 } else {
                     //фамб существует
                     if (this.sharedMedia.thumbIndex != -1) {
                         TdApi.PhotoSize photoSizeThumb = photoSizes[this.sharedMedia.thumbIndex];
-                        if (FileUtils.isTDFileEmpty(photoSizeThumb.photo)) {
+                        if (FileUtil.isTDFileEmpty(photoSizeThumb.photo)) {
                             //скачиваем фамб, а потом сразу полную картинку, если позиция видна
                             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.SHARED_PHOTO_THUMB,
                                     photoSizeThumb.photo.id, i, this.sharedMedia.message.id, this, photoSizeThumb, photoSize.photo.id, photoSize, i, getItemViewTag());
@@ -111,9 +110,9 @@ public class MediaView extends View implements ImageUpdatable {
 
     private void setLocalBitmapDrawable(BitmapDrawable bitmapDrawable) {
         if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
-            this.bitmapDrawable = bitmapDrawable;
+            this.mBitmapDrawable = bitmapDrawable;
         } else {
-            this.bitmapDrawable = null;
+            this.mBitmapDrawable = null;
         }
     }
 
@@ -123,15 +122,15 @@ public class MediaView extends View implements ImageUpdatable {
     }
 
     public void setBitmapDrawable(BitmapDrawable bitmapDrawable) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (this.bitmapDrawable != null) {
+        if (this.mBitmapDrawable != null) {
 
-            AndroidUtil.setCropBounds(this.bitmapDrawable,getWidth());
-            this.bitmapDrawable.draw(canvas);
+            AndroidUtil.setCropBounds(this.mBitmapDrawable, getWidth());
+            this.mBitmapDrawable.draw(canvas);
 
             if (sharedMedia.isVideo) {
                 int endIconX = getWidth() - Constant.DP_8;

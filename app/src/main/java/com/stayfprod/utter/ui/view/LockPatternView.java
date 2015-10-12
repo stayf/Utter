@@ -30,7 +30,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 
 import com.stayfprod.utter.Constant;
-import com.stayfprod.utter.util.LockUtils;
+import com.stayfprod.utter.util.LockUtil;
 
 public class LockPatternView extends View {
 
@@ -931,7 +931,7 @@ public class LockPatternView extends View {
     protected Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
         return new SavedState(superState,
-                LockUtils.patternToString(mPattern),
+                LockUtil.patternToString(mPattern),
                 mPatternDisplayMode.ordinal(), mInputEnabled, mInStealthMode,
                 mEnableHapticFeedback);
     }
@@ -941,7 +941,7 @@ public class LockPatternView extends View {
         final SavedState ss = (SavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
         setPattern(DisplayMode.Correct,
-                LockUtils.stringToPattern(ss.getSerializedPattern()));
+                LockUtil.stringToPattern(ss.getSerializedPattern()));
         mPatternDisplayMode = DisplayMode.values()[ss.getDisplayMode()];
         mInputEnabled = ss.isInputEnabled();
         mInStealthMode = ss.isInStealthMode();

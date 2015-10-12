@@ -15,7 +15,7 @@ import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.ui.view.chat.VoiceMsgView;
 import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -41,14 +41,32 @@ public class VoiceController extends Observable {
         }
     }
 
+    private volatile AudioTrack mAudioTrack;
+    private volatile int mDuration;
+    private volatile VoiceMsgView mVoiceMsgView;
+    private int mBufferSize;
+    private long mPcmDuration;
+    private String mPlayingFile;
+    private AtomicBoolean mIsPlaying = new AtomicBoolean(false);
+    private AtomicBoolean mFinishedProcess = new AtomicBoolean(true);
+
+    private volatile boolean mIsRecording;
+    private ByteBuffer mRecordVoiceBuffer = ByteBuffer.allocateDirect(1920);
+    private AudioRecord mVoiceRecord;
+    private long mStartRecordTime;
+    private int mMinRecordBufferSize;
+    private boolean mIsNeedSendRecord;
+    private int mMsgId;
+    private volatile boolean mRecordBlocker;
+
     @Override
     public boolean hasChanged() {
         return true;
     }
 
     public VoiceController() {
-        bufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
-        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 48000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
+        mBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 48000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, mBufferSize, AudioTrack.MODE_STREAM);
     }
 
     private native int isOpusFile(String s);
@@ -73,18 +91,6 @@ public class VoiceController extends Observable {
 
     private native void stopRecord();
 
-    private volatile AudioTrack audioTrack;
-    private volatile int duration;
-
-    private volatile VoiceMsgView voiceMsgView;
-
-    private int bufferSize;
-    private long pcmDuration;
-    private String playingFile;
-
-    private AtomicBoolean isPlaying = new AtomicBoolean(false);
-    private AtomicBoolean finishedProcess = new AtomicBoolean(true);
-
     public static VoiceController getController() {
         if (voiceController == null) {
             synchronized (VoiceController.class) {
@@ -97,18 +103,17 @@ public class VoiceController extends Observable {
     }
 
     public boolean isPlaying() {
-        return isPlaying.get();
+        return mIsPlaying.get();
     }
 
     public String getPlayingFile() {
-        return playingFile;
+        return mPlayingFile;
     }
 
     private void destroy() {
-        voiceMsgView = null;
-        playingFile = null;
+        mVoiceMsgView = null;
+        mPlayingFile = null;
         closeOpusFile();
-        //todo може release тут?
     }
 
     public void fullDestroy() {
@@ -116,9 +121,9 @@ public class VoiceController extends Observable {
         ThreadService.runTaskBackground(new Runnable() {
             @Override
             public void run() {
-                if (!finishedProcess.get()) {
+                if (!mFinishedProcess.get()) {
                     while (true) {
-                        if (finishedProcess.compareAndSet(true, false)) {
+                        if (mFinishedProcess.compareAndSet(true, false)) {
                             break;
                         }
                     }
@@ -129,27 +134,27 @@ public class VoiceController extends Observable {
     }
 
     private void stop() {
-        if (audioTrack != null) {
-            isPlaying.set(false);
-            audioTrack.stop();
+        if (mAudioTrack != null) {
+            mIsPlaying.set(false);
+            mAudioTrack.stop();
         }
     }
 
     public void pause() {
-        if (audioTrack != null) {
-            audioTrack.pause();
-            isPlaying.set(false);
-            if (voiceMsgView != null)
-                voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+        if (mAudioTrack != null) {
+            mAudioTrack.pause();
+            mIsPlaying.set(false);
+            if (mVoiceMsgView != null)
+                mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
         }
     }
 
     private void resume() {
-        if (!isPlaying.get()) {
-            audioTrack.play();
-            isPlaying.set(true);
-            if (voiceMsgView != null)
-                voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+        if (!mIsPlaying.get()) {
+            mAudioTrack.play();
+            mIsPlaying.set(true);
+            if (mVoiceMsgView != null)
+                mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
             processAudioAsync();
         }
     }
@@ -163,12 +168,12 @@ public class VoiceController extends Observable {
         });
     }
 
-    private void processAudioAsyncWithWaiting(final String file, final VoiceMsgView _voiceMsgView, final int _duration) {
+    private void processAudioAsyncWithWaiting(final String file, final VoiceMsgView voiceMsgView, final int duration) {
         ThreadService.runSingleTaskBackground(new Runnable() {
             @Override
             public void run() {
                 while (true) {
-                    if (finishedProcess.compareAndSet(true, false)) {
+                    if (mFinishedProcess.compareAndSet(true, false)) {
                         break;
                     }
                 }
@@ -177,10 +182,10 @@ public class VoiceController extends Observable {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (voiceMsgView != null) {
-                                voiceMsgView.setProgress(0);
-                                voiceMsgView.setTimer(ChatHelper.getDurationString(duration));
-                                voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                            if (mVoiceMsgView != null) {
+                                mVoiceMsgView.setProgress(0);
+                                mVoiceMsgView.setTimer(ChatHelper.getDurationString(mDuration));
+                                mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
                             }
 
                             semaphore.release();
@@ -192,23 +197,23 @@ public class VoiceController extends Observable {
                 }
 
                 closeOpusFile();
-                voiceMsgView = _voiceMsgView;
-                duration = _duration;
-                playingFile = file;
-                msgId = voiceMsgView.record.tgMessage.id;
+                mVoiceMsgView = voiceMsgView;
+                mDuration = duration;
+                mPlayingFile = file;
+                mMsgId = mVoiceMsgView.record.tgMessage.id;
                 if (isOpusFile(file) == 1) {
                     if (openOpusFile(file) == 1) {
-                        isPlaying.set(true);
-                        audioTrack.play();
-                        pcmDuration = getTotalPcmDuration();
+                        mIsPlaying.set(true);
+                        mAudioTrack.play();
+                        mPcmDuration = getTotalPcmDuration();
                         AndroidUtil.runInUI(new Runnable() {
                             @Override
                             public void run() {
-                                if (voiceMsgView != null) {
-                                    voiceMsgView.setProgress(0);
-                                    voiceMsgView.setMax((int) pcmDuration);
-                                    voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
-                                    voiceMsgView.setTimer(ChatHelper.getDurationString(0, duration));
+                                if (mVoiceMsgView != null) {
+                                    mVoiceMsgView.setProgress(0);
+                                    mVoiceMsgView.setMax((int) mPcmDuration);
+                                    mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                                    mVoiceMsgView.setTimer(ChatHelper.getDurationString(0, mDuration));
                                 }
                             }
                         });
@@ -220,11 +225,11 @@ public class VoiceController extends Observable {
     }
 
     private void processAudio() {
-        finishedProcess.set(false);
+        mFinishedProcess.set(false);
 
-        while (isPlaying.get()) {
-            ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
-            readOpusFile(buffer, bufferSize);
+        while (mIsPlaying.get()) {
+            ByteBuffer buffer = ByteBuffer.allocateDirect(mBufferSize);
+            readOpusFile(buffer, mBufferSize);
             int size = getSize();
             long pmcOffset = getPcmOffset();
             boolean isFinished = getFinished() == 1;
@@ -233,35 +238,35 @@ public class VoiceController extends Observable {
                 buffer.rewind();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                audioTrack.write(data, 0, size);
+                mAudioTrack.write(data, 0, size);
             }
 
             final int offset = (int) pmcOffset;
-            float scale = offset / (float) pcmDuration;
-            final int progressTime = (int) (duration * scale);
+            float scale = offset / (float) mPcmDuration;
+            final int progressTime = (int) (mDuration * scale);
 
             try {
                 final Semaphore semaphore = new Semaphore(0);
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        if (voiceMsgView != null) {
-                            voiceMsgView.setTimer(ChatHelper.getDurationString(progressTime, duration));
-                            voiceMsgView.setProgress(offset, true);
+                        if (mVoiceMsgView != null) {
+                            mVoiceMsgView.setTimer(ChatHelper.getDurationString(progressTime, mDuration));
+                            mVoiceMsgView.setProgress(offset, true);
                         }
                         semaphore.release();
                     }
                 });
                 semaphore.acquire();
                 if (isFinished) {
-                    isPlaying.set(false);
+                    mIsPlaying.set(false);
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (voiceMsgView != null) {
-                                voiceMsgView.setProgress(0);
-                                voiceMsgView.setTimer(ChatHelper.getDurationString(duration));
-                                voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                            if (mVoiceMsgView != null) {
+                                mVoiceMsgView.setProgress(0);
+                                mVoiceMsgView.setTimer(ChatHelper.getDurationString(mDuration));
+                                mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
                             }
                             semaphore.release();
                         }
@@ -276,52 +281,52 @@ public class VoiceController extends Observable {
             }
 
         }
-        finishedProcess.set(true);
+        mFinishedProcess.set(true);
     }
 
     private void play(String file) {
         if (isOpusFile(file) == 1) {
             if (openOpusFile(file) == 1) {
-                isPlaying.set(true);
-                audioTrack.play();
-                pcmDuration = getTotalPcmDuration();
-                voiceMsgView.setProgress(0);
-                voiceMsgView.setMax((int) pcmDuration);
-                voiceMsgView.setTimer(ChatHelper.getDurationString(0, duration));
-                voiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                mIsPlaying.set(true);
+                mAudioTrack.play();
+                mPcmDuration = getTotalPcmDuration();
+                mVoiceMsgView.setProgress(0);
+                mVoiceMsgView.setMax((int) mPcmDuration);
+                mVoiceMsgView.setTimer(ChatHelper.getDurationString(0, mDuration));
+                mVoiceMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
                 processAudioAsync();
             }
         }
     }
 
-    public void rebuildLinks(final String file, VoiceMsgView _voiceMsgView, int _duration) {
-        this.voiceMsgView = _voiceMsgView;
-        this.duration = _duration;
-        this.playingFile = file;
-        this.voiceMsgView.setMax((int) pcmDuration);
+    public void rebuildLinks(final String file, VoiceMsgView voiceMsgView, int duration) {
+        this.mVoiceMsgView = voiceMsgView;
+        this.mDuration = duration;
+        this.mPlayingFile = file;
+        this.mVoiceMsgView.setMax((int) mPcmDuration);
     }
 
-    public void cleanLinks(VoiceMsgView _voiceMsgView) {
-        if (this.voiceMsgView == _voiceMsgView) {
-            this.voiceMsgView = null;
+    public void cleanLinks(VoiceMsgView voiceMsgView) {
+        if (this.mVoiceMsgView == voiceMsgView) {
+            this.mVoiceMsgView = null;
         }
     }
 
     public int getMsgId() {
-        return msgId;
+        return mMsgId;
     }
 
-    public void startToPlayVoice(final String file, VoiceMsgView _voiceMsgView, int _duration) {
+    public void startToPlayVoice(final String file, VoiceMsgView voiceMsgView, int duration) {
         AudioPlayer.getPlayer().pause();
-        if (this.voiceMsgView == null && playingFile == null) {
-            this.voiceMsgView = _voiceMsgView;
-            this.duration = _duration;
-            this.playingFile = file;
-            this.msgId = voiceMsgView.record.tgMessage.id;
+        if (this.mVoiceMsgView == null && mPlayingFile == null) {
+            this.mVoiceMsgView = voiceMsgView;
+            this.mDuration = duration;
+            this.mPlayingFile = file;
+            this.mMsgId = mVoiceMsgView.record.tgMessage.id;
             play(file);
         } else {
             try {
-                if (this.voiceMsgView.record.tgMessage.id == _voiceMsgView.record.tgMessage.id) {
+                if (this.mVoiceMsgView.record.tgMessage.id == voiceMsgView.record.tgMessage.id) {
                     resume();
                     return;
                 }
@@ -330,36 +335,25 @@ public class VoiceController extends Observable {
             }
             //если пришел другой трек
             stop();
-            processAudioAsyncWithWaiting(file, _voiceMsgView, _duration);
+            processAudioAsyncWithWaiting(file, voiceMsgView, duration);
         }
     }
 
-    private volatile boolean isRecording;
-
-    private ByteBuffer recordVoiceBuffer = ByteBuffer.allocateDirect(1920);
-    private AudioRecord voiceRecord;
-    private long startRecordTime;
-    private int minRecordBufferSize;
-    private boolean isNeedSendRecord;
-    private int msgId;
-    private volatile boolean recordBlocker;
-
     public boolean startRecordVoice() {
-        if (!recordBlocker) {
-            recordBlocker = true;
-            final File recordFile = FileUtils.createRecordVoiceFile();
+        if (!mRecordBlocker) {
+            mRecordBlocker = true;
+            final File recordFile = FileUtil.createRecordVoiceFile();
             if (startRecord(recordFile.getAbsolutePath()) == 1) {
-                minRecordBufferSize = 3 * AudioRecord.getMinBufferSize(16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-                voiceRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, 16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minRecordBufferSize);
+                mMinRecordBufferSize = 3 * AudioRecord.getMinBufferSize(16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+                mVoiceRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, 16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, mMinRecordBufferSize);
                 try {
-                    voiceRecord.startRecording();
-                    startRecordTime = SystemClock.uptimeMillis();
-                    isRecording = true;
+                    mVoiceRecord.startRecording();
+                    mStartRecordTime = SystemClock.uptimeMillis();
+                    mIsRecording = true;
                     recordVoicePartly(recordFile);
                 } catch (Exception e) {
-                    //FileUtils.deleteFile(recordFile.getAbsolutePath());
                     Log.w(LOG, "", e);
-                    recordBlocker = false;
+                    mRecordBlocker = false;
                 }
                 return true;
             }
@@ -372,10 +366,10 @@ public class VoiceController extends Observable {
             @Override
             public void run() {
                 try {
-                    while (isRecording) {
+                    while (mIsRecording) {
                         try {
-                            short[] shortBuffer = new short[minRecordBufferSize];
-                            int len = voiceRecord.read(shortBuffer, 0, shortBuffer.length);
+                            short[] shortBuffer = new short[mMinRecordBufferSize];
+                            int len = mVoiceRecord.read(shortBuffer, 0, shortBuffer.length);
                             if (len > 0) {
                                 int voiceAmplitude = 0;
 
@@ -388,15 +382,15 @@ public class VoiceController extends Observable {
 
                                 while (tmpBuffer.hasRemaining()) {
                                     int remLimit = -1;
-                                    if (tmpBuffer.remaining() > recordVoiceBuffer.remaining()) {
+                                    if (tmpBuffer.remaining() > mRecordVoiceBuffer.remaining()) {
                                         remLimit = tmpBuffer.limit();
-                                        tmpBuffer.limit(recordVoiceBuffer.remaining() + tmpBuffer.position());
+                                        tmpBuffer.limit(mRecordVoiceBuffer.remaining() + tmpBuffer.position());
                                     }
-                                    recordVoiceBuffer.put(tmpBuffer);
-                                    if (recordVoiceBuffer.position() == recordVoiceBuffer.limit()) {
-                                        int length = recordVoiceBuffer.limit();
-                                        if (writeFrame(recordVoiceBuffer, length) != 0) {
-                                            recordVoiceBuffer.rewind();
+                                    mRecordVoiceBuffer.put(tmpBuffer);
+                                    if (mRecordVoiceBuffer.position() == mRecordVoiceBuffer.limit()) {
+                                        int length = mRecordVoiceBuffer.limit();
+                                        if (writeFrame(mRecordVoiceBuffer, length) != 0) {
+                                            mRecordVoiceBuffer.rewind();
                                         }
                                     }
                                     if (remLimit != -1) {
@@ -406,52 +400,49 @@ public class VoiceController extends Observable {
                                 notifyObservers(new NotificationObject(NotificationObject.UPDATE_RECORD_VOICE_STATE,
                                         new Object[]{
                                                 voiceAmplitude,
-                                                (int) ((SystemClock.uptimeMillis() - startRecordTime) / 1000)}));
+                                                (int) ((SystemClock.uptimeMillis() - mStartRecordTime) / 1000)}));
                             }
                         } catch (Throwable e) {
                             Crashlytics.logException(e);
-                            isRecording = false;
+                            mIsRecording = false;
                         }
                     }
 
-                    if (voiceRecord != null) {
-                        //fixme java.lang.IllegalStateException: stop() called on an uninitialized AudioRecord.
-                        //http://stackoverflow.com/questions/4843739/audiorecord-object-not-initializing
-                        //voiceRecord.stop();
-                        voiceRecord.release();
-                        voiceRecord = null;
+                    if (mVoiceRecord != null) {
+                        mVoiceRecord.release();
+                        mVoiceRecord = null;
                         stopRecord();
                     }
 
                     //тут либо отменяем либо отсылаем полученный файл
-                    if (isNeedSendRecord) {
+                    if (mIsNeedSendRecord) {
                         ChatManager chatManager = ChatManager.getManager();
-                        int secDuration = (int) ((SystemClock.uptimeMillis() - startRecordTime) / 1000);
+                        int secDuration = (int) ((SystemClock.uptimeMillis() - mStartRecordTime) / 1000);
                         if (secDuration > 1 && recordFile != null) {
                             chatManager.sendMessage(chatManager.createVoiceMsg(recordFile.getAbsolutePath(), secDuration));
                         } else {
                             if (recordFile != null) {
-                                FileUtils.deleteFile(recordFile.getAbsolutePath());
+                                FileUtil.deleteFile(recordFile.getAbsolutePath());
                             }
                         }
                     } else {
                         if (recordFile != null) {
-                            FileUtils.deleteFile(recordFile.getAbsolutePath());
+                            FileUtil.deleteFile(recordFile.getAbsolutePath());
                         }
                     }
                 } catch (Throwable e) {
                     Crashlytics.logException(e);
                 }
-                isNeedSendRecord = false;
-                recordBlocker = false;
+                mIsNeedSendRecord = false;
+                mRecordBlocker = false;
             }
         });
     }
 
     public void stopRecordVoice(boolean isNeedSendRecord) {
-        if (isRecording) {
-            this.isNeedSendRecord = isNeedSendRecord;
-            isRecording = false;
+        if (mIsRecording) {
+            this.mIsNeedSendRecord = isNeedSendRecord;
+            mIsRecording = false;
         }
     }
 }

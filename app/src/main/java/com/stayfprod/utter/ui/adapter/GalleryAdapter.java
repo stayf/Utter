@@ -22,17 +22,14 @@ import android.widget.TextView;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.ui.listener.AnimatorEndListener;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.App;
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.util.Logs;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
-public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> /*implements Observer */ {
+public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
+
     public static final int IMAGE_SIZE = AndroidUtil.dp(100);
     private static final int PAD = AndroidUtil.dp(7);
     private static final String[] PROJECTION = {
@@ -51,16 +48,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
     + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;*/
     private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
 
-    private volatile int limit = 50;
-
-    private Context context;
-    private Cursor cursor;
-    private CursorLoader cursorLoader;
-    private GalleryAdapter galleryAdapter;
-    private RecyclerView recyclerViewGallery;
-    private SparseArray<StorageObject> selectedItems = new SparseArray<StorageObject>();
-    private List<StorageObject> imageList = new ArrayList<StorageObject>();
-
     public static class StorageObject {
         public int id;
         public String path;
@@ -73,37 +60,45 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
         }
     }
 
+    private volatile int mLimit = 50;
+
+    private Context mContext;
+    private Cursor mCursor;
+    private CursorLoader mCursorLoader;
+    private RecyclerView mRecyclerViewGallery;
+    private SparseArray<StorageObject> mSelectedItems = new SparseArray<StorageObject>();
+    private List<StorageObject> mImageList = new ArrayList<StorageObject>();
+
     public SparseArray<StorageObject> getSelectedItems() {
-        return selectedItems;
+        return mSelectedItems;
     }
 
-    //todo http://stackoverflow.com/questions/15517920/how-do-cursorloader-automatically-updates-the-view-even-if-the-app-is-inactive
     public void updateGallery() {
-        limit = 1;
-        cursor = cursorLoader.loadInBackground();
+        mLimit = 1;
+        mCursor = mCursorLoader.loadInBackground();
     }
 
     public void rebuildPosSelectedItems() {
         int key = 0;
         SparseArray<StorageObject> sparseArray = new SparseArray<>();
-        for (int i = 0; i < selectedItems.size(); i++) {
-            key = selectedItems.keyAt(i);
-            GalleryAdapter.StorageObject object = selectedItems.get(key);
+        for (int i = 0; i < mSelectedItems.size(); i++) {
+            key = mSelectedItems.keyAt(i);
+            GalleryAdapter.StorageObject object = mSelectedItems.get(key);
             object.pos = object.pos + 1;
             sparseArray.put(object.pos, object);
         }
-        selectedItems.clear();
+        mSelectedItems.clear();
         for (int i = 0; i < sparseArray.size(); i++) {
             key = sparseArray.keyAt(i);
             GalleryAdapter.StorageObject object = sparseArray.get(key);
-            selectedItems.put(object.pos, object);
+            mSelectedItems.put(object.pos, object);
         }
         sparseArray.clear();
     }
 
     private void rebuildImageIndex() {
-        for (int i = 0; i < imageList.size(); i++) {
-            GalleryAdapter.StorageObject storageObject = imageList.get(i);
+        for (int i = 0; i < mImageList.size(); i++) {
+            GalleryAdapter.StorageObject storageObject = mImageList.get(i);
             if (i > 0) {
                 storageObject.pos++;
             }
@@ -111,58 +106,55 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
     }
 
     public GalleryAdapter(Context context, RecyclerView localRecyclerViewGallery) {
-        this.galleryAdapter = this;
-        this.recyclerViewGallery = localRecyclerViewGallery;
-        this.context = context;
-        cursorLoader = new CursorLoader(
+        this.mRecyclerViewGallery = localRecyclerViewGallery;
+        this.mContext = context;
+        mCursorLoader = new CursorLoader(
                 context,
                 QUERY_URI,
                 PROJECTION,
                 SELECTION,
-                null, // Selection args (none).
-                MediaStore.Files.FileColumns.DATE_ADDED + " DESC" + " limit " + limit
+                null,
+                MediaStore.Files.FileColumns.DATE_ADDED + " DESC" + " limit " + mLimit
         ) {
             @Override
             public Cursor loadInBackground() {
-                cursor = super.loadInBackground();
-                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
-                int columnPath = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                mCursor = super.loadInBackground();
+                int columnIndex = mCursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
+                int columnPath = mCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 
-                if (limit == 1) {
-                    cursor.moveToNext();
-                    imageList.add(0, new StorageObject(cursor.getInt(columnIndex), cursor.getString(columnPath), 0));
+                if (mLimit == 1) {
+                    mCursor.moveToNext();
+                    mImageList.add(0, new StorageObject(mCursor.getInt(columnIndex), mCursor.getString(columnPath), 0));
                     rebuildPosSelectedItems();
                     rebuildImageIndex();
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (galleryAdapter != null) {
-                                galleryAdapter.notifyDataSetChanged();
-                                recyclerViewGallery.scrollToPosition(0);
-                            }
+                            GalleryAdapter.this.notifyDataSetChanged();
+                            mRecyclerViewGallery.scrollToPosition(0);
                         }
                     });
                 } else {
                     int i = 0;
-                    while (cursor.moveToNext()) {
-                        String fullPath = cursor.getString(columnPath);
+                    while (mCursor.moveToNext()) {
+                        String fullPath = mCursor.getString(columnPath);
                         if (new File(fullPath).exists()) {
-                            imageList.add(new StorageObject(cursor.getInt(columnIndex), fullPath, i));
+                            mImageList.add(new StorageObject(mCursor.getInt(columnIndex), fullPath, i));
                             i++;
                         }
                     }
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            galleryAdapter.notifyDataSetChanged();
+                            GalleryAdapter.this.notifyDataSetChanged();
                         }
                     });
                 }
-                cursor.close();
-                return cursor;
+                mCursor.close();
+                return mCursor;
             }
         };
-        cursorLoader.loadInBackground();
+        mCursorLoader.loadInBackground();
     }
 
     @Override
@@ -186,7 +178,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
         holder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         holder.imageView.setLayoutParams(params);
 
-        if (selectedItems.get(holder.getAdapterPosition()) != null) {
+        if (mSelectedItems.get(holder.getAdapterPosition()) != null) {
             holder.imageView.setVisibility(View.VISIBLE);
             holder.attachCheck.setVisibility(View.VISIBLE);
             holder.attachCheck.setScaleX(1.0f);
@@ -197,7 +189,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
         }
 
         AndroidUtil.setImageDrawable(holder.image, FileManager.getManager().getBitmapFromGallery(
-                imageList.get(holder.getAdapterPosition()).path, imageList.get(holder.getAdapterPosition()).id, holder.image, context, holder.image.getTag().toString()));
+                mImageList.get(holder.getAdapterPosition()).path, mImageList.get(holder.getAdapterPosition()).id, holder.image, mContext, holder.image.getTag().toString()));
 
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -206,27 +198,27 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
                 View parent = ((View) v.getParent().getParent());
                 TextView b = (TextView) parent.findViewById(R.id.choose_from_gallery_text);
 
-                if (selectedItems.get(holder.getAdapterPosition()) != null) {
-                    selectedItems.remove(holder.getAdapterPosition());
+                if (mSelectedItems.get(holder.getAdapterPosition()) != null) {
+                    mSelectedItems.remove(holder.getAdapterPosition());
                     holder.imageView.setVisibility(View.GONE);
                     hideButton(holder.attachCheck);
-                    if (selectedItems.size() == 0) {
+                    if (mSelectedItems.size() == 0) {
                         b.setText(AndroidUtil.getResourceString(R.string.choose_from_gallery));
                     } else {
-                        if (selectedItems.size() > 1) {
-                            b.setText(AndroidUtil.getResourceString(R.string.send_) + selectedItems.size() + AndroidUtil.getResourceString(R.string._photos));
+                        if (mSelectedItems.size() > 1) {
+                            b.setText(AndroidUtil.getResourceString(R.string.send_) + mSelectedItems.size() + AndroidUtil.getResourceString(R.string._photos));
                         } else {
-                            b.setText(AndroidUtil.getResourceString(R.string.send_) + selectedItems.size() + AndroidUtil.getResourceString(R.string._photo));
+                            b.setText(AndroidUtil.getResourceString(R.string.send_) + mSelectedItems.size() + AndroidUtil.getResourceString(R.string._photo));
                         }
                     }
 
                 } else {
-                    StorageObject object = imageList.get(holder.getAdapterPosition());
-                    selectedItems.put(holder.getAdapterPosition(), object);
-                    if (selectedItems.size() > 1) {
-                        b.setText(AndroidUtil.getResourceString(R.string.send_) + selectedItems.size() + AndroidUtil.getResourceString(R.string._photos));
+                    StorageObject object = mImageList.get(holder.getAdapterPosition());
+                    mSelectedItems.put(holder.getAdapterPosition(), object);
+                    if (mSelectedItems.size() > 1) {
+                        b.setText(AndroidUtil.getResourceString(R.string.send_) + mSelectedItems.size() + AndroidUtil.getResourceString(R.string._photos));
                     } else {
-                        b.setText(AndroidUtil.getResourceString(R.string.send_) + selectedItems.size() + AndroidUtil.getResourceString(R.string._photo));
+                        b.setText(AndroidUtil.getResourceString(R.string.send_) + mSelectedItems.size() + AndroidUtil.getResourceString(R.string._photo));
                     }
                     holder.imageView.setVisibility(View.VISIBLE);
                     showButton(holder.attachCheck);
@@ -264,9 +256,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return imageList.size();
+        return mImageList.size();
     }
-
 
     public void update() {
         updateGallery();

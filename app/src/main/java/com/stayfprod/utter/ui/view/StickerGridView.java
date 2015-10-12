@@ -4,7 +4,7 @@ package com.stayfprod.utter.ui.view;
 import android.content.Context;
 import android.widget.GridView;
 
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.ui.adapter.StickerAdapter;
 import com.stayfprod.utter.manager.StickerManager;
 
@@ -15,12 +15,12 @@ public class StickerGridView extends EmojiconGridView {
     public StickerGridView(Context context) {
 
         gridView = new GridView(context);
-        gridView.setColumnWidth(EmojiConstants.STICKER_THUMB_WIDTH);
+        gridView.setColumnWidth(EmojConstant.sStickerThumbWidth);
         gridView.setHorizontalSpacing(0);
         gridView.setNumColumns(GridView.AUTO_FIT);
-        gridView.setVerticalSpacing(EmojiConstants.dp(12));
+        gridView.setVerticalSpacing(EmojConstant.dp(12));
         gridView.setVerticalScrollBarEnabled(true);
-        gridView.setPadding(0, EmojiConstants.dp(12), 0, EmojiConstants.dp(12));
+        gridView.setPadding(0, EmojConstant.dp(12), 0, EmojConstant.dp(12));
         gridView.setClipToPadding(false);
 
         GridView.LayoutParams layoutParams = new GridView.LayoutParams(

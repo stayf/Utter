@@ -23,11 +23,10 @@ public class IntermediateActivity extends AbstractActivity {
         SHARED_CONTACT
     }
 
-    private TextView title;
-    private TypeList typeList;
-    private Action action;
-    private Integer botId;
-    private Integer userId;
+    private TypeList mTypeList;
+    private Action mAction;
+    private Integer mBotId;
+    private Integer mUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +35,14 @@ public class IntermediateActivity extends AbstractActivity {
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            typeList = (TypeList) bundle.get("typeList");
-            action = (Action) bundle.get("action");
-            botId = bundle.getInt("botId");
-            userId = bundle.getInt("userId");
+            mTypeList = (TypeList) bundle.get("typeList");
+            mAction = (Action) bundle.get("action");
+            mBotId = bundle.getInt("botId");
+            mUserId = bundle.getInt("userId");
         }
 
         IntermediateManager intermediateManager = IntermediateManager.getManager();
-        intermediateManager.initRecycleView(this, typeList, action, botId, userId);
+        intermediateManager.initRecycleView(this, mTypeList, mAction, mBotId, mUserId);
 
         initToolbar();
     }
@@ -62,12 +61,12 @@ public class IntermediateActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void initToolbar() {
-        Toolbar toolbar = findView(R.id.a_actionBar);
+        Toolbar toolbar = findView(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            title = (TextView) toolbar.findViewById(R.id.t_title);
+            TextView title = (TextView) toolbar.findViewById(R.id.t_title);
 
-            switch (typeList) {
+            switch (mTypeList) {
                 case USERS_ONLY:
                     title.setText(AndroidUtil.getResourceString(R.string.select_user));
                     break;

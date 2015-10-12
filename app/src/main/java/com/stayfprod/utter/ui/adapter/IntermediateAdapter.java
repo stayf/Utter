@@ -12,17 +12,17 @@ import java.util.List;
 
 public class IntermediateAdapter extends AbstractLoadingAdapter<AbstractHolder> {
 
-    private List<ChatInfo> records;
-    private Context context;
+    private List<ChatInfo> mRecords;
+    private Context mContext;
 
     public IntermediateAdapter(List<ChatInfo> records, Context context) {
-        this.records = records;
-        this.context = context;
+        this.mRecords = records;
+        this.mContext = context;
     }
 
     @Override
     public AbstractHolder onCreateFooterViewHolder(ViewGroup parent, int viewType) {
-        return new LoadingHolder(context);
+        return new LoadingHolder(mContext);
     }
 
     @Override
@@ -32,19 +32,19 @@ public class IntermediateAdapter extends AbstractLoadingAdapter<AbstractHolder> 
 
     @Override
     public AbstractHolder onCreateBasicItemViewHolder(ViewGroup parent, int viewType) {
-        return new IntermediateHolder(context, records);
+        return new IntermediateHolder(mContext, mRecords);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void onBindBasicItemView(AbstractHolder holder, int position) {
-        ChatInfo record = records.get(position);
-        holder.setValues(record, position, context);
+        ChatInfo record = mRecords.get(position);
+        holder.setValues(record, position, mContext);
     }
 
     @Override
     public int getBasicItemCount() {
-        return records.size();
+        return mRecords.size();
     }
 
     @Override

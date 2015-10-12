@@ -32,8 +32,6 @@ import com.stayfprod.utter.ui.component.MusicBarWidget;
 import com.stayfprod.utter.ui.view.DisabledViewPager;
 import com.stayfprod.utter.util.AndroidUtil;
 
-import org.drinkless.td.libcore.telegram.TdApi;
-
 import java.util.Observable;
 import java.util.Observer;
 
@@ -42,47 +40,43 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
     public static final int SHARED_MEDIA = 0;
     public static final int SHARED_AUDIO = 1;
 
-    public static boolean isOpenedSharedMediaActivity;
+    public static boolean sIsOpenedSharedMediaActivity;
+    public static int sMaxRowSpans;
 
-    private Spinner spinner;
+    private Spinner mSpinner;
     private DisabledViewPager mPager;
     private LayoutInflater mLayoutInflater;
-
-    public static int MAX_ROW_SPANS;
+    private SharedMediaAdapter mSharedMediaAdapter;
+    private SharedAudioAdapter mSharedAudioAdapter;
+    private MusicBarWidget mMusicBarWidget;
+    private int mSelectedPage;
+    private boolean mOpenPlayerByBack;
 
     public Toolbar forwardToolbar;
-    public ImageView t_forward_cancel;
-    public ImageView t_forward_delete;
-    public ImageView t_forward_forward;
-    public TextView t_forward_counter;
-
-    private SharedMediaAdapter sharedMediaAdapter;
-    private SharedAudioAdapter sharedAudioAdapter;
-
-    private int selectedPage;
+    public ImageView forwardCancel;
+    public ImageView forwardDelete;
+    public ImageView forwardImage;
+    public TextView forwardCounter;
     public long chatId;
-    private boolean openPlayerByBack;
-
-    private MusicBarWidget musicBarWidget;
 
     @Override
     protected void onStart() {
-        isOpenedSharedMediaActivity = true;
+        sIsOpenedSharedMediaActivity = true;
         super.onStart();
-        musicBarWidget.checkOnStart();
+        mMusicBarWidget.checkOnStart();
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
         audioPlayer.addObserver(this);
 
         if (audioPlayer.isNeedUpdateSharedAudioActivity()) {
             audioPlayer.setIsNeedUpdateSharedAudioActivity(false);
-            if (sharedAudioAdapter != null)
-                sharedAudioAdapter.notifyDataSetChanged();
+            if (mSharedAudioAdapter != null)
+                mSharedAudioAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     protected void onStop() {
-        isOpenedSharedMediaActivity = false;
+        sIsOpenedSharedMediaActivity = false;
         super.onStop();
     }
 
@@ -96,7 +90,7 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        MAX_ROW_SPANS = SharedMediaActivity.WINDOW_CURRENT_WIDTH / SharedMediaAdapter.LAYOUT_HEIGHT;
+        sMaxRowSpans = SharedMediaActivity.sWindowCurrentWidth / SharedMediaAdapter.LAYOUT_HEIGHT;
     }
 
     @Override
@@ -114,9 +108,9 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            selectedPage = bundle.getInt("selectedPage", SHARED_MEDIA);
+            mSelectedPage = bundle.getInt("selectedPage", SHARED_MEDIA);
             chatId = bundle.getLong("chatId", 0L);
-            openPlayerByBack = bundle.getBoolean("openPlayerByBack", false);
+            mOpenPlayerByBack = bundle.getBoolean("openPlayerByBack", false);
         }
 
         mLayoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -143,29 +137,29 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
                     case SHARED_MEDIA:
                     default:
                         itemView = mLayoutInflater.inflate(R.layout.pager_shared_media, container, false);
-                        RecyclerView a_shared_media_list = (RecyclerView) itemView.findViewById(R.id.a_shared_media_list);
+                        RecyclerView sharedMediaList = (RecyclerView) itemView.findViewById(R.id.a_shared_media_list);
 
-                        MAX_ROW_SPANS = SharedMediaActivity.WINDOW_CURRENT_WIDTH / SharedMediaAdapter.LAYOUT_HEIGHT;
-                        GridLayoutManager gridLayoutManager = new GridLayoutManager(SharedMediaActivity.this, MAX_ROW_SPANS);
+                        sMaxRowSpans = SharedMediaActivity.sWindowCurrentWidth / SharedMediaAdapter.LAYOUT_HEIGHT;
+                        GridLayoutManager gridLayoutManager = new GridLayoutManager(SharedMediaActivity.this, sMaxRowSpans);
 
                         sharedMediaManager.cleanSearchMedia(false, true);
-                        sharedMediaAdapter = new SharedMediaAdapter(sharedMediaManager.getPhotoAndVideoSharedMessages(), SharedMediaActivity.this, gridLayoutManager);
+                        mSharedMediaAdapter = new SharedMediaAdapter(sharedMediaManager.getPhotoAndVideoSharedMessages(), SharedMediaActivity.this, gridLayoutManager);
 
-                        a_shared_media_list.setLayoutManager(gridLayoutManager);
-                        a_shared_media_list.setAdapter(sharedMediaAdapter);
+                        sharedMediaList.setLayoutManager(gridLayoutManager);
+                        sharedMediaList.setAdapter(mSharedMediaAdapter);
 
                         sharedMediaManager.searchMedia(chatId, UserManager.getManager().getCurrUserId(), false, true);
 
                         break;
                     case SHARED_AUDIO:
                         itemView = mLayoutInflater.inflate(R.layout.pager_shared_music, container, false);
-                        RecyclerView a_shared_music_list = (RecyclerView) itemView.findViewById(R.id.a_shared_music_list);
+                        RecyclerView sharedMusicList = (RecyclerView) itemView.findViewById(R.id.a_shared_music_list);
 
                         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(SharedMediaActivity.this);
                         sharedMediaManager.cleanSearchAudio();
-                        sharedAudioAdapter = new SharedAudioAdapter(sharedMediaManager.getAudioMessages(), SharedMediaActivity.this, linearLayoutManager);
-                        a_shared_music_list.setLayoutManager(linearLayoutManager);
-                        a_shared_music_list.setAdapter(sharedAudioAdapter);
+                        mSharedAudioAdapter = new SharedAudioAdapter(sharedMediaManager.getAudioMessages(), SharedMediaActivity.this, linearLayoutManager);
+                        sharedMusicList.setLayoutManager(linearLayoutManager);
+                        sharedMusicList.setAdapter(mSharedAudioAdapter);
 
                         sharedMediaManager.searchAudio(chatId, UserManager.getManager().getCurrUserId());
                         break;
@@ -189,7 +183,7 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
 
             @Override
             public void onPageSelected(int position) {
-                spinner.setSelection(position, true);
+                mSpinner.setSelection(position, true);
             }
 
             @Override
@@ -198,26 +192,26 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
             }
         });
 
-        mPager.setCurrentItem(selectedPage);
+        mPager.setCurrentItem(mSelectedPage);
 
-        musicBarWidget = new MusicBarWidget();
-        musicBarWidget.init(this);
-        musicBarWidget.setOpenPlayerByBack(openPlayerByBack);
+        mMusicBarWidget = new MusicBarWidget();
+        mMusicBarWidget.init(this);
+        mMusicBarWidget.setOpenPlayerByBack(mOpenPlayerByBack);
 
     }
 
     private void initForwardToolbar() {
         forwardToolbar = (Toolbar) findViewById(R.id.a_actionBarOne);
 
-        t_forward_cancel = (ImageView) forwardToolbar.findViewById(R.id.t_forward_cancel);
-        t_forward_counter = (TextView) forwardToolbar.findViewById(R.id.t_forward_counter);
+        forwardCancel = (ImageView) forwardToolbar.findViewById(R.id.t_forward_cancel);
+        forwardCounter = (TextView) forwardToolbar.findViewById(R.id.t_forward_counter);
 
-        t_forward_delete = (ImageView) forwardToolbar.findViewById(R.id.t_forward_delete);
-        t_forward_forward = (ImageView) forwardToolbar.findViewById(R.id.t_forward_forward);
+        forwardDelete = (ImageView) forwardToolbar.findViewById(R.id.t_forward_delete);
+        forwardImage = (ImageView) forwardToolbar.findViewById(R.id.t_forward_forward);
 
-        t_forward_counter.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-        t_forward_counter.setTextColor(Color.WHITE);
-        t_forward_counter.setTextSize(20);
+        forwardCounter.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+        forwardCounter.setTextColor(Color.WHITE);
+        forwardCounter.setTextSize(20);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -226,8 +220,8 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
         forwardToolbar.setVisibility(View.GONE);
         Toolbar mainToolBar = (Toolbar) findViewById(R.id.a_actionBarTwo);
 
-        spinner = (Spinner) findViewById(R.id.t_shared_spinner);
-        spinner.setBackgroundColor(Color.WHITE);
+        mSpinner = (Spinner) findViewById(R.id.t_shared_spinner);
+        mSpinner.setBackgroundColor(Color.WHITE);
         CharSequence[] strings = getResources().getTextArray(R.array.shared_list);
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, strings) {
             @Override
@@ -251,12 +245,12 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
         };
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mSpinner.setAdapter(adapter);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mPager.setCurrentItem(position);
-                selectedPage = position;
+                mSelectedPage = position;
             }
 
             @Override
@@ -291,8 +285,6 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
         SharedMediaManager.getManager().deleteObserver(this);
         AudioPlayer.getPlayer().deleteObserver(this);
         //info очищаяю после отправки
-        /*SharedMediaManager.getManager().cleanSelectedMusic();
-        SharedMediaManager.getManager().cleanSelectedMedia();*/
         finish();
     }
 
@@ -302,18 +294,18 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
             NotificationObject nObject = (NotificationObject) data;
             switch (nObject.getMessageCode()) {
                 case NotificationObject.UPDATE_SHARED_MEDIA_PAGE: {
-                    selectedPage = (int) nObject.getWhat();
+                    mSelectedPage = (int) nObject.getWhat();
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            mPager.setCurrentItem(selectedPage);
+                            mPager.setCurrentItem(mSelectedPage);
                         }
                     });
 
                     break;
                 }
                 case NotificationObject.UPDATE_MUSIC_PLAYER: {
-                    musicBarWidget.checkUpdate((Object[]) nObject.getWhat());
+                    mMusicBarWidget.checkUpdate((Object[]) nObject.getWhat());
                     break;
                 }
                 case NotificationObject.UPDATE_SHARED_MEDIA_LIST:
@@ -321,8 +313,8 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (sharedMediaAdapter != null) {
-                                sharedMediaAdapter.notifyDataSetChanged();
+                            if (mSharedMediaAdapter != null) {
+                                mSharedMediaAdapter.notifyDataSetChanged();
                             }
                         }
                     });
@@ -331,8 +323,8 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (sharedAudioAdapter != null) {
-                                sharedAudioAdapter.notifyDataSetChanged();
+                            if (mSharedAudioAdapter != null) {
+                                mSharedAudioAdapter.notifyDataSetChanged();
                             }
                         }
                     });
@@ -346,8 +338,8 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (sharedAudioAdapter != null) {
-                                sharedAudioAdapter.notifyDataSetChanged();
+                            if (mSharedAudioAdapter != null) {
+                                mSharedAudioAdapter.notifyDataSetChanged();
                             }
                         }
                     });

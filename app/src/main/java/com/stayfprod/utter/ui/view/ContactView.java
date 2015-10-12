@@ -30,7 +30,7 @@ import com.stayfprod.utter.ui.activity.ProfileActivity;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.activity.ChatActivity;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -39,37 +39,39 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
     private static final BitmapDrawable GROUP_USERS_DRAWABLE;
     private static final int PROFILE_TRANSLATE_X = AndroidUtil.dp(68);
     private static final TextPaint TEXT_PAINT_BLUE;
+    private static final int TEXT_MARGIN_LEFT = Constant.DP_10;
+    private static final int TEXT_START_X = IconDrawable.CHAT_LIST_MARGIN_LEFT + IconFactory.Type.CHAT_LIST.getHeight() + TEXT_MARGIN_LEFT;
+    public static final int LAYOUT_HEIGHT = DialogView.LAYOUT_HEIGHT;
+
+    private static volatile boolean sIsClickedInProfile;
+    private static volatile boolean sIsClickedInNonProfile;
 
     static {
-        GROUP_USERS_DRAWABLE = FileUtils.decodeImageResource(R.mipmap.ic_groupusers);
+        GROUP_USERS_DRAWABLE = FileUtil.decodeImageResource(R.mipmap.ic_groupusers);
         TEXT_PAINT_BLUE = new TextPaint(DialogView.TEXT_PAINT);
         TEXT_PAINT_BLUE.setColor(0xFF569ACE);
     }
 
+    private boolean mIsFirstItem;
+    private boolean mIsInProfile;
+    private IconDrawable mIconDrawable;
+
     public Contact record;
-    private IconDrawable iconDrawable;
-
-    public static int LAYOUT_HEIGHT = DialogView.LAYOUT_HEIGHT;
-    private static final int TEXT_MARGIN_LEFT = Constant.DP_10;
-    private static final int TEXT_START_X = IconDrawable.CHAT_LIST_MARGIN_LEFT + IconFactory.Type.CHAT_LIST.getHeight() + TEXT_MARGIN_LEFT;
-
-    private boolean isFirstItem;
-    private boolean isInProfile;
 
     public void setIsInProfile(boolean isInProfile) {
-        this.isInProfile = isInProfile;
+        this.mIsInProfile = isInProfile;
     }
 
     public void setIsFirstItem(boolean isFirstItem) {
-        this.isFirstItem = isFirstItem;
+        this.mIsFirstItem = isFirstItem;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         int i = getOrientatedIndex();
 
-        if (isInProfile) {
-            if (isFirstItem) {
+        if (mIsInProfile) {
+            if (mIsFirstItem) {
                 GROUP_USERS_DRAWABLE.setBounds(Constant.DP_18, Constant.DP_28,
                         Constant.DP_18 + GROUP_USERS_DRAWABLE.getIntrinsicWidth(),
                         Constant.DP_28 + GROUP_USERS_DRAWABLE.getIntrinsicHeight());
@@ -80,15 +82,15 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
         }
 
 
-        if (iconDrawable != null)
-            iconDrawable.draw(canvas);
+        if (mIconDrawable != null)
+            mIconDrawable.draw(canvas);
 
         if (record != null) {
             canvas.drawText(record.drawTitle[i], 0, record.drawTitle[i].length(), TEXT_START_X, DialogView.TITLE_START_Y, DialogView.TITLE_PAINT);
             canvas.drawText(record.drawLastSeen[i], 0, record.drawLastSeen[i].length(), TEXT_START_X, DialogView.TEXT_START_Y_ILL + DialogView.TEXT_MARGIN_METRICS,
                     !record.isOnline ? DialogView.TEXT_PAINT : TEXT_PAINT_BLUE);
 
-            if (!isInProfile) {
+            if (!mIsInProfile) {
                 canvas.translate(TEXT_START_X, 0);
                 canvas.drawRect(0, LAYOUT_HEIGHT - Constant.DP_1, getMeasureWidth(i), LAYOUT_HEIGHT, DialogView.LINE_PAINT);
             }
@@ -132,12 +134,12 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
 
     public ContactView(Context context, boolean isInProfile) {
         super(context);
-        this.isInProfile = isInProfile;
+        this.mIsInProfile = isInProfile;
     }
 
     private void openActivity(TdApi.TLObject object) {
         TdApi.Chat chat = (TdApi.Chat) object;
-        //смысла нет кешировать это знакомы, которые уже в кеше
+        //смысла нет кешировать это знакомые, которые уже в кеше
         //UserManager userManager = UserManager.getManager();
         //CachedUser cachedUser = userManager.insertUserInCache(((TdApi.PrivateChatInfo) chat.type).user);
 
@@ -160,23 +162,20 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                 getContext().startActivity(intent);
                 ((AppCompatActivity) getContext()).overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
                 ((AppCompatActivity) getContext()).supportFinishAfterTransition();
-                isClickedInNonProfile = false;
+                sIsClickedInNonProfile = false;
             }
         });
 
     }
-
-    private static volatile boolean isClickedInProfile;
-    private static volatile boolean isClickedInNonProfile;
 
     public ContactView(Context context) {
         super(context);
         this.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isInProfile) {
-                    if (!isClickedInNonProfile) {
-                        isClickedInNonProfile = true;
+                if (!mIsInProfile) {
+                    if (!sIsClickedInNonProfile) {
+                        sIsClickedInNonProfile = true;
                         final ContactListManager contactListManager = ContactListManager.getManager();
 
                         if (contactListManager.getAction() == ContactListManager.ACTION_ADD_USER_TO_GROUP) {
@@ -188,9 +187,9 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                                     contactListManager.closeActivity();
                                 }
                             });
-                            isClickedInNonProfile = false;
+                            sIsClickedInNonProfile = false;
                         } else {
-                            isClickedInNonProfile = true;
+                            sIsClickedInNonProfile = true;
                             final int userId = record.cachedUser.tgUser.id;
                             ContactListManager.getManager().getChatInfo(userId, new ResultController() {
                                 @Override
@@ -213,14 +212,14 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                                                                 break;
                                                             }
                                                             default:
-                                                                isClickedInNonProfile = false;
+                                                                sIsClickedInNonProfile = false;
                                                                 break;
                                                         }
                                                     }
                                                 });
                                             }
                                         default:
-                                            isClickedInNonProfile = false;
+                                            sIsClickedInNonProfile = false;
                                             break;
                                     }
                                 }
@@ -234,8 +233,8 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                         return;
                     }
 
-                    if (!isClickedInProfile) {
-                        isClickedInProfile = true;
+                    if (!sIsClickedInProfile) {
+                        sIsClickedInProfile = true;
                         try {
                             UserManager userManager = UserManager.getManager();
                             final int userId = record.cachedUser.tgUser.id;
@@ -254,14 +253,14 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                                                 break;
                                             }
                                             default:
-                                                isClickedInProfile = false;
+                                                sIsClickedInProfile = false;
                                                 break;
                                         }
                                     }
                                 });
                             }
                         } catch (Exception e) {
-                            isClickedInProfile = false;
+                            sIsClickedInProfile = false;
                         }
                     }
                 }
@@ -275,7 +274,6 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
         bundle.putBoolean("isGroup", false);
         bundle.putBoolean("isMuted", chat.notificationSettings.muteFor > 0);
         bundle.putBoolean("isSubProfile", true);
-        //bundle.putBoolean("isFirstBotOpening",isFirstBotOpening);
         ProfileManager profileManager = ProfileManager.getManager();
         profileManager.setOldChatInfo(profileManager.getChatInfo());
         ChatInfo chatInfo = new ChatInfo();
@@ -294,7 +292,7 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
             public void run() {
                 getContext().startActivity(intent);
                 ((AbstractActivity) getContext()).overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
-                isClickedInProfile = false;
+                sIsClickedInProfile = false;
             }
         });
     }
@@ -312,7 +310,6 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                         TdApi.Error error = (TdApi.Error) object;
 
                         String errorText = error.text.toLowerCase();
-                        //Logs.e("errorText=" + errorText);
                         if (errorText.contains("unknown chat id") || errorText.contains("chat not found")) {
                             ChatManager.getManager().createPrivateChat(userId, new ResultController() {
                                 @Override
@@ -323,7 +320,7 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                                             break;
                                         }
                                         default:
-                                            isClickedInProfile = false;
+                                            sIsClickedInProfile = false;
                                             break;
                                     }
 
@@ -331,7 +328,7 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
                             });
                         }
                     default:
-                        isClickedInProfile = false;
+                        sIsClickedInProfile = false;
                         break;
                 }
             }
@@ -351,14 +348,14 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
 
         TdApi.User user = record.cachedUser.tgUser;
         TdApi.File file = user.profilePhoto.small;
-        if (FileUtils.isTDFileEmpty(file)) {
-            iconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, user.id, record.cachedUser.initials);
+        if (FileUtil.isTDFileEmpty(file)) {
+            mIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, user.id, record.cachedUser.initials);
             if (file.id > 0) {
                 FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_LIST_ICON,
                         file.id, i, -1, user, this, getItemViewTag());
             }
         } else {
-            iconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT_LIST, file.path, this, getItemViewTag());
+            mIconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT_LIST, file.path, this, getItemViewTag());
         }
         invalidate();
     }
@@ -366,11 +363,11 @@ public class ContactView extends AbstractChatView implements IconUpdatable {
     @Override
     public void setIconAsync(IconDrawable iconDrawable, boolean isForwardIcon, boolean... animated) {
         if (iconDrawable != null) {
-            this.iconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
-            this.iconDrawable.mPaint = iconDrawable.mPaint;
-            this.iconDrawable.text = iconDrawable.text;
+            this.mIconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
+            this.mIconDrawable.paint = iconDrawable.paint;
+            this.mIconDrawable.text = iconDrawable.text;
 
-            final Rect dirty = this.iconDrawable.getDirtyBounds();
+            final Rect dirty = this.mIconDrawable.getDirtyBounds();
             postInvalidate(dirty.left, dirty.top, dirty.right, dirty.bottom);
         }
     }

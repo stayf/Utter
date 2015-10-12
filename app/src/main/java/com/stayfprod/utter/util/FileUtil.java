@@ -14,7 +14,6 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.stayfprod.utter.App;
-import com.stayfprod.utter.R;
 import com.stayfprod.utter.service.CacheService;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -31,8 +30,8 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class FileUtils {
-    private static final String LOG = FileUtils.class.getSimpleName();
+public class FileUtil {
+    private static final String LOG = FileUtil.class.getSimpleName();
 
     public enum CalculateType {
         BY_WIDTH,
@@ -41,7 +40,7 @@ public class FileUtils {
     }
 
     public static BitmapDrawable decodeFileInBitmapDrawable(String path) {
-        return decodeFileInBitmapDrawable(path, FileUtils.superBitmapOptions());
+        return decodeFileInBitmapDrawable(path, FileUtil.superBitmapOptions());
     }
 
     public static BitmapDrawable decodeFileInBitmapDrawable(String path, BitmapFactory.Options opts) {
@@ -219,7 +218,7 @@ public class FileUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File createGalleryFile(File inputFile) throws Exception {
-        File folder = FileUtils.mkExternalDir(App.GALLERY_PHOTO_STG);
+        File folder = FileUtil.mkExternalDir(App.GALLERY_PHOTO_STG);
         File f = new File(folder.getAbsolutePath(), inputFile.getAbsolutePath().hashCode() + ".jpg");
         f.createNewFile();
         return f;
@@ -227,7 +226,7 @@ public class FileUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File createRecentStickersFile() throws Exception {
-        File folder = FileUtils.mkExternalDir(App.STG_RECENT_STICKERS);
+        File folder = FileUtil.mkExternalDir(App.STG_RECENT_STICKERS);
         File f = new File(folder.getAbsolutePath(), "stickers.tmp");
         f.createNewFile();
         return f;
@@ -235,7 +234,7 @@ public class FileUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File createRecordVoiceFile() {
-        File folder = FileUtils.mkExternalDir(App.STG_RECORD_VOICE);
+        File folder = FileUtil.mkExternalDir(App.STG_RECORD_VOICE);
         File f = new File(folder.getAbsolutePath(), System.currentTimeMillis() + ".ogg");
         try {
             f.createNewFile();
@@ -247,7 +246,7 @@ public class FileUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File createFile(String folderName, String fileName) {
-        File folder = FileUtils.mkExternalDir(folderName);
+        File folder = FileUtil.mkExternalDir(folderName);
         File f = new File(folder.getAbsolutePath(), fileName);
         try {
             f.createNewFile();

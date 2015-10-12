@@ -250,9 +250,6 @@ public class CountryManager {
                     new Country(263, "Zimbabwe", "ZW")
             };
 
-    /**
-     * alpha-2
-     */
     private static String getUserCountry(Context context) {
         try {
             final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);

@@ -14,7 +14,7 @@ import com.stayfprod.utter.model.chat.ChangeIconTitleMsg;
 import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.adapter.holder.AbstractHolder;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -67,8 +67,7 @@ public class ChangeChatPhotoHolder extends AbstractHolder<ChangeIconTitleMsg> {
         if (photo.photos.length > 0) {
             TdApi.PhotoSize photoSize = photo.photos[0];
 
-            if (FileUtils.isTDFileEmpty(photoSize.photo)) {
-                //AndroidUtil.setImageDrawable(imageView, IconFactory.createEmptyIcon(IconFactory.Type.TITLE, record.tgMessage.id, ""));
+            if (FileUtil.isTDFileEmpty(photoSize.photo)) {
                 imageView.setImageBitmap(null);
 
                 if (photoSize.photo.id > 0)

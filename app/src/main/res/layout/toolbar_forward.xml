@@ -5,7 +5,6 @@
     android:id="@+id/a_actionBarOne"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     android:background="#FF73C979"
@@ -22,16 +21,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:padding="16dp"
             android:background="@drawable/item_click_transparent"
+            android:padding="16dp"
             android:src="@mipmap/ic_close"/>
 
         <TextView
             android:id="@+id/t_forward_counter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="18dp"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="18dp"
             android:layout_toRightOf="@+id/t_forward_cancel"
             android:text="0"/>
 
@@ -39,9 +38,9 @@
             android:id="@+id/t_forward_forward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="16dp"
             android:layout_toLeftOf="@+id/t_forward_delete"
             android:background="@drawable/item_click_transparent"
+            android:padding="16dp"
             android:src="@mipmap/ic_forward"/>
 
         <ImageView
@@ -49,8 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:padding="16dp"
             android:background="@drawable/item_click_transparent"
+            android:padding="16dp"
             android:src="@mipmap/ic_delete"/>
 
     </RelativeLayout>

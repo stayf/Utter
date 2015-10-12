@@ -81,17 +81,17 @@ public class OptionManager extends ResultController {
         }
     }
 
-    private static volatile OptionManager optionManager;
+    private static volatile OptionManager sOptionManager;
 
     public static OptionManager getManager() {
-        if (optionManager == null) {
+        if (sOptionManager == null) {
             synchronized (ChatListManager.class) {
-                if (optionManager == null) {
-                    optionManager = new OptionManager();
+                if (sOptionManager == null) {
+                    sOptionManager = new OptionManager();
                 }
             }
         }
-        return optionManager;
+        return sOptionManager;
     }
 
     public void setNetworkUnreachableOption(boolean value) {

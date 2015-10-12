@@ -172,6 +172,7 @@
     <string name="db">&#160;dB</string>
     <string name="hz">&#160;Hz</string>
     <string name="equalizer">Equalizer</string>
+    <string name="what_this_bot_can_do">What this bot can do?</string>
 
     <string-array name="pass_code_list">
         <item>PIN</item>

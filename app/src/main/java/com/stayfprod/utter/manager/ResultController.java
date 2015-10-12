@@ -3,7 +3,7 @@ package com.stayfprod.utter.manager;
 import android.support.v7.app.AppCompatActivity;
 
 import com.stayfprod.utter.App;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 import org.drinkless.td.libcore.telegram.Client;
@@ -21,14 +21,14 @@ public abstract class ResultController extends Observable implements Client.Resu
 
     @SuppressWarnings("ALL")
     public static void initTG() {
-        if (TG.isEmptyInstance() || AuthManager.resetAction) {
+        if (TG.isEmptyInstance() || AuthManager.sResetAction) {
             synchronized (ResultController.class) {
-                if (TG.isEmptyInstance() || AuthManager.resetAction) {
-                    AuthManager.resetAction = false;
+                if (TG.isEmptyInstance() || AuthManager.sResetAction) {
+                    AuthManager.sResetAction = false;
                     TG.stopClient();
                     TG.setUpdatesHandler(UpdateHandler.getHandler());
-                    TG.setDir(FileUtils.mkExternalDir(App.STG_FOLDER_DB).getAbsolutePath() + "/");
-                    TG.setFilesDir(FileUtils.mkExternalDir(App.STG_FOLDER_FILES).getAbsolutePath() + "/");
+                    TG.setDir(FileUtil.mkExternalDir(App.STG_FOLDER_DB).getAbsolutePath() + "/");
+                    TG.setFilesDir(FileUtil.mkExternalDir(App.STG_FOLDER_FILES).getAbsolutePath() + "/");
                 }
             }
         }

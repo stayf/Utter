@@ -12,7 +12,7 @@ import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 
 public class DetermineProgressView extends View {
 
-    private DeterminateProgressDrawable progressDrawable;
+    private DeterminateProgressDrawable mProgressDrawable;
 
     public DetermineProgressView(Context context) {
         super(context);
@@ -36,28 +36,28 @@ public class DetermineProgressView extends View {
     }
 
     public DeterminateProgressDrawable getProgressDrawable() {
-        return progressDrawable;
+        return mProgressDrawable;
     }
 
     private void init() {
-        progressDrawable = new DeterminateProgressDrawable() {
+        mProgressDrawable = new DeterminateProgressDrawable() {
             @Override
             public void invalidate() {
                 DetermineProgressView.this.invalidate();
             }
         };
 
-        progressDrawable.setMainSettings(
+        mProgressDrawable.setMainSettings(
                 null, DeterminateProgressDrawable.PlayStatus.PAUSE,
                 DeterminateProgressDrawable.ColorRange.BLUE,
                 LoadingContentType.AUDIO, true, false);
-        progressDrawable.setBounds(0, 0);
-        progressDrawable.setVisibility(true);
+        mProgressDrawable.setBounds(0, 0);
+        mProgressDrawable.setVisibility(true);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        progressDrawable.setBounds(0, 0, getWidth(), getHeight());
-        progressDrawable.draw(canvas);
+        mProgressDrawable.setBounds(0, 0, getWidth(), getHeight());
+        mProgressDrawable.draw(canvas);
     }
 }

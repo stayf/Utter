@@ -11,26 +11,26 @@ import android.view.View;
 import android.widget.ImageView;
 
 public class TouchImageView extends ImageView {
-    private Matrix matrix;
+    private Matrix mMatrix;
 
     private static final int NONE = 0;
     private static final int DRAG = 1;
     private static final int ZOOM = 2;
     private static final int CLICK = 3;
 
-    private int mode = NONE;
+    private int mMode = NONE;
 
-    private PointF last = new PointF();
-    private PointF start = new PointF();
-    private float minScale = 1f;
-    private float maxScale = 3f;
-    private float[] m;
-    private int viewWidth, viewHeight;
-    private float saveScale = 1f;
-    private float origWidth, origHeight;
-    private int oldMeasuredWidth, oldMeasuredHeight;
+    private PointF mLast = new PointF();
+    private PointF mStart = new PointF();
+    private float mMinScale = 1f;
+    private float mMaxScale = 3f;
+    private float[] mMatrixValues;
+    private int mViewWidth, mViewHeight;
+    private float mSaveScale = 1f;
+    private float mOrigWidth, mOrigHeight;
+    private int mOldMeasuredWidth, mOldMeasuredHeight;
     private ScaleGestureDetector mScaleDetector;
-    private Context context;
+    private Context mContext;
 
     public TouchImageView(Context context) {
         super(context);
@@ -44,11 +44,11 @@ public class TouchImageView extends ImageView {
 
     private void sharedConstructing(Context context) {
         super.setClickable(true);
-        this.context = context;
+        this.mContext = context;
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        matrix = new Matrix();
-        m = new float[9];
-        setImageMatrix(matrix);
+        mMatrix = new Matrix();
+        mMatrixValues = new float[9];
+        setImageMatrix(mMatrix);
         setScaleType(ScaleType.MATRIX);
         setOnTouchListener(new OnTouchListener() {
             @Override
@@ -57,38 +57,38 @@ public class TouchImageView extends ImageView {
                 PointF curr = new PointF(event.getX(), event.getY());
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        last.set(curr);
-                        start.set(last);
-                        mode = DRAG;
+                        mLast.set(curr);
+                        mStart.set(mLast);
+                        mMode = DRAG;
                         break;
 
                     case MotionEvent.ACTION_MOVE:
-                        if (mode == DRAG) {
-                            float deltaX = curr.x - last.x;
-                            float deltaY = curr.y - last.y;
-                            float fixTransX = getFixDragTrans(deltaX, viewWidth, origWidth * saveScale);
-                            float fixTransY = getFixDragTrans(deltaY, viewHeight, origHeight * saveScale);
-                            matrix.postTranslate(fixTransX, fixTransY);
+                        if (mMode == DRAG) {
+                            float deltaX = curr.x - mLast.x;
+                            float deltaY = curr.y - mLast.y;
+                            float fixTransX = getFixDragTrans(deltaX, mViewWidth, mOrigWidth * mSaveScale);
+                            float fixTransY = getFixDragTrans(deltaY, mViewHeight, mOrigHeight * mSaveScale);
+                            mMatrix.postTranslate(fixTransX, fixTransY);
                             fixTrans();
-                            last.set(curr.x, curr.y);
+                            mLast.set(curr.x, curr.y);
                         }
                         break;
 
                     case MotionEvent.ACTION_UP:
-                        mode = NONE;
-                        int xDiff = (int) Math.abs(curr.x - start.x);
-                        int yDiff = (int) Math.abs(curr.y - start.y);
+                        mMode = NONE;
+                        int xDiff = (int) Math.abs(curr.x - mStart.x);
+                        int yDiff = (int) Math.abs(curr.y - mStart.y);
                         if (xDiff < CLICK && yDiff < CLICK)
                             performClick();
                         break;
 
                     case MotionEvent.ACTION_POINTER_UP:
-                        mode = NONE;
+                        mMode = NONE;
                         break;
 
                 }
 
-                setImageMatrix(matrix);
+                setImageMatrix(mMatrix);
                 invalidate();
                 return true;
             }
@@ -97,46 +97,46 @@ public class TouchImageView extends ImageView {
     }
 
     public void setMaxZoom(float x) {
-        maxScale = x;
+        mMaxScale = x;
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
-            mode = ZOOM;
+            mMode = ZOOM;
             return true;
         }
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float mScaleFactor = detector.getScaleFactor();
-            float origScale = saveScale;
-            saveScale *= mScaleFactor;
-            if (saveScale > maxScale) {
-                saveScale = maxScale;
-                mScaleFactor = maxScale / origScale;
-            } else if (saveScale < minScale) {
-                saveScale = minScale;
-                mScaleFactor = minScale / origScale;
+            float origScale = mSaveScale;
+            mSaveScale *= mScaleFactor;
+            if (mSaveScale > mMaxScale) {
+                mSaveScale = mMaxScale;
+                mScaleFactor = mMaxScale / origScale;
+            } else if (mSaveScale < mMinScale) {
+                mSaveScale = mMinScale;
+                mScaleFactor = mMinScale / origScale;
             }
 
-            if (origWidth * saveScale <= viewWidth || origHeight * saveScale <= viewHeight)
-                matrix.postScale(mScaleFactor, mScaleFactor, viewWidth / 2, viewHeight / 2);
+            if (mOrigWidth * mSaveScale <= mViewWidth || mOrigHeight * mSaveScale <= mViewHeight)
+                mMatrix.postScale(mScaleFactor, mScaleFactor, mViewWidth / 2, mViewHeight / 2);
             else
-                matrix.postScale(mScaleFactor, mScaleFactor, detector.getFocusX(), detector.getFocusY());
+                mMatrix.postScale(mScaleFactor, mScaleFactor, detector.getFocusX(), detector.getFocusY());
             fixTrans();
             return true;
         }
     }
 
     void fixTrans() {
-        matrix.getValues(m);
-        float transX = m[Matrix.MTRANS_X];
-        float transY = m[Matrix.MTRANS_Y];
-        float fixTransX = getFixTrans(transX, viewWidth, origWidth * saveScale);
-        float fixTransY = getFixTrans(transY, viewHeight, origHeight * saveScale);
+        mMatrix.getValues(mMatrixValues);
+        float transX = mMatrixValues[Matrix.MTRANS_X];
+        float transY = mMatrixValues[Matrix.MTRANS_Y];
+        float fixTransX = getFixTrans(transX, mViewWidth, mOrigWidth * mSaveScale);
+        float fixTransY = getFixTrans(transY, mViewHeight, mOrigHeight * mSaveScale);
         if (fixTransX != 0 || fixTransY != 0)
-            matrix.postTranslate(fixTransX, fixTransY);
+            mMatrix.postTranslate(fixTransX, fixTransY);
 
     }
 
@@ -167,15 +167,15 @@ public class TouchImageView extends ImageView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        viewWidth = MeasureSpec.getSize(widthMeasureSpec);
-        viewHeight = MeasureSpec.getSize(heightMeasureSpec);
+        mViewWidth = MeasureSpec.getSize(widthMeasureSpec);
+        mViewHeight = MeasureSpec.getSize(heightMeasureSpec);
 
-        if (oldMeasuredHeight == viewWidth && oldMeasuredHeight == viewHeight || viewWidth == 0 || viewHeight == 0)
+        if (mOldMeasuredHeight == mViewWidth && mOldMeasuredHeight == mViewHeight || mViewWidth == 0 || mViewHeight == 0)
             return;
-        oldMeasuredHeight = viewHeight;
-        oldMeasuredWidth = viewWidth;
+        mOldMeasuredHeight = mViewHeight;
+        mOldMeasuredWidth = mViewWidth;
 
-        if (saveScale == 1) {
+        if (mSaveScale == 1) {
             float scale;
             Drawable drawable = getDrawable();
             if (drawable == null || drawable.getIntrinsicWidth() == 0 || drawable.getIntrinsicHeight() == 0)
@@ -183,20 +183,20 @@ public class TouchImageView extends ImageView {
 
             int bmWidth = drawable.getIntrinsicWidth();
             int bmHeight = drawable.getIntrinsicHeight();
-            float scaleX = (float) viewWidth / (float) bmWidth;
-            float scaleY = (float) viewHeight / (float) bmHeight;
+            float scaleX = (float) mViewWidth / (float) bmWidth;
+            float scaleY = (float) mViewHeight / (float) bmHeight;
             scale = Math.min(scaleX, scaleY);
-            matrix.setScale(scale, scale);
+            mMatrix.setScale(scale, scale);
 
-            float redundantYSpace = (float) viewHeight - (scale * (float) bmHeight);
-            float redundantXSpace = (float) viewWidth - (scale * (float) bmWidth);
+            float redundantYSpace = (float) mViewHeight - (scale * (float) bmHeight);
+            float redundantXSpace = (float) mViewWidth - (scale * (float) bmWidth);
             redundantYSpace /= (float) 2;
             redundantXSpace /= (float) 2;
 
-            matrix.postTranslate(redundantXSpace, redundantYSpace);
-            origWidth = viewWidth - 2 * redundantXSpace;
-            origHeight = viewHeight - 2 * redundantYSpace;
-            setImageMatrix(matrix);
+            mMatrix.postTranslate(redundantXSpace, redundantYSpace);
+            mOrigWidth = mViewWidth - 2 * redundantXSpace;
+            mOrigHeight = mViewHeight - 2 * redundantYSpace;
+            setImageMatrix(mMatrix);
         }
         fixTrans();
     }

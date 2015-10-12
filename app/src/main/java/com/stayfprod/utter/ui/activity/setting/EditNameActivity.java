@@ -36,17 +36,17 @@ public class EditNameActivity extends AbstractActivity {
     public static final int FOR_PROFILE_USER = 1;
     public static final int FOR_GROUP = 2;
 
-    private EditText firstName;
-    private EditText secondName;
-    private ImageView a_edit_name_user;
-    private TextView a_edit_name_phone;
+    private EditText mFirstName;
+    private EditText mSecondName;
+    private ImageView mEditNameUser;
+    private TextView mEditNamePhone;
 
-    private boolean isBlockedButton;
-    private Integer type;
-    private int userId;
-    private String phone;
-    private String initials;
-    private TdApi.File file;
+    private boolean mIsBlockedButton;
+    private Integer mType;
+    private int mUserId;
+    private String mPhone;
+    private String mInitials;
+    private TdApi.File mFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,55 +56,55 @@ public class EditNameActivity extends AbstractActivity {
             return;
 
         setContentView(R.layout.activity_edit_name);
-        firstName = (EditText) findViewById(R.id.a_set_name_first);
-        secondName = (EditText) findViewById(R.id.a_set_name_second);
+        mFirstName = (EditText) findViewById(R.id.a_set_name_first);
+        mSecondName = (EditText) findViewById(R.id.a_set_name_second);
         ImageView a_edit_name_ic_user = findView(R.id.a_edit_name_ic_user);
-        AndroidUtil.setEditTextTypeface(firstName);
-        AndroidUtil.setEditTextTypeface(secondName);
+        AndroidUtil.setEditTextTypeface(mFirstName);
+        AndroidUtil.setEditTextTypeface(mSecondName);
         setToolbar();
 
-        a_edit_name_phone = findView(R.id.a_edit_name_phone);
-        a_edit_name_user = findView(R.id.a_edit_name_user);
+        mEditNamePhone = findView(R.id.a_edit_name_phone);
+        mEditNameUser = findView(R.id.a_edit_name_user);
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            type = bundle.getInt("type");
-            userId = bundle.getInt("userId");
-            firstName.setText(bundle.getString("firstName"));
-            firstName.setSelection(firstName.getText().length());
-            secondName.setText(bundle.getString("secondName"));
-            phone = bundle.getString("phone", "");
+            mType = bundle.getInt("type");
+            mUserId = bundle.getInt("userId");
+            mFirstName.setText(bundle.getString("firstName"));
+            mFirstName.setSelection(mFirstName.getText().length());
+            mSecondName.setText(bundle.getString("secondName"));
+            mPhone = bundle.getString("phone", "");
 
-            initials = bundle.getString("initials", "");
-            file = (TdApi.File) bundle.getSerializable("file");
+            mInitials = bundle.getString("initials", "");
+            mFile = (TdApi.File) bundle.getSerializable("file");
         }
 
-        if (type == null) {
-            type = FOR_CURRENT_USER;
+        if (mType == null) {
+            mType = FOR_CURRENT_USER;
         }
 
-        switch (type) {
+        switch (mType) {
             case FOR_CURRENT_USER:
                 break;
             case FOR_PROFILE_USER:
-                a_edit_name_phone.setVisibility(View.VISIBLE);
-                a_edit_name_user.setVisibility(View.VISIBLE);
-                a_edit_name_phone.setText("+" + phone);
+                mEditNamePhone.setVisibility(View.VISIBLE);
+                mEditNameUser.setVisibility(View.VISIBLE);
+                mEditNamePhone.setText("+" + mPhone);
 
-                a_edit_name_phone.setTextColor(Color.BLACK);
-                a_edit_name_phone.setTextSize(18);
-                a_edit_name_phone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+                mEditNamePhone.setTextColor(Color.BLACK);
+                mEditNamePhone.setTextSize(18);
+                mEditNamePhone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
                 a_edit_name_ic_user.setVisibility(View.GONE);
 
-                IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, userId, initials, file);
-                a_edit_name_user.setImageDrawable(dr);
+                IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, mUserId, mInitials, mFile);
+                mEditNameUser.setImageDrawable(dr);
 
-                ((RelativeLayout.LayoutParams) firstName.getLayoutParams()).leftMargin = Constant.DP_18;
+                ((RelativeLayout.LayoutParams) mFirstName.getLayoutParams()).leftMargin = Constant.DP_18;
                 break;
             case FOR_GROUP:
                 a_edit_name_ic_user.setImageResource(R.mipmap.ic_groupusers);
-                secondName.setVisibility(View.GONE);
-                firstName.setHint(AndroidUtil.getResourceString(R.string.chat_name));
+                mSecondName.setVisibility(View.GONE);
+                mFirstName.setHint(AndroidUtil.getResourceString(R.string.chat_name));
                 break;
         }
     }
@@ -122,19 +122,19 @@ public class EditNameActivity extends AbstractActivity {
         rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isBlockedButton) {
+                if (!mIsBlockedButton) {
                     UserManager userManager = UserManager.getManager();
-                    switch (type) {
+                    switch (mType) {
                         case FOR_CURRENT_USER:
-                            if (TextUtil.isNotBlank(firstName.getText().toString())) {
-                                isBlockedButton = true;
+                            if (TextUtil.isNotBlank(mFirstName.getText().toString())) {
+                                mIsBlockedButton = true;
                                 progressView.start();
-                                userManager.changeCurrentUserName(firstName.getText().toString(), secondName.getText().toString(),
+                                userManager.changeCurrentUserName(mFirstName.getText().toString(), mSecondName.getText().toString(),
                                         new ResultController() {
                                             @Override
                                             public void afterResult(TdApi.TLObject object, int calledConstructor) {
                                                 progressView.stop();
-                                                isBlockedButton = false;
+                                                mIsBlockedButton = false;
                                                 if (object.getConstructor() == TdApi.Ok.CONSTRUCTOR) {
                                                     AndroidUtil.runInUI(new Runnable() {
                                                         @Override
@@ -162,20 +162,20 @@ public class EditNameActivity extends AbstractActivity {
                             }
                             break;
                         case FOR_PROFILE_USER:
-                            if (TextUtil.isNotBlank(firstName.getText().toString())) {
+                            if (TextUtil.isNotBlank(mFirstName.getText().toString())) {
                                 try {
-                                    isBlockedButton = true;
+                                    mIsBlockedButton = true;
                                     progressView.start();
                                     TdApi.InputContact[] inputContacts = new TdApi.InputContact[1];
                                     inputContacts[0] = new TdApi.InputContact();
-                                    inputContacts[0].firstName = firstName.getText().toString();
-                                    inputContacts[0].lastName = secondName.getText().toString();
-                                    inputContacts[0].phoneNumber = phone;
+                                    inputContacts[0].firstName = mFirstName.getText().toString();
+                                    inputContacts[0].lastName = mSecondName.getText().toString();
+                                    inputContacts[0].phoneNumber = mPhone;
                                     userManager.importContacts(inputContacts, new ResultController() {
                                         @Override
                                         public void afterResult(TdApi.TLObject object, int calledConstructor) {
                                             progressView.stop();
-                                            isBlockedButton = false;
+                                            mIsBlockedButton = false;
                                             if (object.getConstructor() != TdApi.Error.CONSTRUCTOR) {
                                                 AndroidUtil.runInUI(new Runnable() {
                                                     @Override
@@ -199,22 +199,22 @@ public class EditNameActivity extends AbstractActivity {
                                     });
                                 } catch (Exception e) {
                                     progressView.stop();
-                                    isBlockedButton = false;
+                                    mIsBlockedButton = false;
                                     Log.e(LOG, "click", e);
                                 }
                             }
                             break;
                         case FOR_GROUP:
                             ChatManager chatManager = ChatManager.getManager();
-                            if (TextUtil.isNotBlank(firstName.getText().toString())) {
-                                isBlockedButton = true;
+                            if (TextUtil.isNotBlank(mFirstName.getText().toString())) {
+                                mIsBlockedButton = true;
                                 progressView.start();
-                                chatManager.changeChatTitle(firstName.getText().toString(),
+                                chatManager.changeChatTitle(mFirstName.getText().toString(),
                                         new ResultController() {
                                             @Override
                                             public void afterResult(TdApi.TLObject object, int calledConstructor) {
                                                 progressView.stop();
-                                                isBlockedButton = false;
+                                                mIsBlockedButton = false;
                                                 if (object.getConstructor() == TdApi.Ok.CONSTRUCTOR) {
                                                     AndroidUtil.runInUI(new Runnable() {
                                                         @Override
@@ -241,7 +241,6 @@ public class EditNameActivity extends AbstractActivity {
                             }
                             break;
                     }
-
                 }
             }
         });
@@ -250,13 +249,13 @@ public class EditNameActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            TextView t_toolbar_title = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
-            t_toolbar_title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-            t_toolbar_title.setTextColor(0xffffffff);
-            t_toolbar_title.setTextSize(20);
+            TextView tToolbarTitle = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
+            tToolbarTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+            tToolbarTitle.setTextColor(0xffffffff);
+            tToolbarTitle.setTextSize(20);
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
             toolbar.setNavigationIcon(R.mipmap.ic_back);

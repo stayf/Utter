@@ -24,18 +24,19 @@ import java.lang.reflect.Field;
 public class ToolBarDrawerToggle extends ActionBarDrawerToggle {
     private static final String LOG = ToolBarDrawerToggle.class.getSimpleName();
 
-    private int DP_56 = AndroidUtil.dp(56);
-    private int DP_1 = AndroidUtil.dp(1);
+    private static final int DP_56 = AndroidUtil.dp(56);
+    private static final int DP_1 = AndroidUtil.dp(1);
+
     private ActionMenuView mMenuView;
-    private ToolBarListView toolBarListView;
-    private Toolbar toolbar;
-    private float remSlideOffset = 0;
+    private ToolBarListView mToolBarListView;
+    private Toolbar mToolbar;
+    private float mRemSlideOffset = 0;
 
     public ToolBarDrawerToggle(Activity activity, DrawerLayout drawerLayout,
                                ToolBarListView toolBarListView, Toolbar toolbar) {
         super(activity, drawerLayout, R.string.drawer_state_opened, R.string.drawer_state_closed);
-        this.toolBarListView = toolBarListView;
-        this.toolbar = toolbar;
+        this.mToolBarListView = toolBarListView;
+        this.mToolbar = toolbar;
         drawerLayout.setDrawerListener(this);
     }
 
@@ -46,9 +47,9 @@ public class ToolBarDrawerToggle extends ActionBarDrawerToggle {
     public void initMenu() {
         try {
             boolean invisible = mMenuView == null;
-            Field field = toolbar.getClass().getDeclaredField("mMenuView");
+            Field field = mToolbar.getClass().getDeclaredField("mMenuView");
             field.setAccessible(true);
-            mMenuView = (ActionMenuView) field.get(toolbar);
+            mMenuView = (ActionMenuView) field.get(mToolbar);
             if (invisible) {
                 mMenuView.setVisibility(View.INVISIBLE);
             }
@@ -64,7 +65,7 @@ public class ToolBarDrawerToggle extends ActionBarDrawerToggle {
     public void onDrawerSlide(View drawerView, float slideOffset) {
         super.onDrawerSlide(drawerView, slideOffset);
 
-        float dif = slideOffset - remSlideOffset;
+        float dif = slideOffset - mRemSlideOffset;
         int y = (int) (DP_56 * dif);
 
         if (mMenuView != null) {
@@ -87,15 +88,15 @@ public class ToolBarDrawerToggle extends ActionBarDrawerToggle {
             y = dif >= 0 ? DP_1 : -DP_1;
         }
 
-        toolBarListView.scrollListBy(y);
-        remSlideOffset = slideOffset;
+        mToolBarListView.scrollListBy(y);
+        mRemSlideOffset = slideOffset;
     }
 
     @Override
     public void onDrawerClosed(View drawerView) {
         DialogView.isNeedDraw = true;
-        if (ChatManager.isNeedRemoveChat) {
-            ChatManager.isNeedRemoveChat = false;
+        if (ChatManager.sIsNeedRemoveChat) {
+            ChatManager.sIsNeedRemoveChat = false;
             ChatListManager.getManager().removeChat(ChatManager.getCurrentChatId());
         }
         FileManager.getManager().cleanTempStorage();

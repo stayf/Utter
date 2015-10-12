@@ -18,23 +18,26 @@ import com.stayfprod.utter.model.chat.VideoMsg;
 import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
 public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpdatable {
 
-    private DeterminateProgressDrawable progressDrawable;
-    private BitmapDrawable bitmapDrawable;
-
     public static volatile int MAX_VIDEO_CHAT_WIDTH = Constant.DP_180;
+
+    public static int[] calculateVideoThumbSize(int w, int h) {
+        return new int[]{MAX_VIDEO_CHAT_WIDTH, h * MAX_VIDEO_CHAT_WIDTH / w};
+    }
+
+    private DeterminateProgressDrawable mProgressDrawable;
+    private BitmapDrawable mBitmapDrawable;
 
     public VideoMsgView(Context context) {
         super(context);
 
-        progressDrawable = new DeterminateProgressDrawable();
-        progressDrawable = new DeterminateProgressDrawable() {
+        mProgressDrawable = new DeterminateProgressDrawable();
+        mProgressDrawable = new DeterminateProgressDrawable() {
             @Override
             public void invalidate() {
                 VideoMsgView.this.invalidate();
@@ -42,13 +45,9 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
         };
     }
 
-    public static int[] calculateVideoThumbSize(int w, int h) {
-        return new int[]{MAX_VIDEO_CHAT_WIDTH, h * MAX_VIDEO_CHAT_WIDTH / w};
-    }
-
     @Override
     public boolean isClickOnActionButton(View view, MotionEvent event) {
-        Rect bounds = progressDrawable.getBounds();
+        Rect bounds = mProgressDrawable.getBounds();
         return (event.getX() >= bounds.left + getSubContainerMarginLeft(record)
                 && event.getX() <= bounds.right + getSubContainerMarginLeft(record)
                 && event.getY() >= bounds.top + getSubContainerMarginTop(record)
@@ -60,28 +59,28 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
         //info тут проверка на квадрат, но лучше сделать круг
         if (isIgnoreEvent || isClickOnActionButton(view, event)) {
             final TdApi.MessageVideo messageVideo = (TdApi.MessageVideo) record.tgMessage.message;
-            if (progressDrawable.getLoadStatus() != null) {
-                switch (progressDrawable.getLoadStatus()) {
+            if (mProgressDrawable.getLoadStatus() != null) {
+                switch (mProgressDrawable.getLoadStatus()) {
                     case NO_LOAD:
-                        if (FileUtils.isTDFileEmpty(messageVideo.video.video)) {
+                        if (FileUtil.isTDFileEmpty(messageVideo.video.video)) {
                             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.VIDEO, messageVideo.video.video.id, -1, record.tgMessage.id, VideoMsgView.this, messageVideo.video, getItemViewTag());
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageVideo, messageVideo.video.video.id, viewHolder.getLayoutPosition());
                         }
                         break;
                     case PAUSE:
-                        if (FileUtils.isTDFileEmpty(messageVideo.video.video)) {
+                        if (FileUtil.isTDFileEmpty(messageVideo.video.video)) {
                             FileManager.getManager().proceedLoad(messageVideo.video.video.id, record.tgMessage.id, !isIgnoreEvent);
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageVideo, messageVideo.video.video.id, viewHolder.getLayoutPosition());
                         }
                         break;
                     case PROCEED_LOAD:
-                        if (FileUtils.isTDFileEmpty(messageVideo.video.video)) {
+                        if (FileUtil.isTDFileEmpty(messageVideo.video.video)) {
                             FileManager.getManager().cancelDownloadFile(messageVideo.video.video.id, record.tgMessage.id, !isIgnoreEvent);
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PAUSE);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PAUSE);
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageVideo, messageVideo.video.video.id, viewHolder.getLayoutPosition());
                         }
@@ -91,10 +90,10 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
                 }
             }
 
-            if (progressDrawable.getPlayStatus() != null) {
-                switch (progressDrawable.getPlayStatus()) {
+            if (mProgressDrawable.getPlayStatus() != null) {
+                switch (mProgressDrawable.getPlayStatus()) {
                     case PLAY:
-                        if (FileUtils.isTDFileLocal(messageVideo.video.video))
+                        if (FileUtil.isTDFileLocal(messageVideo.video.video))
                             ChatHelper.openFile(messageVideo.video.video.path, "video/*", getContext());
                         break;
                     case PAUSE:
@@ -108,7 +107,7 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
     }
 
     public DeterminateProgressDrawable getProgressDrawable() {
-        return progressDrawable;
+        return mProgressDrawable;
     }
 
     @Override
@@ -120,16 +119,16 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
         DeterminateProgressDrawable.LoadStatus loadStatus = null;
         DeterminateProgressDrawable.PlayStatus playStatus = null;
 
-        if (FileUtils.isTDFileEmpty(messageVideo.video.thumb.photo)) {
+        if (FileUtil.isTDFileEmpty(messageVideo.video.thumb.photo)) {
             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.VIDEO_THUMB,
                     messageVideo.video.thumb.photo.id, i, record.tgMessage.id, messageVideo.video.thumb, this, getItemViewTag());
         } else {
-            bitmapDrawable = FileManager.getManager().getNoResizeBitmapFromFile(messageVideo.video.thumb.photo.path, this, getItemViewTag());
+            mBitmapDrawable = FileManager.getManager().getNoResizeBitmapFromFile(messageVideo.video.thumb.photo.path, this, getItemViewTag());
         }
 
         int processLoad = -1;
 
-        if (FileUtils.isTDFileEmpty(messageVideo.video.video)) {
+        if (FileUtil.isTDFileEmpty(messageVideo.video.video)) {
             FileManager fileManager = FileManager.getManager();
 
             if (fileManager.isHaveStorageObjectByFileID(messageVideo.video.video.id, record.tgMessage.id)) {
@@ -152,16 +151,16 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
             playStatus = DeterminateProgressDrawable.PlayStatus.PLAY;
         }
 
-        progressDrawable.setMainSettings(
+        mProgressDrawable.setMainSettings(
                 loadStatus, playStatus,
                 DeterminateProgressDrawable.ColorRange.BLACK,
                 LoadingContentType.VIDEO, true, false);
 
-        progressDrawable.setBounds(record.progressStartX, record.progressStartY);
-        progressDrawable.setVisibility(true);
+        mProgressDrawable.setBounds(record.progressStartX, record.progressStartY);
+        mProgressDrawable.setVisibility(true);
 
         if (processLoad != -1) {
-            progressDrawable.setProgressWithAnimation(processLoad);
+            mProgressDrawable.setProgressWithAnimation(processLoad);
         }
         invalidate();
     }
@@ -169,13 +168,13 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (bitmapDrawable == null) {
+        if (mBitmapDrawable == null) {
             canvas.drawRect(0f, 0f, (float) record.photoWidth, (float) record.photoHeight, EMPTY_PAINT);
         } else {
-            bitmapDrawable.setBounds(0, 0, record.photoWidth, record.photoHeight);
-            bitmapDrawable.draw(canvas);
+            mBitmapDrawable.setBounds(0, 0, record.photoWidth, record.photoHeight);
+            mBitmapDrawable.draw(canvas);
         }
-        progressDrawable.draw(canvas);
+        mProgressDrawable.draw(canvas);
     }
 
     public static void measure(VideoMsg chatMessage, TdApi.MessageContent message) {
@@ -221,7 +220,7 @@ public class VideoMsgView extends AbstractMsgView<VideoMsg> implements ImageUpda
 
     @Override
     public void setImageAndUpdateAsync(BitmapDrawable bitmapDrawable, boolean... animated) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
         postInvalidate();
     }
 }

@@ -18,7 +18,7 @@ import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.LoadingContentType;
 import com.stayfprod.utter.ui.listener.AnimatorEndListener;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 public class DeterminateProgressDrawable extends Drawable implements Drawable.Callback {
@@ -51,12 +51,12 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
     private static final float BACK_IMAGE_PADDING_AND_PAD_STROKE = BACK_IMAGE_PADDING + PAD_STROKE;
 
     private static final BitmapDrawable
-            IC_DOWNLOAD = FileUtils.decodeImageResource(R.mipmap.ic_download),
-            IC_PAUSE = FileUtils.decodeImageResource(R.mipmap.ic_pause),
-            IC_DOWNLOAD_BLUE = FileUtils.decodeImageResource(R.mipmap.ic_download_blue),
-            IC_FILE_PAUSE_BLUE = FileUtils.decodeImageResource(R.mipmap.ic_file_pause_blue),
-            IC_FILE = FileUtils.decodeImageResource(R.mipmap.ic_file),
-            IC_PLAY = FileUtils.decodeImageResource(R.mipmap.ic_play);
+            IC_DOWNLOAD = FileUtil.decodeImageResource(R.mipmap.ic_download),
+            IC_PAUSE = FileUtil.decodeImageResource(R.mipmap.ic_pause),
+            IC_DOWNLOAD_BLUE = FileUtil.decodeImageResource(R.mipmap.ic_download_blue),
+            IC_FILE_PAUSE_BLUE = FileUtil.decodeImageResource(R.mipmap.ic_file_pause_blue),
+            IC_FILE = FileUtil.decodeImageResource(R.mipmap.ic_file),
+            IC_PLAY = FileUtil.decodeImageResource(R.mipmap.ic_play);
 
 
     public static final int ANIM_DURATION = 300;
@@ -90,49 +90,48 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
         ARC_PAINT_BLUE.setColor(0xFF68ADE1);
     }
 
-    private RectF ovalRectF = new RectF();
-    private Rect backgroundImageRect = new Rect();
-    private boolean isDrawCenter = true;
-    private int min = 0;
-    private int max = 100;
+    private RectF mOvalRectF = new RectF();
+    private Rect mBackgroundImageRect = new Rect();
+    private boolean mIsDrawCenter = true;
+    private int mMin = 0;
+    private int mMax = 100;
 
-    private volatile float progress = 0;
-    private volatile LoadStatus loadStatus;
-    private volatile PlayStatus playStatus;
-    private volatile ColorRange colorRange;
+    private volatile float mProgress = 0;
+    private volatile LoadStatus mLoadStatus;
+    private volatile PlayStatus mPlayStatus;
+    private volatile ColorRange mColorRange;
 
-    private volatile LoadingContentType contentType;
-    private volatile boolean isAvailablePause = true;
+    private volatile LoadingContentType mContentType;
+    private volatile boolean mIsAvailablePause = true;
 
-    private volatile boolean isHaveBackground;
-    private volatile BitmapDrawable backgroundImage;
-    private volatile Bitmap centerImage;
-    private volatile int cx, cy;
-    private volatile boolean isVisible = true;
-    private volatile boolean isRunAnimation = false;
-
+    private volatile boolean mIsHaveBackground;
+    private volatile BitmapDrawable mBackgroundImage;
+    private volatile Bitmap mCenterImage;
+    private volatile int mCx, mCy;
+    private volatile boolean mIsVisible = true;
+    private volatile boolean mIsRunAnimation = false;
 
     public DeterminateProgressDrawable() {
         this.setCallback(this);
     }
 
     public void setMainSettings(LoadStatus loadStatus, ColorRange colorRange, LoadingContentType contentType, boolean... isAvailablePause) {
-        this.progress = 0;
-        this.loadStatus = loadStatus;
-        this.playStatus = null;
-        this.colorRange = colorRange;
-        this.contentType = contentType;
-        this.isAvailablePause = (isAvailablePause.length <= 0) || isAvailablePause[0];
+        this.mProgress = 0;
+        this.mLoadStatus = loadStatus;
+        this.mPlayStatus = null;
+        this.mColorRange = colorRange;
+        this.mContentType = contentType;
+        this.mIsAvailablePause = (isAvailablePause.length <= 0) || isAvailablePause[0];
         chooseCenterImage();
     }
 
     public void setMainSettings(PlayStatus playStatus, ColorRange colorRange, LoadingContentType contentType, boolean... isAvailablePause) {
-        this.progress = 0;
-        this.loadStatus = null;
-        this.playStatus = playStatus;
-        this.colorRange = colorRange;
-        this.contentType = contentType;
-        this.isAvailablePause = (isAvailablePause.length <= 0) || isAvailablePause[0];
+        this.mProgress = 0;
+        this.mLoadStatus = null;
+        this.mPlayStatus = playStatus;
+        this.mColorRange = colorRange;
+        this.mContentType = contentType;
+        this.mIsAvailablePause = (isAvailablePause.length <= 0) || isAvailablePause[0];
         chooseCenterImage();
     }
 
@@ -145,96 +144,96 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
     }
 
     public void setMainSettings(LoadStatus loadStatus, ColorRange colorRange, LoadingContentType contentType, boolean isAvailablePause, boolean isHaveBackground) {
-        this.isHaveBackground = isHaveBackground;
+        this.mIsHaveBackground = isHaveBackground;
         setMainSettings(loadStatus, colorRange, contentType, isAvailablePause);
     }
 
 
     public void setMainSettings(PlayStatus playStatus, ColorRange colorRange, LoadingContentType contentType, boolean isAvailablePause, boolean isHaveBackground) {
-        this.isHaveBackground = isHaveBackground;
+        this.mIsHaveBackground = isHaveBackground;
         setMainSettings(playStatus, colorRange, contentType, isAvailablePause);
     }
 
     public void clean() {
-        centerImage = null;
-        backgroundImage = null;
-        contentType = null;
-        colorRange = null;
-        playStatus = null;
-        loadStatus = null;
+        mCenterImage = null;
+        mBackgroundImage = null;
+        mContentType = null;
+        mColorRange = null;
+        mPlayStatus = null;
+        mLoadStatus = null;
     }
 
     public boolean isHaveBackground() {
-        return isHaveBackground;
+        return mIsHaveBackground;
     }
 
     public LoadingContentType getContentType() {
-        return contentType;
+        return mContentType;
     }
 
     public void setProgress(float progress) {
-        this.progress = progress;
+        this.mProgress = progress;
         invalidate();
     }
 
     public float getProgress() {
-        return progress;
+        return mProgress;
     }
 
     public void setBounds(int x, int y) {
-        if (isHaveBackground)
+        if (mIsHaveBackground)
             this.setBounds(x, y, x + CIRCLE_SIZE + BACK_IMAGE_WIDTH, y + CIRCLE_SIZE + BACK_IMAGE_WIDTH);
         else
             this.setBounds(x, y, x + CIRCLE_SIZE, y + CIRCLE_SIZE);
     }
 
     public void setVisibility(boolean isVisible) {
-        this.isVisible = isVisible;
+        this.mIsVisible = isVisible;
     }
 
     private void chooseCenterImage() {
-        if (loadStatus != null) {
-            if (colorRange == ColorRange.BLACK) {
-                switch (loadStatus) {
+        if (mLoadStatus != null) {
+            if (mColorRange == ColorRange.BLACK) {
+                switch (mLoadStatus) {
                     case NO_LOAD:
                     case PAUSE:
-                        isDrawCenter = true;
-                        centerImage = IC_DOWNLOAD.getBitmap();
+                        mIsDrawCenter = true;
+                        mCenterImage = IC_DOWNLOAD.getBitmap();
                         break;
                     case PROCEED_LOAD:
-                        isDrawCenter = isAvailablePause;
-                        centerImage = IC_PAUSE.getBitmap();
+                        mIsDrawCenter = mIsAvailablePause;
+                        mCenterImage = IC_PAUSE.getBitmap();
                         break;
                     case LOADED:
-                        isDrawCenter = false;
-                        centerImage = null;
+                        mIsDrawCenter = false;
+                        mCenterImage = null;
                         break;
                 }
             } else {
-                isDrawCenter = true;
-                switch (loadStatus) {
+                mIsDrawCenter = true;
+                switch (mLoadStatus) {
                     case NO_LOAD:
                     case PAUSE:
-                        centerImage = IC_DOWNLOAD_BLUE.getBitmap();
+                        mCenterImage = IC_DOWNLOAD_BLUE.getBitmap();
                         break;
                     case PROCEED_LOAD:
-                        centerImage = IC_FILE_PAUSE_BLUE.getBitmap();
+                        mCenterImage = IC_FILE_PAUSE_BLUE.getBitmap();
                         break;
                     case LOADED:
-                        centerImage = IC_FILE.getBitmap();
+                        mCenterImage = IC_FILE.getBitmap();
                         break;
                 }
             }
         }
 
-        if (playStatus != null) {
-            isDrawCenter = true;
-            switch (playStatus) {
+        if (mPlayStatus != null) {
+            mIsDrawCenter = true;
+            switch (mPlayStatus) {
                 case PLAY:
-                    centerImage = IC_PLAY.getBitmap();
+                    mCenterImage = IC_PLAY.getBitmap();
                     break;
                 case PAUSE:
-                    centerImage = IC_PAUSE.getBitmap();
+                    mCenterImage = IC_PAUSE.getBitmap();
                     break;
             }
         }
@@ -245,19 +244,19 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
         int lw = CIRCLE_SIZE;
         int lh = CIRCLE_SIZE;
 
-        if (isHaveBackground) {
+        if (mIsHaveBackground) {
             lw = CIRCLE_SIZE + BACK_IMAGE_WIDTH;
             lh = CIRCLE_SIZE + BACK_IMAGE_WIDTH;
         }
 
-        if (centerImage != null) {
-            if (playStatus == PlayStatus.PLAY) {
-                int imgWidth = centerImage.getWidth();
-                cx = (int) (((lw - imgWidth + STROKE_WIDTH) >> 1) + Math.ceil((imgWidth * 0.577350269 - (imgWidth >> 1))));
+        if (mCenterImage != null) {
+            if (mPlayStatus == PlayStatus.PLAY) {
+                int imgWidth = mCenterImage.getWidth();
+                mCx = (int) (((lw - imgWidth + STROKE_WIDTH) >> 1) + Math.ceil((imgWidth * 0.577350269 - (imgWidth >> 1))));
             } else {
-                cx = (lw - centerImage.getWidth() + STROKE_WIDTH) >> 1;
+                mCx = (lw - mCenterImage.getWidth() + STROKE_WIDTH) >> 1;
             }
-            cy = (lh - centerImage.getHeight() + STROKE_WIDTH) >> 1;
+            mCy = (lh - mCenterImage.getHeight() + STROKE_WIDTH) >> 1;
         }
     }
 
@@ -265,7 +264,7 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
         if (bitmapDrawable != null) {
             Bitmap bitmap = bitmapDrawable.getBitmap();
             if (bitmap != null) {
-                this.backgroundImage = bitmapDrawable;
+                this.mBackgroundImage = bitmapDrawable;
             }
         }
     }
@@ -277,32 +276,29 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
 
     @Override
     public void draw(Canvas canvas) {
-        if (isVisible) {
+        if (mIsVisible) {
             Rect bounds = getBounds();
             canvas.translate(bounds.left, bounds.top);
             canvas.save();
-            if (backgroundImage != null) {
-                //тут наверное лучше bitmapDrawable и задавть границы
-                //AndroidUtil.setCropBounds(backgroundImage, Constant.DP_64);
-                //backgroundImage.draw(canvas);
-                canvas.drawBitmap(backgroundImage.getBitmap(), null, backgroundImageRect, BACKGROUND_IMAGE_PAINT);
+            if (mBackgroundImage != null) {
+                canvas.drawBitmap(mBackgroundImage.getBitmap(), null, mBackgroundImageRect, BACKGROUND_IMAGE_PAINT);
             }
 
-            if (centerImage != null) {
+            if (mCenterImage != null) {
                 canvas.restore();
                 Paint ovalPaint;
-                if (playStatus == null) {
-                    ovalPaint = colorRange == ColorRange.BLACK ? CIRCLE_BACK_PAINT_BLACK : CIRCLE_BACK_PAINT_LIGHT_BLUE;
-                    canvas.drawOval(ovalRectF, ovalPaint);
-                    Paint arcPaint = colorRange == ColorRange.BLACK ? ARC_PAINT_WHITE : ARC_PAINT_BLUE;
-                    canvas.drawArc(ovalRectF, START_ANGLE, 360 * progress / max, false, arcPaint);
+                if (mPlayStatus == null) {
+                    ovalPaint = mColorRange == ColorRange.BLACK ? CIRCLE_BACK_PAINT_BLACK : CIRCLE_BACK_PAINT_LIGHT_BLUE;
+                    canvas.drawOval(mOvalRectF, ovalPaint);
+                    Paint arcPaint = mColorRange == ColorRange.BLACK ? ARC_PAINT_WHITE : ARC_PAINT_BLUE;
+                    canvas.drawArc(mOvalRectF, START_ANGLE, 360 * mProgress / mMax, false, arcPaint);
                 } else {
-                    ovalPaint = colorRange == ColorRange.BLACK ? CIRCLE_BACK_PAINT_BLACK : CIRCLE_BACK_PAINT_BLUE;
-                    canvas.drawOval(ovalRectF, ovalPaint);
+                    ovalPaint = mColorRange == ColorRange.BLACK ? CIRCLE_BACK_PAINT_BLACK : CIRCLE_BACK_PAINT_BLUE;
+                    canvas.drawOval(mOvalRectF, ovalPaint);
                 }
 
-                if (isDrawCenter) {
-                    canvas.drawBitmap(centerImage, cx, cy, null);
+                if (mIsDrawCenter) {
+                    canvas.drawBitmap(mCenterImage, mCx, mCy, null);
                 }
             }
         }
@@ -310,12 +306,12 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
 
     @Override
     protected void onBoundsChange(Rect bounds) {
-        if (isHaveBackground) {
-            ovalRectF.set(BACK_IMAGE_PADDING_AND_PAD_STROKE, BACK_IMAGE_PADDING_AND_PAD_STROKE, DIF_WITH_BACKGROUND, DIF_WITH_BACKGROUND);
+        if (mIsHaveBackground) {
+            mOvalRectF.set(BACK_IMAGE_PADDING_AND_PAD_STROKE, BACK_IMAGE_PADDING_AND_PAD_STROKE, DIF_WITH_BACKGROUND, DIF_WITH_BACKGROUND);
         } else
-            ovalRectF.set(PAD_STROKE, PAD_STROKE, DIF, DIF);
+            mOvalRectF.set(PAD_STROKE, PAD_STROKE, DIF, DIF);
         //todo не по центру обезается
-        backgroundImageRect.set(0, 0, bounds.width(), bounds.height());
+        mBackgroundImageRect.set(0, 0, bounds.width(), bounds.height());
     }
 
     public void changeLoadStatusAsyncAndUpdate(LoadStatus status) {
@@ -333,20 +329,20 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
     }
 
     public void changeLoadStatus(LoadStatus status) {
-        this.loadStatus = status;
-        this.playStatus = null;
+        this.mLoadStatus = status;
+        this.mPlayStatus = null;
         chooseCenterImage();
         if (status == LoadStatus.LOADED) {
-            progress = 0;
+            mProgress = 0;
         }
     }
 
     public PlayStatus getPlayStatus() {
-        return playStatus;
+        return mPlayStatus;
     }
 
     public LoadStatus getLoadStatus() {
-        return loadStatus;
+        return mLoadStatus;
     }
 
     public void changeLoadStatusAndUpdate(LoadStatus status) {
@@ -360,13 +356,13 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
     }
 
     public void changePlayStatus(PlayStatus status) {
-        this.playStatus = status;
-        this.loadStatus = null;
+        this.mPlayStatus = status;
+        this.mLoadStatus = null;
         chooseCenterImage();
     }
 
     public void invalidate() {
-        //invalidateSelf();
+
     }
 
     public void changePlayStatusAndUpdate(PlayStatus status) {
@@ -414,8 +410,8 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
     }
 
     public void setProgressWithForceAnimation(final float progress, final boolean... isFinish) {
-        isVisible = true;
-        if (loadStatus == LoadStatus.NO_LOAD) {
+        mIsVisible = true;
+        if (mLoadStatus == LoadStatus.NO_LOAD) {
             changeLoadStatus(LoadStatus.PROCEED_LOAD);
         }
         setProgressWithAnimation(progress, isFinish);
@@ -432,19 +428,19 @@ public class DeterminateProgressDrawable extends Drawable implements Drawable.Ca
 
     //info в процентах
     public void setProgressWithAnimation(final float progress, boolean... isFinish) {
-        isVisible = true;
+        mIsVisible = true;
         boolean finish = isFinish.length > 0 && isFinish[0];
-        if (loadStatus == DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD || loadStatus == DeterminateProgressDrawable.LoadStatus.PAUSE) {
-            if ((int) progress < max || finish) {
+        if (mLoadStatus == DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD || mLoadStatus == DeterminateProgressDrawable.LoadStatus.PAUSE) {
+            if ((int) progress < mMax || finish) {
                 ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(this, "progress", progress);
                 objectAnimator.setDuration(DeterminateProgressDrawable.ANIM_DURATION);
                 objectAnimator.setInterpolator(new DecelerateInterpolator());
 
-                if ((int) progress >= max && finish) {
+                if ((int) progress >= mMax && finish) {
                     objectAnimator.addListener(new AnimatorEndListener() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            if (contentType == LoadingContentType.VIDEO || contentType == LoadingContentType.AUDIO) {
+                            if (mContentType == LoadingContentType.VIDEO || mContentType == LoadingContentType.AUDIO) {
                                 changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
                             } else
                                 changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.LOADED);

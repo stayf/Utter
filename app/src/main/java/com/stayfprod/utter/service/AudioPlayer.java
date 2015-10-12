@@ -18,7 +18,7 @@ import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.ui.view.DetermineProgressView;
 import com.stayfprod.utter.ui.view.chat.AudioMsgView;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -42,18 +42,18 @@ public class AudioPlayer extends Observable {
     private static final String SHUFFLE = "SHUFFLE";
     private static final String EQUALIZER_PRESET = "EQUALIZER_PRESET";
 
-    private List<TdApi.Message> audioMessages = new ArrayList<TdApi.Message>(100);
+    private static volatile AudioPlayer sAudioPlayer;
 
-    private static volatile AudioPlayer audioPlayer;
+    private List<TdApi.Message> mAudioMessages = new ArrayList<TdApi.Message>(100);
 
-    private TdApi.Message message;
-    private AudioMsgView audioMsgView;
-    private DetermineProgressView progressView;
-    private float currentProgress;
-    private boolean isNeedUpdateChatActivity;
-    private boolean isNeedUpdateSharedAudioActivity;
+    private TdApi.Message mMessage;
+    private AudioMsgView mAudioMsgView;
+    private DetermineProgressView mProgressView;
+    private float mCurrentProgress;
+    private boolean mIsNeedUpdateChatActivity;
+    private boolean mIsNeedUpdateSharedAudioActivity;
 
-    private volatile MediaPlayer mediaPlayer;
+    private volatile MediaPlayer mMediaPlayer;
     private volatile Equalizer mEqualizer;
 
     public Equalizer getEqualizer() {
@@ -61,7 +61,7 @@ public class AudioPlayer extends Observable {
     }
 
     public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
+        return mMediaPlayer;
     }
 
     private volatile Visualizer mVisualizer;
@@ -81,68 +81,67 @@ public class AudioPlayer extends Observable {
     }
 
     public boolean isNeedUpdateChatActivity() {
-        return isNeedUpdateChatActivity;
+        return mIsNeedUpdateChatActivity;
     }
 
     public boolean isNeedUpdateSharedAudioActivity() {
-        return isNeedUpdateSharedAudioActivity;
+        return mIsNeedUpdateSharedAudioActivity;
     }
 
     public void setIsNeedUpdateSharedAudioActivity(boolean isNeedUpdateSharedAudioActivity) {
-        this.isNeedUpdateSharedAudioActivity = isNeedUpdateSharedAudioActivity;
+        this.mIsNeedUpdateSharedAudioActivity = isNeedUpdateSharedAudioActivity;
     }
 
     public void setIsNeedUpdateMessageList(boolean isNeedUpdateMessageList) {
-        this.isNeedUpdateChatActivity = isNeedUpdateMessageList;
+        this.mIsNeedUpdateChatActivity = isNeedUpdateMessageList;
     }
 
     public List<TdApi.Message> getAudioMessages() {
-        return audioMessages;
+        return mAudioMessages;
     }
 
     private Handler mHandler = new Handler();
 
-    private Runnable runnable = new Runnable() {
+    private Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mediaPlayer != null && isPlaying.get() && mediaPlayer.isPlaying()) {
+            if (mMediaPlayer != null && isPlaying.get() && mMediaPlayer.isPlaying()) {
                 isPaused.set(false);
-                int mCurrentPosition = mediaPlayer.getCurrentPosition();
-                currentProgress = ((float) mCurrentPosition * 100) / (mediaPlayer.getDuration());
-                notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER, new Object[]{ACTION_PROGRESS, getMessageAudio(), currentProgress, getMessage()}));
+                int mCurrentPosition = mMediaPlayer.getCurrentPosition();
+                mCurrentProgress = ((float) mCurrentPosition * 100) / (mMediaPlayer.getDuration());
+                notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER, new Object[]{ACTION_PROGRESS, getMessageAudio(), mCurrentProgress, getMessage()}));
                 mHandler.postDelayed(this, 120);
             }
         }
     };
 
     public static AudioPlayer getPlayer() {
-        if (audioPlayer == null) {
+        if (sAudioPlayer == null) {
             synchronized (AudioPlayer.class) {
-                if (audioPlayer == null) {
-                    audioPlayer = new AudioPlayer();
+                if (sAudioPlayer == null) {
+                    sAudioPlayer = new AudioPlayer();
                 }
             }
         }
-        return audioPlayer;
+        return sAudioPlayer;
     }
 
     //проценты
     public float getCurrentProgress() {
-        return currentProgress;
+        return mCurrentProgress;
     }
 
     public TdApi.MessageAudio getMessageAudio() {
         try {
-            return ((TdApi.MessageAudio) message.message);
+            return ((TdApi.MessageAudio) mMessage.message);
         } catch (Exception e) {
             return null;
         }
     }
 
     public TdApi.Message getMessage() {
-        return message;
+        return mMessage;
     }
-
 
     private SharedPreferences getSharedPreferences() {
         return App.getAppContext().getSharedPreferences("Player", Context.MODE_PRIVATE);
@@ -170,8 +169,8 @@ public class AudioPlayer extends Observable {
 
     public void setRepeat(boolean val) {
         getSharedPreferences().edit().putBoolean(REPEAT, val).commit();
-        if (mediaPlayer != null) {
-            mediaPlayer.setLooping(isRepeat());
+        if (mMediaPlayer != null) {
+            mMediaPlayer.setLooping(isRepeat());
         }
     }
 
@@ -184,49 +183,48 @@ public class AudioPlayer extends Observable {
     private AtomicBoolean isPaused = new AtomicBoolean(false);
 
     public void rebuildLinks(TdApi.Message message, AudioMsgView audioMsgView) {
-        this.message = message;
-        this.audioMsgView = audioMsgView;
+        this.mMessage = message;
+        this.mAudioMsgView = audioMsgView;
     }
 
     public void rebuildLinks(TdApi.Message message, DetermineProgressView progressView) {
-        this.message = message;
-        this.progressView = progressView;
+        this.mMessage = message;
+        this.mProgressView = progressView;
     }
 
     public void cleanLinks(DetermineProgressView progressView) {
-        if (this.progressView == progressView) {
-            this.progressView = null;
+        if (this.mProgressView == progressView) {
+            this.mProgressView = null;
         }
     }
 
     public void cleanLinks(AudioMsgView audioMsgView) {
-        //сожет прийти одна и та же View на разные сообщения
-        if (this.audioMsgView == audioMsgView) {
-            this.audioMsgView = null;
+        //может прийти одна и та же View на разные сообщения
+        if (this.mAudioMsgView == audioMsgView) {
+            this.mAudioMsgView = null;
         }
     }
 
     public boolean isPlaying() {
-        return mediaPlayer != null && mediaPlayer.isPlaying();
+        return mMediaPlayer != null && mMediaPlayer.isPlaying();
     }
 
     public boolean isPaused() {
-        return mediaPlayer != null && !mediaPlayer.isPlaying() && isPaused.get();
+        return mMediaPlayer != null && !mMediaPlayer.isPlaying() && isPaused.get();
     }
 
     public String getPlayingFile() {
         try {
-            return ((TdApi.MessageAudio) message.message).audio.audio.path;
+            return ((TdApi.MessageAudio) mMessage.message).audio.audio.path;
         } catch (Exception e) {
             return "";
         }
     }
 
     public int getMsgId() {
-        if (message != null) {
-            return message.id;
+        if (mMessage != null) {
+            return mMessage.id;
         }
-
         return 0;
     }
 
@@ -237,19 +235,16 @@ public class AudioPlayer extends Observable {
             if (mVisualizer != null) {
                 mVisualizer.setEnabled(false);
             }
-            if (mediaPlayer != null) {
-                if (audioMsgView != null)
-                    audioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
-                if (progressView != null)
-                    progressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
-                mediaPlayer.stop();
+            if (mMediaPlayer != null) {
+                if (mAudioMsgView != null)
+                    mAudioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                if (mProgressView != null)
+                    mProgressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                mMediaPlayer.stop();
             }
         } catch (Exception e) {
             //
         } finally {
-            //audioMsgView = null;
-            //messageAudio = null;
-            //progressView = null
             releasePlayer();
         }
         if (isSendAction.length == 0 || isSendAction[0]) {
@@ -258,9 +253,9 @@ public class AudioPlayer extends Observable {
     }
 
     public void seekTo(int timeInPercent) {
-        if (mediaPlayer != null) {
+        if (mMediaPlayer != null) {
             try {
-                mediaPlayer.seekTo((int) (((float) timeInPercent / 10) * ((float) mediaPlayer.getDuration() / 100)));
+                mMediaPlayer.seekTo((int) (((float) timeInPercent / 10) * ((float) mMediaPlayer.getDuration() / 100)));
             } catch (Exception e) {
                 //
             }
@@ -268,15 +263,15 @@ public class AudioPlayer extends Observable {
     }
 
     public void pause() {
-        if (mediaPlayer != null) {
+        if (mMediaPlayer != null) {
             try {
-                if (audioMsgView != null)
-                    audioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
-                if (progressView != null)
-                    progressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                if (mAudioMsgView != null)
+                    mAudioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
+                if (mProgressView != null)
+                    mProgressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PLAY);
                 isPlaying.set(false);
                 isPaused.set(true);
-                mediaPlayer.pause();
+                mMediaPlayer.pause();
             } catch (Exception e) {
                 //
             }
@@ -285,15 +280,15 @@ public class AudioPlayer extends Observable {
     }
 
     public void resume() {
-        if (mediaPlayer != null) {
+        if (mMediaPlayer != null) {
             try {
-                mediaPlayer.start();
-                if (audioMsgView != null)
-                    audioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
-                if (progressView != null)
-                    progressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                mMediaPlayer.start();
+                if (mAudioMsgView != null)
+                    mAudioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                if (mProgressView != null)
+                    mProgressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
                 isPlaying.set(true);
-                runnable.run();
+                mRunnable.run();
             } catch (Exception e) {
                 //
             }
@@ -305,18 +300,18 @@ public class AudioPlayer extends Observable {
     public void play(final boolean... isSendAction) {
         try {
             VoiceController.getController().pause();
-            mediaPlayer = new MediaPlayer();
+            mMediaPlayer = new MediaPlayer();
 
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setDataSource(getPlayingFile());
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mMediaPlayer.setDataSource(getPlayingFile());
 
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
 
                     if (mEqualizer == null) {
-                        mEqualizer = new Equalizer(0, mediaPlayer.getAudioSessionId());
+                        mEqualizer = new Equalizer(0, mMediaPlayer.getAudioSessionId());
                         mEqualizer.setEnabled(true);
                         mEqualizer.usePreset(getEqualizerPreset());
                     }
@@ -325,33 +320,33 @@ public class AudioPlayer extends Observable {
                         mVisualizer.setEnabled(true);
                     }
                     isPlaying.set(true);
-                    runnable.run();
-                    if (audioMsgView != null)
-                        audioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
-                    if (progressView != null)
-                        progressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                    mRunnable.run();
+                    if (mAudioMsgView != null)
+                        mAudioMsgView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
+                    if (mProgressView != null)
+                        mProgressView.getProgressDrawable().changePlayStatusAndUpdate(DeterminateProgressDrawable.PlayStatus.PAUSE);
                     if (isSendAction.length == 0 || isSendAction[0]) {
                         notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER, new Object[]{ACTION_SHOW_BAR, getMessageAudio(), 0f, getMessage()}));
                     }
                 }
             });
-            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mp, int what, int extra) {
                     AndroidUtil.showToastShort("Player error:" + what + "; " + extra);
                     return false;
                 }
             });
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     if (!isRepeat()) {
                         if (isShuffled()) {
-                            if (!audioMessages.isEmpty()) {
+                            if (!mAudioMessages.isEmpty()) {
                                 try {
                                     final Random random = new Random();
-                                    int pos = random.nextInt(audioMessages.size());
-                                    TdApi.Message message = audioMessages.get(pos);
+                                    int pos = random.nextInt(mAudioMessages.size());
+                                    TdApi.Message message = mAudioMessages.get(pos);
                                     tryStartToPlay(message);
                                     currentTrackPosition = pos;
                                 } catch (Exception e) {
@@ -359,10 +354,10 @@ public class AudioPlayer extends Observable {
                                 }
                             }
                         } else {
-                            if (audioMessages != null && audioMessages.size() > currentTrackPosition + 1) {
+                            if (mAudioMessages != null && mAudioMessages.size() > currentTrackPosition + 1) {
                                 try {
                                     int pos = currentTrackPosition + 1;
-                                    TdApi.Message message = audioMessages.get(pos);
+                                    TdApi.Message message = mAudioMessages.get(pos);
                                     tryStartToPlay(message);
                                     currentTrackPosition = pos;
                                 } catch (Exception e) {
@@ -376,8 +371,8 @@ public class AudioPlayer extends Observable {
                 }
             });
 
-            mediaPlayer.setLooping(isRepeat());
-            mediaPlayer.prepareAsync();
+            mMediaPlayer.setLooping(isRepeat());
+            mMediaPlayer.prepareAsync();
         } catch (Exception e) {
             Log.e(LOG, "play", e);
             Crashlytics.logException(e);
@@ -395,34 +390,32 @@ public class AudioPlayer extends Observable {
             messageAudio.audio.performer = AndroidUtil.getResourceString(R.string.unknown);
         }
 
-        if (FileUtils.isTDFileLocal(messageAudio.audio.audio)) {
+        if (FileUtil.isTDFileLocal(messageAudio.audio.audio)) {
             //играем
-            progressView = null;
-            audioMsgView = null;
+            mProgressView = null;
+            mAudioMsgView = null;
 
-            if (mediaPlayer == null) {
-                AudioPlayer.this.isNeedUpdateChatActivity = true;
-                AudioPlayer.this.isNeedUpdateSharedAudioActivity = true;
-                AudioPlayer.this.message = message;
+            if (mMediaPlayer == null) {
+                AudioPlayer.this.mIsNeedUpdateChatActivity = true;
+                AudioPlayer.this.mIsNeedUpdateSharedAudioActivity = true;
+                AudioPlayer.this.mMessage = message;
                 play();
             } else {
-                mediaPlayer.reset();
-                AudioPlayer.this.isNeedUpdateChatActivity = true;
-                AudioPlayer.this.isNeedUpdateSharedAudioActivity = true;
-                AudioPlayer.this.message = message;
-                mediaPlayer.setDataSource(getPlayingFile());
-                mediaPlayer.prepareAsync();
+                mMediaPlayer.reset();
+                AudioPlayer.this.mIsNeedUpdateChatActivity = true;
+                AudioPlayer.this.mIsNeedUpdateSharedAudioActivity = true;
+                AudioPlayer.this.mMessage = message;
+                mMediaPlayer.setDataSource(getPlayingFile());
+                mMediaPlayer.prepareAsync();
             }
-
-            //todo если sharedActivity видна force апдейт
 
             AudioPlayer.this.notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PHOTO_AND_TAG, new Object[]{messageAudio.audio, message.id, false}));
         } else {
             //грузим
             stop();
-            AudioPlayer.this.isNeedUpdateChatActivity = true;
-            AudioPlayer.this.isNeedUpdateSharedAudioActivity = true;
-            AudioPlayer.this.message = message;
+            AudioPlayer.this.mIsNeedUpdateChatActivity = true;
+            AudioPlayer.this.mIsNeedUpdateSharedAudioActivity = true;
+            AudioPlayer.this.mMessage = message;
             AudioPlayer.this.notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER,
                     new Object[]{ACTION_UPLOAD_NEW_TRACK, messageAudio, 0f, message}));
 
@@ -432,19 +425,19 @@ public class AudioPlayer extends Observable {
     public void clickForward() {
         try {
             if (currentTrackPosition != -1) {
-                if (audioMessages.size() > currentTrackPosition + 1) {
+                if (mAudioMessages.size() > currentTrackPosition + 1) {
                     currentTrackPosition = currentTrackPosition + 1;
-                    tryStartToPlay(audioMessages.get(currentTrackPosition));
+                    tryStartToPlay(mAudioMessages.get(currentTrackPosition));
                 } else {
-                    if (!audioMessages.isEmpty()) {
+                    if (!mAudioMessages.isEmpty()) {
                         currentTrackPosition = 0;
-                        tryStartToPlay(audioMessages.get(0));
+                        tryStartToPlay(mAudioMessages.get(0));
                     }
                 }
             } else {
-                if (!audioMessages.isEmpty()) {
+                if (!mAudioMessages.isEmpty()) {
                     currentTrackPosition = 0;
-                    tryStartToPlay(audioMessages.get(0));
+                    tryStartToPlay(mAudioMessages.get(0));
                 }
             }
         } catch (Exception e) {
@@ -455,25 +448,25 @@ public class AudioPlayer extends Observable {
     public void clickBack() {
         try {
             if (currentTrackPosition != -1) {
-                if (!audioMessages.isEmpty()) {
+                if (!mAudioMessages.isEmpty()) {
                     int newPos = currentTrackPosition - 1;
                     if (newPos >= 0) {
-                        if (audioMessages.size() > newPos) {
+                        if (mAudioMessages.size() > newPos) {
                             currentTrackPosition = newPos;
-                            tryStartToPlay(audioMessages.get(currentTrackPosition));
+                            tryStartToPlay(mAudioMessages.get(currentTrackPosition));
                         } else {
-                            currentTrackPosition = audioMessages.size() - 1;
-                            tryStartToPlay(audioMessages.get(currentTrackPosition));
+                            currentTrackPosition = mAudioMessages.size() - 1;
+                            tryStartToPlay(mAudioMessages.get(currentTrackPosition));
                         }
                     } else {
-                        currentTrackPosition = audioMessages.size() - 1;
-                        tryStartToPlay(audioMessages.get(currentTrackPosition));
+                        currentTrackPosition = mAudioMessages.size() - 1;
+                        tryStartToPlay(mAudioMessages.get(currentTrackPosition));
                     }
                 }
             } else {
-                if (!audioMessages.isEmpty()) {
+                if (!mAudioMessages.isEmpty()) {
                     currentTrackPosition = 0;
-                    tryStartToPlay(audioMessages.get(0));
+                    tryStartToPlay(mAudioMessages.get(0));
                 }
             }
         } catch (Exception e) {
@@ -482,21 +475,21 @@ public class AudioPlayer extends Observable {
     }
 
     public void startToPlayAudio(TdApi.Message message, DetermineProgressView progressView) {
-        this.audioMsgView = null;
-        isNeedUpdateChatActivity = true;
-        if (this.message == null) {
-            this.message = message;
-            this.progressView = progressView;
+        this.mAudioMsgView = null;
+        mIsNeedUpdateChatActivity = true;
+        if (this.mMessage == null) {
+            this.mMessage = message;
+            this.mProgressView = progressView;
             play();
-        } else if (mediaPlayer == null) {
-            if (this.message != message) {
-                this.message = message;
-                this.progressView = progressView;
+        } else if (mMediaPlayer == null) {
+            if (this.mMessage != message) {
+                this.mMessage = message;
+                this.mProgressView = progressView;
             }
             play();
         } else {
             try {
-                if (this.message.id == message.id) {
+                if (this.mMessage.id == message.id) {
                     resume();
                     return;
                 }
@@ -505,28 +498,27 @@ public class AudioPlayer extends Observable {
             }
 
             stop(false);
-            this.message = message;
-            this.progressView = progressView;
+            this.mMessage = message;
+            this.mProgressView = progressView;
             play(false);
-            //notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER, new Object[]{ACTION_UPLOAD_NEW_TRACK, getMessageAudio(), 0f, getMessage()}));
         }
     }
 
     public void startToPlayAudio(TdApi.Message message, AudioMsgView audioMsgView) {
-        this.progressView = null;
-        if (this.message == null) {
-            this.message = message;
-            this.audioMsgView = audioMsgView;
+        this.mProgressView = null;
+        if (this.mMessage == null) {
+            this.mMessage = message;
+            this.mAudioMsgView = audioMsgView;
             play();
-        } else if (mediaPlayer == null) {
-            if (this.message != message) {
-                this.message = message;
-                this.audioMsgView = audioMsgView;
+        } else if (mMediaPlayer == null) {
+            if (this.mMessage != message) {
+                this.mMessage = message;
+                this.mAudioMsgView = audioMsgView;
             }
             play();
         } else {
             try {
-                if (this.message.id == message.id) {
+                if (this.mMessage.id == message.id) {
                     resume();
                     return;
                 }
@@ -534,25 +526,24 @@ public class AudioPlayer extends Observable {
                 Log.w(LOG, "startToPlayAudio", e);
             }
             stop(false);
-            this.message = message;
-            this.audioMsgView = audioMsgView;
+            this.mMessage = message;
+            this.mAudioMsgView = audioMsgView;
             play(false);
-            //notifyObservers(new NotificationObject(NotificationObject.UPDATE_MUSIC_PLAYER, new Object[]{ACTION_UPLOAD_NEW_TRACK, getMessageAudio(), 0f, getMessage()}));
         }
 
     }
 
     private void releasePlayer() {
-        if (mediaPlayer != null) {
+        if (mMediaPlayer != null) {
             try {
-                mediaPlayer.release();
+                mMediaPlayer.release();
                 if (mEqualizer != null) {
                     mEqualizer.release();
                 }
             } catch (Exception e) {
                 //
             } finally {
-                mediaPlayer = null;
+                mMediaPlayer = null;
                 mEqualizer = null;
             }
         }

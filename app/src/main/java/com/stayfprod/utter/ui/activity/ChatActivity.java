@@ -68,7 +68,7 @@ import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.ui.view.StickerGridView;
 import com.stayfprod.emojicon.EmojiconEditText;
 import com.stayfprod.emojicon.EmojiconGridView;
-import com.stayfprod.emojicon.EmojiconsPopup;
+import com.stayfprod.emojicon.EmojIconsPopup;
 import com.stayfprod.emojicon.emoji.Emojicon;
 import com.stayfprod.utter.manager.WebpSupportManager;
 import com.stayfprod.utter.util.TextUtil;
@@ -89,42 +89,49 @@ public class ChatActivity extends AbstractActivity implements Observer {
     private static final int SELECT_PHOTO = 100;
     public static final int OPEN_PHOTO = 55;
 
-    private View popupAttachView;
-    private View popupMuteView;
-    private RecyclerView recyclerViewGallery;
-    private EmojiconEditText emojiconEditText;
-    private GalleryAdapter galleryListAdapter;
-    private RecyclerView.LayoutManager chatListLayoutManager;
+    private View mPopupAttachView;
+    private View mPopupMuteView;
+    private RecyclerView mRecyclerViewGallery;
+    private EmojiconEditText mEmojiconEditText;
+    private GalleryAdapter mGalleryListAdapter;
+    private RecyclerView.LayoutManager mChatListLayoutManager;
 
-    private LinearLayout takePhotoButton;
-    private String photoPath;
-    private EmojiconsPopup popupEmoji;
-    private BotKeyboardPopup popupBotKeyboard;
-    private PopupWindow popupAttach;
-    private PopupWindow popupMute;
-    private RelativeLayout main;
+    private LinearLayout mTakePhotoButton;
+    private String mPhotoPath;
+    private EmojIconsPopup mPpopupEmoji;
+    private BotKeyboardPopup mPopupBotKeyboard;
+    private PopupWindow mPopupAttach;
+    private PopupWindow mPopupMute;
+    private RelativeLayout mMainLayout;
 
-    private Boolean isGroup;
-    private Boolean isLeave;
-    private Boolean isMuted = false;
-    private Boolean isFirstBotOpening;
-    private SimpleRecyclerView botCommandListView;
-    private RelativeLayout bot_popup_commands_layout;
-    private RelativeLayout bot_popup_commands_up_layout;
-    private boolean isPopUpBotCommandsVisible;
+    private Boolean mIsGroup;
+    private Boolean mIsLeave;
+    private Boolean mIsMuted = false;
+    private Boolean mIsFirstBotOpening;
 
-    private ImageView a_chat_ic_slash;
-    private ImageView a_chat_ic_comand;
-    private ImageView a_chat_ic_panel_kb;
-    private ImageView sendButton;
-    private RecordVoiceView a_chat_record;
-    private RelativeLayout a_chat_input_holder;
-    private TextView slide_to_cancel_timer;
-    private ImageView emojiButton;
+    private SimpleRecyclerView mBotCommandListView;
+    private RelativeLayout mBotPopupCommandsLayout;
+    private RelativeLayout mBotPopupCommandsUpLayout;
+    private boolean mIsPopUpBotCommandsVisible;
 
-    private MenuItem menuMute;
+    private ImageView mChatIcon;
+    private TextView mChatTitle;
+    private TextView mChatSubtext;
+    private TextView mChatNoMsges;
+    private ImageView mIcMute;
 
-    private MusicBarWidget musicBarWidget;
+    private ImageView mChatIcSlash;
+    private ImageView mChatIcCommand;
+    private ImageView mChatIcPanelKb;
+    private ImageView mSendButton;
+    private RecordVoiceView mChatRecord;
+    private RelativeLayout mChatInputHolder;
+    private TextView mSlideToCancelTimer;
+    private ImageView mEmojiButton;
+    private Menu mMenu;
+    private MusicBarWidget mMusicBarWidget;
+
+    private volatile boolean mIsClickedOnToolbar;
 
     @Override
     protected void onStart() {
@@ -139,7 +146,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
         VoiceController.getController().addObserver(this);
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
         audioPlayer.addObserver(this);
-        musicBarWidget.checkOnStart();
+        mMusicBarWidget.checkOnStart();
         if (audioPlayer.isNeedUpdateChatActivity()) {
             audioPlayer.setIsNeedUpdateMessageList(false);
             chatManager.notifySetDataChanged();
@@ -184,12 +191,12 @@ public class ChatActivity extends AbstractActivity implements Observer {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         getPopupEmoji().setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
-        popupBotKeyboard.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
+        mPopupBotKeyboard.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
     }
 
     private void dismissPopUpAttachWithAnimation() {
-        if (popupAttach.isShowing()) {
-            ObjectAnimator anim = ObjectAnimator.ofObject(popupAttachView,
+        if (mPopupAttach.isShowing()) {
+            ObjectAnimator anim = ObjectAnimator.ofObject(mPopupAttachView,
                     "backgroundColor",
                     new ArgbEvaluator(),
                     0x33000000,
@@ -197,30 +204,30 @@ public class ChatActivity extends AbstractActivity implements Observer {
             anim.addListener(new AnimatorEndListener() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    popupAttach.dismiss();
+                    mPopupAttach.dismiss();
                 }
             });
             anim.setDuration(200).start();
         } else {
-            popupAttach.dismiss();
+            mPopupAttach.dismiss();
         }
     }
 
     private void dismissPopUpBotCommandsWithAnimation() {
-        if (isPopUpBotCommandsVisible) {
-            isPopUpBotCommandsVisible = false;
-            ObjectAnimator popupAnim = ObjectAnimator.ofObject(bot_popup_commands_up_layout,
+        if (mIsPopUpBotCommandsVisible) {
+            mIsPopUpBotCommandsVisible = false;
+            ObjectAnimator popupAnim = ObjectAnimator.ofObject(mBotPopupCommandsUpLayout,
                     "backgroundColor", new ArgbEvaluator(),
                     0x33000000, 0x00000000);
             popupAnim.addListener(new AnimatorEndListener() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(bot_popup_commands_layout, "translationY", 0, AndroidUtil.dp(124));
+                    ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(mBotPopupCommandsLayout, "translationY", 0, AndroidUtil.dp(124));
                     objectAnimator.addListener(new AnimatorEndListener() {
                         @Override
                         public void onAnimationEnd(Animator animation) {
-                            bot_popup_commands_layout.setVisibility(View.GONE);
-                            bot_popup_commands_up_layout.setVisibility(View.GONE);
+                            mBotPopupCommandsLayout.setVisibility(View.GONE);
+                            mBotPopupCommandsUpLayout.setVisibility(View.GONE);
                         }
                     });
 
@@ -232,9 +239,9 @@ public class ChatActivity extends AbstractActivity implements Observer {
     }
 
     private void dismissPopUpMuteWithAnimation() {
-        if (popupMute != null) {
-            if (popupMute.isShowing()) {
-                ObjectAnimator anim = ObjectAnimator.ofObject(popupMuteView,
+        if (mPopupMute != null) {
+            if (mPopupMute.isShowing()) {
+                ObjectAnimator anim = ObjectAnimator.ofObject(mPopupMuteView,
                         "backgroundColor",
                         new ArgbEvaluator(),
                         0x33000000,
@@ -242,27 +249,27 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 anim.addListener(new AnimatorEndListener() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        popupMute.dismiss();
+                        mPopupMute.dismiss();
                     }
                 });
                 anim.setDuration(200).start();
             } else {
-                popupMute.dismiss();
+                mPopupMute.dismiss();
             }
         }
     }
 
     private void showPopUpBotCommands() {
-        if (!isPopUpBotCommandsVisible) {
-            isPopUpBotCommandsVisible = true;
-            bot_popup_commands_layout.setVisibility(View.VISIBLE);
-            bot_popup_commands_up_layout.setVisibility(View.VISIBLE);
-            ObjectAnimator popupAnim = ObjectAnimator.ofFloat(bot_popup_commands_layout, "translationY", AndroidUtil.dp(124), 0);
+        if (!mIsPopUpBotCommandsVisible) {
+            mIsPopUpBotCommandsVisible = true;
+            mBotPopupCommandsLayout.setVisibility(View.VISIBLE);
+            mBotPopupCommandsUpLayout.setVisibility(View.VISIBLE);
+            ObjectAnimator popupAnim = ObjectAnimator.ofFloat(mBotPopupCommandsLayout, "translationY", AndroidUtil.dp(124), 0);
             popupAnim.setDuration(150);
             popupAnim.addListener(new AnimatorEndListener() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    ObjectAnimator.ofObject(bot_popup_commands_up_layout,
+                    ObjectAnimator.ofObject(mBotPopupCommandsUpLayout,
                             "backgroundColor", new ArgbEvaluator(),
                             0x00000000, 0x33000000).setDuration(100).start();
 
@@ -276,38 +283,38 @@ public class ChatActivity extends AbstractActivity implements Observer {
     public void onBackPressed() {
         ChatManager.getManager().stopScroll();
 
-        if (popupMute != null && popupMute.isShowing()) {
+        if (mPopupMute != null && mPopupMute.isShowing()) {
             dismissPopUpMuteWithAnimation();
             return;
         }
 
-        if (popupAttach.isShowing()) {
+        if (mPopupAttach.isShowing()) {
             dismissPopUpAttachWithAnimation();
             return;
         }
 
-        if (popupEmoji != null && getPopupEmoji().isKeyBoardOpen()) {
+        if (mPpopupEmoji != null && getPopupEmoji().isKeyBoardOpen()) {
             final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromWindow(emojiconEditText.getWindowToken(), 0);
+            inputMethodManager.hideSoftInputFromWindow(mEmojiconEditText.getWindowToken(), 0);
             return;
         }
 
-        if (popupEmoji != null && getPopupEmoji().isShowing()) {
+        if (mPpopupEmoji != null && getPopupEmoji().isShowing()) {
             getPopupEmoji().dismiss();
-            main.setPadding(0, 0, 0, 0);
+            mMainLayout.setPadding(0, 0, 0, 0);
             return;
         }
 
-        if (popupBotKeyboard.isShowing()) {
+        if (mPopupBotKeyboard.isShowing()) {
             updateKeyboardIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
-            popupBotKeyboard.dismiss();
-            main.setPadding(0, 0, 0, 0);
+            mPopupBotKeyboard.dismiss();
+            mMainLayout.setPadding(0, 0, 0, 0);
             return;
         }
 
-        if (popupEmoji != null)
+        if (mPpopupEmoji != null)
             getPopupEmoji().dismiss();
-        popupBotKeyboard.dismiss();
+        mPopupBotKeyboard.dismiss();
         dismissPopUpAttachWithAnimation();
         dismissPopUpMuteWithAnimation();
 
@@ -338,8 +345,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                if (ChatManager.isNeedRemoveChat) {
-                    ChatManager.isNeedRemoveChat = false;
+                if (ChatManager.sIsNeedRemoveChat) {
+                    ChatManager.sIsNeedRemoveChat = false;
                     ChatListManager.getManager().removeChat(chatId);
                     System.gc();
                 }
@@ -353,17 +360,17 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     public void forceFinish() {
 
-        if (popupEmoji != null && getPopupEmoji() != null)
+        if (mPpopupEmoji != null && getPopupEmoji() != null)
             getPopupEmoji().dismiss();
 
-        if (popupBotKeyboard != null)
-            popupBotKeyboard.dismiss();
+        if (mPopupBotKeyboard != null)
+            mPopupBotKeyboard.dismiss();
 
-        if (popupAttach != null)
-            popupAttach.dismiss();
+        if (mPopupAttach != null)
+            mPopupAttach.dismiss();
 
-        if (popupMute != null)
-            popupMute.dismiss();
+        if (mPopupMute != null)
+            mPopupMute.dismiss();
 
         ChatManager.getManager().deleteObserver(this);
         UpdateHandler.getHandler().deleteObserver(this);
@@ -377,8 +384,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
         VoiceController.getController().fullDestroy();
         //BotManager.getManager().clean();
 
-        if (ChatManager.isNeedRemoveChat) {
-            ChatManager.isNeedRemoveChat = false;
+        if (ChatManager.sIsNeedRemoveChat) {
+            ChatManager.sIsNeedRemoveChat = false;
             ChatListManager.getManager().removeChat(chatId);
         }
 
@@ -386,30 +393,30 @@ public class ChatActivity extends AbstractActivity implements Observer {
         stickerManager.cleanStickerViews();
     }
 
-    public EmojiconsPopup getPopupEmoji() {
-        if (popupEmoji == null) {
+    public EmojIconsPopup getPopupEmoji() {
+        if (mPpopupEmoji == null) {
 
-            popupEmoji = new EmojiconsPopup(main, this, new StickerGridView(this), new StickerMicroThumbAdapterImpl(this));
+            mPpopupEmoji = new EmojIconsPopup(mMainLayout, this, new StickerGridView(this), new StickerMicroThumbAdapterImpl(this));
 
-            popupEmoji.setSizeForSoftKeyboard();
-            popupEmoji.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener() {
+            mPpopupEmoji.setSizeForSoftKeyboard();
+            mPpopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
                 @Override
                 public void onEmojiconBackspaceClicked(View v) {
                     KeyEvent event = new KeyEvent(
                             0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
-                    emojiconEditText.dispatchKeyEvent(event);
+                    mEmojiconEditText.dispatchKeyEvent(event);
                 }
             });
 
-            popupEmoji.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            mPpopupEmoji.setOnDismissListener(new PopupWindow.OnDismissListener() {
                 @Override
                 public void onDismiss() {
-                    changeEmojiKeyboardIcon(emojiButton, R.mipmap.ic_smiles);
+                    changeEmojiKeyboardIcon(mEmojiButton, R.mipmap.ic_smiles);
                     StickerRecentManager.getInstance().saveRecents();
                 }
             });
 
-            popupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener() {
+            mPpopupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojIconsPopup.OnSoftKeyboardOpenCloseListener() {
                 @Override
                 public void onKeyboardOpen(int keyBoardHeight) {
                     AndroidUtil.setKeyboardHeight(keyBoardHeight);
@@ -417,34 +424,34 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
                 @Override
                 public void onKeyboardClose() {
-                    if (popupEmoji.isShowing())
-                        popupEmoji.dismiss();
+                    if (mPpopupEmoji.isShowing())
+                        mPpopupEmoji.dismiss();
                 }
             });
-            popupEmoji.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
+            mPpopupEmoji.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
                 @Override
                 public void onEmojiconClicked(Emojicon emojicon) {
-                    int selectionCursor = emojiconEditText.getSelectionStart();
-                    emojiconEditText.getText().insert(selectionCursor, emojicon.getEmoji());
+                    int selectionCursor = mEmojiconEditText.getSelectionStart();
+                    mEmojiconEditText.getText().insert(selectionCursor, emojicon.getEmoji());
                 }
             });
 
-            popupEmoji.setAnimationStyle(R.style.popup_anim_style);
-            popupAttach.setAnimationStyle(R.style.popup_anim_style);
+            mPpopupEmoji.setAnimationStyle(R.style.popup_anim_style);
+            mPopupAttach.setAnimationStyle(R.style.popup_anim_style);
 
-            popupEmoji.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener() {
+            mPpopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
                 @Override
                 public void onEmojiconBackspaceClicked(View v) {
                     KeyEvent event = new KeyEvent(
                             0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL);
-                    emojiconEditText.dispatchKeyEvent(event);
+                    mEmojiconEditText.dispatchKeyEvent(event);
                 }
             });
 
-            popupEmoji.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
+            mPpopupEmoji.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
 
         }
-        return popupEmoji;
+        return mPpopupEmoji;
     }
 
     @Override
@@ -458,13 +465,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 ChatManager.getManager().deleteChatParticipant();
                 break;
             case R.id.action_mute:
-                if (popupMute == null) {
-                    popupMuteView = LayoutInflater.from(this).inflate(R.layout.popup_mute, main, false);
-                    popupMute = new PopupWindow(popupMuteView, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-                    popupMute.setContentView(popupMuteView);
-                    popupMute.setAnimationStyle(R.style.popup_anim_style);
+                if (mPopupMute == null) {
+                    mPopupMuteView = LayoutInflater.from(this).inflate(R.layout.popup_mute, mMainLayout, false);
+                    mPopupMute = new PopupWindow(mPopupMuteView, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+                    mPopupMute.setContentView(mPopupMuteView);
+                    mPopupMute.setAnimationStyle(R.style.popup_anim_style);
 
-                    popupMuteView.setOnClickListener(new View.OnClickListener() {
+                    mPopupMuteView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             dismissPopUpMuteWithAnimation();
@@ -482,10 +489,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         }
                     };
 
-                    View p_mute_hour_layout = popupMuteView.findViewById(R.id.p_mute_hour_layout);
-                    View p_mute_8_hours_layout = popupMuteView.findViewById(R.id.p_mute_8_hours_layout);
-                    View p_mute_2_days_layout = popupMuteView.findViewById(R.id.p_mute_2_days_layout);
-                    View p_mute_disable_layout = popupMuteView.findViewById(R.id.p_mute_disable_layout);
+                    View p_mute_hour_layout = mPopupMuteView.findViewById(R.id.p_mute_hour_layout);
+                    View p_mute_8_hours_layout = mPopupMuteView.findViewById(R.id.p_mute_8_hours_layout);
+                    View p_mute_2_days_layout = mPopupMuteView.findViewById(R.id.p_mute_2_days_layout);
+                    View p_mute_disable_layout = mPopupMuteView.findViewById(R.id.p_mute_disable_layout);
 
                     p_mute_hour_layout.setOnClickListener(onClickListener);
                     p_mute_8_hours_layout.setOnClickListener(onClickListener);
@@ -498,13 +505,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     p_mute_disable_layout.setTag(NotificationManager.MUTE_DISABLE);
                 }
 
-                if (isMuted) {
+                if (mIsMuted) {
                     Long chatId = ChatManager.getCurrentChatId();
                     NotificationManager.getManager().setMuteForChat(NotificationManager.UNMUTE, chatId);
                 } else {
-                    if (!popupMute.isShowing()) {
-                        popupMute.showAtLocation(popupMuteView, Gravity.CENTER, 0, 0);
-                        ObjectAnimator.ofObject(popupMuteView,
+                    if (!mPopupMute.isShowing()) {
+                        mPopupMute.showAtLocation(mPopupMuteView, Gravity.CENTER, 0, 0);
+                        ObjectAnimator.ofObject(mPopupMuteView,
                                 "backgroundColor",
                                 new ArgbEvaluator(),
                                 0x00000000,
@@ -516,15 +523,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
         return super.onOptionsItemSelected(item);
     }
 
-    private volatile boolean isClickedOnToolbar;
-
     private void openProfileActivity() {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
                 Bundle bundle = new Bundle();
-                bundle.putBoolean("isGroup", isGroup);
-                bundle.putBoolean("isMuted", isMuted);
+                bundle.putBoolean("isGroup", mIsGroup);
+                bundle.putBoolean("isMuted", mIsMuted);
 
                 ProfileManager.getManager().setChatInfo(ChatManager.getCurrentChatInfo());
 
@@ -544,40 +549,40 @@ public class ChatActivity extends AbstractActivity implements Observer {
         if (App.isBadAppContext(this))
             return;
 
-        Bundle b = getIntent().getExtras();
+        Bundle bundle = getIntent().getExtras();
 
-        if (b != null) {
-            isGroup = b.getBoolean("isGroup");
-            isLeave = b.getBoolean("isLeave");
-            isMuted = b.getBoolean("isMuted");
-            if (isMuted == null) {
-                isMuted = false;
+        if (bundle != null) {
+            mIsGroup = bundle.getBoolean("isGroup");
+            mIsLeave = bundle.getBoolean("isLeave");
+            mIsMuted = bundle.getBoolean("isMuted");
+            if (mIsMuted == null) {
+                mIsMuted = false;
             }
-            isFirstBotOpening = b.getBoolean("isFirstBotOpening");
+            mIsFirstBotOpening = bundle.getBoolean("isFirstBotOpening");
         }
 
         setContentView(R.layout.activity_chat);
-        FileManager.canDownloadFile = true;
+        FileManager.sCanDownloadFile = true;
         setToolbar();
-        main = (RelativeLayout) findViewById(R.id.activity_chat_layout);
-        popupAttachView = LayoutInflater.from(this).inflate(R.layout.popup_attach, main, false);
+        mMainLayout = (RelativeLayout) findViewById(R.id.activity_chat_layout);
+        mPopupAttachView = LayoutInflater.from(this).inflate(R.layout.popup_attach, mMainLayout, false);
 
-        takePhotoButton = (LinearLayout) popupAttachView.findViewById(R.id.p_open_camera);
+        mTakePhotoButton = (LinearLayout) mPopupAttachView.findViewById(R.id.p_open_camera);
 
         RelativeLayout t_layout_main = findView(R.id.t_layout_main);
         t_layout_main.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isGroup) {
-                    if (!isClickedOnToolbar) {
+                if (!mIsGroup) {
+                    if (!mIsClickedOnToolbar) {
                         try {
-                            isClickedOnToolbar = true;
+                            mIsClickedOnToolbar = true;
                             UserManager userManager = UserManager.getManager();
                             int userId = ((TdApi.PrivateChatInfo) ChatManager.getCurrentChatInfo().tgChatObject.type).user.id;
                             CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userId);
                             if (cachedUser.isHaveFullInfo) {
                                 openProfileActivity();
-                                isClickedOnToolbar = false;
+                                mIsClickedOnToolbar = false;
                             } else {
                                 userManager.getUserFull(userId, new ResultController() {
                                     @Override
@@ -590,16 +595,16 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                                 break;
                                             }
                                         }
-                                        isClickedOnToolbar = false;
+                                        mIsClickedOnToolbar = false;
                                     }
                                 });
                             }
                         } catch (Exception e) {
-                            isClickedOnToolbar = false;
+                            mIsClickedOnToolbar = false;
                         }
                     }
                 } else {
-                    if (isLeave == null || !isLeave) {
+                    if (mIsLeave == null || !mIsLeave) {
                         openProfileActivity();
                     }
                 }
@@ -607,22 +612,22 @@ public class ChatActivity extends AbstractActivity implements Observer {
         });
 
 
-        final LinearLayout openGallerySendImages = (LinearLayout) popupAttachView.findViewById(R.id.p_open_gallery_send_images);
-        final TextView choose_from_gallery_text = (TextView) openGallerySendImages.findViewById(R.id.choose_from_gallery_text);
+        final LinearLayout openGallerySendImages = (LinearLayout) mPopupAttachView.findViewById(R.id.p_open_gallery_send_images);
+        final TextView chooseFromGalleryText = (TextView) openGallerySendImages.findViewById(R.id.choose_from_gallery_text);
 
-        final TextView take_photo_text = (TextView) popupAttachView.findViewById(R.id.take_photo_text);
-        choose_from_gallery_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        choose_from_gallery_text.setTextSize(16);
-        choose_from_gallery_text.setTextColor(0xFF222222);
+        final TextView takePhotoText = (TextView) mPopupAttachView.findViewById(R.id.take_photo_text);
+        chooseFromGalleryText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        chooseFromGalleryText.setTextSize(16);
+        chooseFromGalleryText.setTextColor(0xFF222222);
 
-        take_photo_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        take_photo_text.setTextSize(16);
-        take_photo_text.setTextColor(0xFF222222);
+        takePhotoText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        takePhotoText.setTextSize(16);
+        takePhotoText.setTextColor(0xFF222222);
 
-        RelativeLayout p_open_sub_layout = (RelativeLayout) popupAttachView.findViewById(R.id.p_open_sub_layout);
-        p_open_sub_layout.getLayoutParams().height = AndroidUtil.getKeyboardHeight();
+        RelativeLayout openSubLayout = (RelativeLayout) mPopupAttachView.findViewById(R.id.p_open_sub_layout);
+        openSubLayout.getLayoutParams().height = AndroidUtil.getKeyboardHeight();
 
-        RelativeLayout p_open_main_layout = (RelativeLayout) popupAttachView.findViewById(R.id.p_open_main_layout);
+        RelativeLayout p_open_main_layout = (RelativeLayout) mPopupAttachView.findViewById(R.id.p_open_main_layout);
         p_open_main_layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -633,7 +638,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
         openGallerySendImages.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final SparseArray<GalleryAdapter.StorageObject> selectedItems = galleryListAdapter.getSelectedItems();
+                final SparseArray<GalleryAdapter.StorageObject> selectedItems = mGalleryListAdapter.getSelectedItems();
                 if (selectedItems.size() > 0) {
                     dismissPopUpAttachWithAnimation();
                     ThreadService.runTaskBackground(new Runnable() {
@@ -656,8 +661,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {
-                                    galleryListAdapter.notifyDataSetChanged();
-                                    choose_from_gallery_text.setText(AndroidUtil.getResourceString(R.string.choose_from_gallery));
+                                    mGalleryListAdapter.notifyDataSetChanged();
+                                    chooseFromGalleryText.setText(AndroidUtil.getResourceString(R.string.choose_from_gallery));
                                 }
                             });
                         }
@@ -670,42 +675,42 @@ public class ChatActivity extends AbstractActivity implements Observer {
             }
         });
 
-        takePhotoButton.setOnClickListener(new View.OnClickListener() {
+        mTakePhotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
-                    photoPath = CameraManager.getManager().dispatchTakePictureIntent(ChatActivity.this);
+                    mPhotoPath = CameraManager.getManager().dispatchTakePictureIntent(ChatActivity.this);
                 } catch (Exception e) {
                     AndroidUtil.showToastLong(e.getMessage() + "");
                 }
             }
         });
 
-        recyclerViewGallery = (RecyclerView) popupAttachView.findViewById(R.id.p_list_galery);
-        galleryListAdapter = new GalleryAdapter(this, recyclerViewGallery);
-        chatListLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        mRecyclerViewGallery = (RecyclerView) mPopupAttachView.findViewById(R.id.p_list_galery);
+        mGalleryListAdapter = new GalleryAdapter(this, mRecyclerViewGallery);
+        mChatListLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
 
-        popupAttach = new PopupWindow(popupAttachView, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        popupAttach.setContentView(popupAttachView);
+        mPopupAttach = new PopupWindow(mPopupAttachView, LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        mPopupAttach.setContentView(mPopupAttachView);
 
-        recyclerViewGallery.setLayoutManager(chatListLayoutManager);
+        mRecyclerViewGallery.setLayoutManager(mChatListLayoutManager);
 
-        recyclerViewGallery.setAdapter(galleryListAdapter);
+        mRecyclerViewGallery.setAdapter(mGalleryListAdapter);
 
         ChatManager chatManager = ChatManager.getManager();
-        chatManager.initRecycleView(this, isLeave);
+        chatManager.initRecycleView(this, mIsLeave);
 
         ChatManager.getManager().getChat(true);
 
-        a_chat_no_msges = findView(R.id.a_chat_no_msges);
-        a_chat_no_msges.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_chat_no_msges.setTextSize(16);
-        a_chat_no_msges.setTextColor(0xff999999);
+        mChatNoMsges = findView(R.id.a_chat_no_msges);
+        mChatNoMsges.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mChatNoMsges.setTextSize(16);
+        mChatNoMsges.setTextColor(0xff999999);
 
-        emojiconEditText = (EmojiconEditText) findViewById(R.id.emojicon_edit_text);
-        emojiconEditText.setLongClickable(false);
+        mEmojiconEditText = (EmojiconEditText) findViewById(R.id.emojicon_edit_text);
+        mEmojiconEditText.setLongClickable(false);
 
-        emojiconEditText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+        mEmojiconEditText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
 
             public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
                 return false;
@@ -723,29 +728,29 @@ public class ChatActivity extends AbstractActivity implements Observer {
             }
         });
 
-        a_chat_input_holder = (RelativeLayout) findViewById(R.id.a_chat_input_holder);
-        a_chat_record = (RecordVoiceView) findViewById(R.id.a_chat_record);
-        a_chat_record.setTag(a_chat_record.getVisibility());
+        mChatInputHolder = (RelativeLayout) findViewById(R.id.a_chat_input_holder);
+        mChatRecord = (RecordVoiceView) findViewById(R.id.a_chat_record);
+        mChatRecord.setTag(mChatRecord.getVisibility());
 
-        if (isLeave != null && isLeave) {
-            a_chat_input_holder.setVisibility(View.GONE);
-            a_chat_record.setVisibility(View.GONE);
+        if (mIsLeave != null && mIsLeave) {
+            mChatInputHolder.setVisibility(View.GONE);
+            mChatRecord.setVisibility(View.GONE);
         }
 
-        AndroidUtil.setEditTextTypeface(emojiconEditText);
+        AndroidUtil.setEditTextTypeface(mEmojiconEditText);
 
-        emojiButton = (ImageView) findViewById(R.id.emoji_btn);
+        mEmojiButton = (ImageView) findViewById(R.id.emoji_btn);
         final ImageView attachButton = (ImageView) findViewById(R.id.a_chat_attach);
-        sendButton = (ImageView) findViewById(R.id.a_chat_send);
+        mSendButton = (ImageView) findViewById(R.id.a_chat_send);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
+        mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ImageView iv = (ImageView) v;
                 iv.setVisibility(View.GONE);
                 attachButton.setVisibility(View.VISIBLE);
-                String msg = emojiconEditText.getText().toString();
-                emojiconEditText.setText("");
+                String msg = mEmojiconEditText.getText().toString();
+                mEmojiconEditText.setText("");
                 ChatManager manager = ChatManager.getManager();
 
                 if (TextUtil.isNotBlank(msg)) {
@@ -757,28 +762,28 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
         //ChatManager.getManager().readChatHistory();
 
-        a_chat_ic_slash = (ImageView) findViewById(R.id.a_chat_ic_slash);
-        a_chat_ic_comand = findView(R.id.a_chat_ic_comand);
-        a_chat_ic_panel_kb = findView(R.id.a_chat_ic_panel_kb);
+        mChatIcSlash = (ImageView) findViewById(R.id.a_chat_ic_slash);
+        mChatIcCommand = findView(R.id.a_chat_ic_comand);
+        mChatIcPanelKb = findView(R.id.a_chat_ic_panel_kb);
 
-        a_chat_ic_slash.setTag(a_chat_ic_slash.getVisibility());
-        a_chat_ic_comand.setTag(a_chat_ic_comand.getVisibility());
-        a_chat_ic_panel_kb.setTag(a_chat_ic_panel_kb.getVisibility());
+        mChatIcSlash.setTag(mChatIcSlash.getVisibility());
+        mChatIcCommand.setTag(mChatIcCommand.getVisibility());
+        mChatIcPanelKb.setTag(mChatIcPanelKb.getVisibility());
 
-        a_chat_ic_panel_kb.setOnClickListener(new View.OnClickListener() {
+        mChatIcPanelKb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 updateKeyboardIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
-                popupBotKeyboard.dismiss();
-                main.setPadding(0, 0, 0, 0);
-                emojiconEditText.setFocusableInTouchMode(true);
-                emojiconEditText.requestFocus();
+                mPopupBotKeyboard.dismiss();
+                mMainLayout.setPadding(0, 0, 0, 0);
+                mEmojiconEditText.setFocusableInTouchMode(true);
+                mEmojiconEditText.requestFocus();
                 final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputMethodManager.showSoftInput(emojiconEditText, InputMethodManager.SHOW_IMPLICIT);
+                inputMethodManager.showSoftInput(mEmojiconEditText, InputMethodManager.SHOW_IMPLICIT);
             }
         });
 
-        emojiconEditText.addTextChangedListener(new AfterTextChangedListener() {
+        mEmojiconEditText.addTextChangedListener(new AfterTextChangedListener() {
 
             private boolean isFirst = true;
 
@@ -789,20 +794,20 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     if (isFirst) {
                         isFirst = false;
 
-                        sendButton.setVisibility(View.VISIBLE);
+                        mSendButton.setVisibility(View.VISIBLE);
                         attachButton.setVisibility(View.GONE);
 
-                        a_chat_record.setTag(a_chat_record.getVisibility());
-                        a_chat_record.setVisibility(View.GONE);
+                        mChatRecord.setTag(mChatRecord.getVisibility());
+                        mChatRecord.setVisibility(View.GONE);
 
-                        a_chat_ic_panel_kb.setTag(a_chat_ic_panel_kb.getVisibility());
-                        a_chat_ic_panel_kb.setVisibility(View.GONE);
+                        mChatIcPanelKb.setTag(mChatIcPanelKb.getVisibility());
+                        mChatIcPanelKb.setVisibility(View.GONE);
 
-                        a_chat_ic_comand.setTag(a_chat_ic_comand.getVisibility());
-                        a_chat_ic_comand.setVisibility(View.GONE);
+                        mChatIcCommand.setTag(mChatIcCommand.getVisibility());
+                        mChatIcCommand.setVisibility(View.GONE);
 
-                        a_chat_ic_slash.setTag(a_chat_ic_slash.getVisibility());
-                        a_chat_ic_slash.setVisibility(View.GONE);
+                        mChatIcSlash.setTag(mChatIcSlash.getVisibility());
+                        mChatIcSlash.setVisibility(View.GONE);
                     }
 
                     BotManager.getManager().findCommand(s.toString());
@@ -810,35 +815,35 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     isFirst = true;
                     dismissPopUpBotCommandsWithAnimation();
 
-                    sendButton.setVisibility(View.GONE);
+                    mSendButton.setVisibility(View.GONE);
                     attachButton.setVisibility(View.VISIBLE);
 
-                    a_chat_record.setVisibility((int) a_chat_record.getTag());
-                    a_chat_ic_panel_kb.setVisibility((int) a_chat_ic_panel_kb.getTag());
-                    a_chat_ic_comand.setVisibility((int) a_chat_ic_comand.getTag());
-                    a_chat_ic_slash.setVisibility((int) a_chat_ic_slash.getTag());
+                    mChatRecord.setVisibility((int) mChatRecord.getTag());
+                    mChatIcPanelKb.setVisibility((int) mChatIcPanelKb.getTag());
+                    mChatIcCommand.setVisibility((int) mChatIcCommand.getTag());
+                    mChatIcSlash.setVisibility((int) mChatIcSlash.getTag());
                 }
             }
         });
 
-        emojiconEditText.setOnTouchListener(new View.OnTouchListener() {
+        mEmojiconEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_UP: {
                         if (!getPopupEmoji().isKeyBoardOpen()) {
                             getPopupEmoji().dismiss();
-                            main.setPadding(0, 0, 0, 0);
+                            mMainLayout.setPadding(0, 0, 0, 0);
 
-                            if (popupBotKeyboard.isShowing()) {
-                                popupBotKeyboard.dismiss();
+                            if (mPopupBotKeyboard.isShowing()) {
+                                mPopupBotKeyboard.dismiss();
                                 updateKeyboardIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
                             }
 
-                            emojiconEditText.setFocusableInTouchMode(true);
-                            emojiconEditText.requestFocus();
+                            mEmojiconEditText.setFocusableInTouchMode(true);
+                            mEmojiconEditText.requestFocus();
                             final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                            inputMethodManager.showSoftInput(emojiconEditText, InputMethodManager.SHOW_IMPLICIT);
+                            inputMethodManager.showSoftInput(mEmojiconEditText, InputMethodManager.SHOW_IMPLICIT);
                         }
                         return true;
                     }
@@ -848,21 +853,21 @@ public class ChatActivity extends AbstractActivity implements Observer {
         });
 
 
-        popupBotKeyboard = new BotKeyboardPopup(this, main);
+        mPopupBotKeyboard = new BotKeyboardPopup(this, mMainLayout);
 
-        BotManager.getManager().setPopupBotKeyboard(popupBotKeyboard, main);
-        popupBotKeyboard.setSizeForSoftKeyboard();
-        popupBotKeyboard.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
+        BotManager.getManager().setPopupBotKeyboard(mPopupBotKeyboard, mMainLayout);
+        mPopupBotKeyboard.setSizeForSoftKeyboard();
+        mPopupBotKeyboard.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
 
-        popupBotKeyboard.setAnimationStyle(R.style.popup_anim_style);
-        popupBotKeyboard.setOnDismissListener(new PopupWindow.OnDismissListener() {
+        mPopupBotKeyboard.setAnimationStyle(R.style.popup_anim_style);
+        mPopupBotKeyboard.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
                 //нельзя тут ничего делать!!
             }
         });
 
-        popupBotKeyboard.setOnSoftKeyboardOpenCloseListener(new BotKeyboardPopup.OnSoftKeyboardOpenCloseListener() {
+        mPopupBotKeyboard.setOnSoftKeyboardOpenCloseListener(new BotKeyboardPopup.OnSoftKeyboardOpenCloseListener() {
             @Override
             public void onKeyboardOpen(int keyBoardHeight) {
                 AndroidUtil.setKeyboardHeight(keyBoardHeight);
@@ -870,26 +875,26 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
             @Override
             public void onKeyboardClose() {
-                if (popupBotKeyboard.isShowing())
-                    popupBotKeyboard.dismiss();
+                if (mPopupBotKeyboard.isShowing())
+                    mPopupBotKeyboard.dismiss();
             }
         });
 
-        a_chat_ic_comand.setOnClickListener(new View.OnClickListener() {
+        mChatIcCommand.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!popupBotKeyboard.isShowing()) {
+                if (!mPopupBotKeyboard.isShowing()) {
                     ChatManager.getManager().stopScroll();
-                    if (popupBotKeyboard.isKeyBoardOpen()) {
-                        popupBotKeyboard.showAtBottom();
-                        main.setPadding(0, 0, 0, 0);
+                    if (mPopupBotKeyboard.isKeyBoardOpen()) {
+                        mPopupBotKeyboard.showAtBottom();
+                        mMainLayout.setPadding(0, 0, 0, 0);
                     } else {
-                        popupBotKeyboard.showAtBottomFirstTime();
-                        main.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
+                        mPopupBotKeyboard.showAtBottomFirstTime();
+                        mMainLayout.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
                     }
                 }
-                a_chat_ic_panel_kb.setVisibility(View.VISIBLE);
-                a_chat_ic_comand.setVisibility(View.GONE);
+                mChatIcPanelKb.setVisibility(View.VISIBLE);
+                mChatIcCommand.setVisibility(View.GONE);
 
                 if (getPopupEmoji().isShowing()) {
                     getPopupEmoji().dismiss();
@@ -898,31 +903,31 @@ public class ChatActivity extends AbstractActivity implements Observer {
         });
 
 
-        emojiButton.setOnClickListener(new View.OnClickListener() {
+        mEmojiButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!getPopupEmoji().isShowing()) {
-                    if (popupBotKeyboard.isShowing()) {
-                        popupBotKeyboard.dismiss();
+                    if (mPopupBotKeyboard.isShowing()) {
+                        mPopupBotKeyboard.dismiss();
                         updateKeyboardIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
                     }
                     ChatManager.getManager().stopScroll();
                     if (getPopupEmoji().isKeyBoardOpen()) {
                         getPopupEmoji().showAtBottom();
-                        main.setPadding(0, 0, 0, 0);
-                        changeEmojiKeyboardIcon(emojiButton, R.mipmap.ic_msg_panel_kb);
+                        mMainLayout.setPadding(0, 0, 0, 0);
+                        changeEmojiKeyboardIcon(mEmojiButton, R.mipmap.ic_msg_panel_kb);
                     } else {
                         getPopupEmoji().showAtBottomFirstTime();
-                        main.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
-                        changeEmojiKeyboardIcon(emojiButton, R.mipmap.ic_msg_panel_kb);
+                        mMainLayout.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
+                        changeEmojiKeyboardIcon(mEmojiButton, R.mipmap.ic_msg_panel_kb);
                     }
                 } else {
                     getPopupEmoji().dismiss();
-                    main.setPadding(0, 0, 0, 0);
-                    emojiconEditText.setFocusableInTouchMode(true);
-                    emojiconEditText.requestFocus();
+                    mMainLayout.setPadding(0, 0, 0, 0);
+                    mEmojiconEditText.setFocusableInTouchMode(true);
+                    mEmojiconEditText.requestFocus();
                     final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputMethodManager.showSoftInput(emojiconEditText, InputMethodManager.SHOW_IMPLICIT);
+                    inputMethodManager.showSoftInput(mEmojiconEditText, InputMethodManager.SHOW_IMPLICIT);
                 }
             }
         });
@@ -931,10 +936,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
             public void onClick(View v) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(
                         Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(emojiconEditText.getWindowToken(), 0);
-                if (!popupAttach.isShowing()) {
-                    popupAttach.showAtLocation(popupAttachView, Gravity.CENTER, 0, 0);
-                    ObjectAnimator.ofObject(popupAttachView,
+                imm.hideSoftInputFromWindow(mEmojiconEditText.getWindowToken(), 0);
+                if (!mPopupAttach.isShowing()) {
+                    mPopupAttach.showAtLocation(mPopupAttachView, Gravity.CENTER, 0, 0);
+                    ObjectAnimator.ofObject(mPopupAttachView,
                             "backgroundColor",
                             new ArgbEvaluator(),
                             0x00000000,
@@ -948,43 +953,43 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
         final LinearLayout cancelLayout = (LinearLayout) findViewById(R.id.slide_to_cancel_layout);
         final LinearLayout recordVoiceTextLayout = (LinearLayout) findViewById(R.id.slide_to_cancel_text);
-        slide_to_cancel_timer = (TextView) findViewById(R.id.slide_to_cancel_timer);
+        mSlideToCancelTimer = (TextView) findViewById(R.id.slide_to_cancel_timer);
 
-        cancelLayout.setTranslationX(WINDOW_CURRENT_WIDTH);
+        cancelLayout.setTranslationX(sWindowCurrentWidth);
 
         TextView recordVoiceText = (TextView) recordVoiceTextLayout.getChildAt(1);
         recordVoiceText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
         recordVoiceText.setTextSize(17);
         recordVoiceText.setTextColor(0xFFB3B3B3);
 
-        slide_to_cancel_timer.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        slide_to_cancel_timer.setTextSize(17);
-        slide_to_cancel_timer.setTextColor(Color.BLACK);
+        mSlideToCancelTimer.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mSlideToCancelTimer.setTextSize(17);
+        mSlideToCancelTimer.setTextColor(Color.BLACK);
 
-        a_chat_record.setAfterTouchListener(new View.OnTouchListener() {
+        mChatRecord.setAfterTouchListener(new View.OnTouchListener() {
             float remMajorX = 0;
             float remTempX = 0;
             int cancelDistance = AndroidUtil.dp(100);
             Float remTextTranslationX;
-            ObjectAnimator objectAnimatorStart = ObjectAnimator.ofFloat(cancelLayout, "translationX", WINDOW_CURRENT_WIDTH, 0);
+            ObjectAnimator objectAnimatorStart = ObjectAnimator.ofFloat(cancelLayout, "translationX", sWindowCurrentWidth, 0);
             boolean cancelLock;
 
             public void cancel(final boolean isNeedSend) {
                 cancelLock = true;
-                ObjectAnimator animLayout = ObjectAnimator.ofFloat(cancelLayout, "translationX", 0, WINDOW_CURRENT_WIDTH);
-                ObjectAnimator animButtonX = ObjectAnimator.ofInt(a_chat_record, "dx", a_chat_record.getDx(), 0);
-                ObjectAnimator animButtonRadius = ObjectAnimator.ofInt(a_chat_record, "currRadius", a_chat_record.getCurrRadius(), RecordVoiceView.MIN_PRESSED_BUTTON_RADIUS);
-                ObjectAnimator animVoiceRadius = ObjectAnimator.ofInt(a_chat_record, "currVoiceRadius", a_chat_record.getCurrVoiceRadius(), RecordVoiceView.MIN_PRESSED_BUTTON_RADIUS);
+                ObjectAnimator animLayout = ObjectAnimator.ofFloat(cancelLayout, "translationX", 0, sWindowCurrentWidth);
+                ObjectAnimator animButtonX = ObjectAnimator.ofInt(mChatRecord, "dx", mChatRecord.getDx(), 0);
+                ObjectAnimator animButtonRadius = ObjectAnimator.ofInt(mChatRecord, "currRadius", mChatRecord.getCurrRadius(), RecordVoiceView.MIN_PRESSED_BUTTON_RADIUS);
+                ObjectAnimator animVoiceRadius = ObjectAnimator.ofInt(mChatRecord, "currVoiceRadius", mChatRecord.getCurrVoiceRadius(), RecordVoiceView.MIN_PRESSED_BUTTON_RADIUS);
                 AnimatorSet animSet = new AnimatorSet();
                 animSet.playTogether(animLayout, animButtonX, animButtonRadius, animVoiceRadius);
                 animSet.setDuration(300);
-                a_chat_record.canTouch = false;
+                mChatRecord.canTouch = false;
                 VoiceController voiceController = VoiceController.getController();
                 voiceController.stopRecordVoice(isNeedSend);
                 animSet.addListener(new AnimatorEndListener() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        a_chat_record.onCancel();
+                        mChatRecord.onCancel();
                         cancelLock = false;
                     }
                 });
@@ -998,7 +1003,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         if (cancelLock) {
                             return true;
                         }
-                        slide_to_cancel_timer.setText("00:00");
+                        mSlideToCancelTimer.setText("00:00");
                         objectAnimatorStart.cancel();
                         objectAnimatorStart.removeAllListeners();
                         objectAnimatorStart.addListener(new AnimatorEndListener() {
@@ -1007,7 +1012,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                 VoiceController voiceController = VoiceController.getController();
                                 boolean isStarted = voiceController.startRecordVoice();
                                 if (isStarted) {
-                                    a_chat_record.onStartRecording();
+                                    mChatRecord.onStartRecording();
                                 }
                             }
                         });
@@ -1017,7 +1022,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
                         remMajorX = event.getX();
                         remTempX = event.getX();
-                        a_chat_record.onPressed();
+                        mChatRecord.onPressed();
                         recordVoiceTextLayout.setAlpha(1);
                         if (remTextTranslationX == null) {
                             remTextTranslationX = recordVoiceTextLayout.getTranslationX();
@@ -1044,7 +1049,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         } else {
                             if (event.getX() < remMajorX) {
                                 int tempDx = (int) (remTempX - event.getX());
-                                a_chat_record.onMove(tempDx);
+                                mChatRecord.onMove(tempDx);
                                 remTempX = event.getX();
                                 recordVoiceTextLayout.setTranslationX(-majDx);
                                 recordVoiceTextLayout.setAlpha(1 - majDx / cancelDistance);
@@ -1056,49 +1061,43 @@ public class ChatActivity extends AbstractActivity implements Observer {
             }
         });
 
-        a_chat_record.setOnClickListener(new View.OnClickListener() {
+        mChatRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
         });
 
-        if (isFirstBotOpening != null && isFirstBotOpening) {
+        if (mIsFirstBotOpening != null && mIsFirstBotOpening) {
             processFirstBotOpening();
         }
 
-        bot_popup_commands_layout = findView(R.id.bot_popup_commands_layout);
-        bot_popup_commands_up_layout = findView(R.id.bot_popup_commands_up_layout);
-        /*bot_popup_commands_up_layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismissPopUpBotCommandsWithAnimation();
-            }
-        });*/
+        mBotPopupCommandsLayout = findView(R.id.bot_popup_commands_layout);
+        mBotPopupCommandsUpLayout = findView(R.id.bot_popup_commands_up_layout);
 
-        botCommandListView = (SimpleRecyclerView) bot_popup_commands_layout.findViewById(R.id.bot_popup_commands_list);
+        mBotCommandListView = (SimpleRecyclerView) mBotPopupCommandsLayout.findViewById(R.id.bot_popup_commands_list);
 
-        botCommandListView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        mBotCommandListView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this);
         BotCommandsAdapter botCommandsAdapter = new BotCommandsAdapter(BotManager.getManager().getBotCommandListForSearch(), ChatActivity.this);
         linearLayoutManager.setReverseLayout(true);
-        botCommandListView.setLayoutManager(linearLayoutManager);
+        mBotCommandListView.setLayoutManager(linearLayoutManager);
 
-        botCommandListView.setAdapter(botCommandsAdapter);
+        mBotCommandListView.setAdapter(botCommandsAdapter);
 
         BotManager.getManager().setAdapter(botCommandsAdapter);
 
 
-        a_chat_ic_slash.setOnClickListener(new View.OnClickListener() {
+        mChatIcSlash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                emojiconEditText.setText("/");
-                emojiconEditText.setSelection(emojiconEditText.getText().length());
+                mEmojiconEditText.setText("/");
+                mEmojiconEditText.setSelection(mEmojiconEditText.getText().length());
             }
         });
 
-        musicBarWidget = new MusicBarWidget();
-        musicBarWidget.init(this);
+        mMusicBarWidget = new MusicBarWidget();
+        mMusicBarWidget.init(this);
     }
 
     public void processFirstBotOpening() {
@@ -1110,7 +1109,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     relativeLayoutStartButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            a_chat_record.setVisibility(View.VISIBLE);
+                            mChatRecord.setVisibility(View.VISIBLE);
                             v.setVisibility(View.GONE);
                             BotManager botManager = BotManager.getManager();
                             botManager.changeSizeOfLastBotMsg(false);
@@ -1123,10 +1122,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     layoutParams.addRule(RelativeLayout.BELOW, R.id.a_chat_editmsg_line);
                     relativeLayoutStartButton.setLayoutParams(layoutParams);
 
-                    //a_chat_input_holder.setVisibility(View.INVISIBLE);
-                    a_chat_record.setVisibility(View.GONE);
+                    //mChatInputHolder.setVisibility(View.INVISIBLE);
+                    mChatRecord.setVisibility(View.GONE);
 
-                    a_chat_input_holder.addView(relativeLayoutStartButton);
+                    mChatInputHolder.addView(relativeLayoutStartButton);
 
                     TextView textViewStart = new TextView(ChatActivity.this);
                     textViewStart.setText(AndroidUtil.getResourceString(R.string.start_big));
@@ -1142,28 +1141,28 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     botManager.changeSizeOfLastBotMsg(true);
 
 
-                    if (popupMute != null && popupMute.isShowing()) {
+                    if (mPopupMute != null && mPopupMute.isShowing()) {
                         dismissPopUpMuteWithAnimation();
                     }
 
-                    if (popupAttach != null && popupAttach.isShowing()) {
+                    if (mPopupAttach != null && mPopupAttach.isShowing()) {
                         dismissPopUpAttachWithAnimation();
                     }
 
                     if (getPopupEmoji() != null && getPopupEmoji().isKeyBoardOpen()) {
                         final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                        inputMethodManager.hideSoftInputFromWindow(emojiconEditText.getWindowToken(), 0);
+                        inputMethodManager.hideSoftInputFromWindow(mEmojiconEditText.getWindowToken(), 0);
                     }
 
                     if (getPopupEmoji() != null && getPopupEmoji().isShowing()) {
                         getPopupEmoji().dismiss();
-                        main.setPadding(0, 0, 0, 0);
+                        mMainLayout.setPadding(0, 0, 0, 0);
                     }
 
-                    if (popupBotKeyboard != null && popupBotKeyboard.isShowing()) {
+                    if (mPopupBotKeyboard != null && mPopupBotKeyboard.isShowing()) {
                         updateKeyboardIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
-                        popupBotKeyboard.dismiss();
-                        main.setPadding(0, 0, 0, 0);
+                        mPopupBotKeyboard.dismiss();
+                        mMainLayout.setPadding(0, 0, 0, 0);
                     }
                 } catch (Throwable e) {
                     Log.e(LOG, "processFirstBotOpening", e);
@@ -1179,9 +1178,9 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.menu = menu;
+        this.mMenu = menu;
         MenuItem menuMute;
-        if (isGroup != null && isGroup && isLeave != null && !isLeave) {
+        if (mIsGroup != null && mIsGroup && mIsLeave != null && !mIsLeave) {
             getMenuInflater().inflate(R.menu.menu_group_chat, menu);
             menuMute = menu.getItem(2);
         } else {
@@ -1189,7 +1188,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
             menuMute = menu.getItem(1);
         }
 
-        if (isMuted != null && isMuted)
+        if (mIsMuted != null && mIsMuted)
             menuMute.setTitle(AndroidUtil.getResourceString(R.string.unmute));
         else
             menuMute.setTitle(AndroidUtil.getResourceString(R.string.mute));
@@ -1204,7 +1203,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
             case CameraManager.REQUEST_TAKE_PHOTO:
                 if (resultCode == RESULT_OK) {
                     ChatManager manager = ChatManager.getManager();
-                    manager.sendMessage(manager.createPhotoMsg(photoPath));
+                    manager.sendMessage(manager.createPhotoMsg(mPhotoPath));
                     dismissPopUpAttachWithAnimation();
                 }
                 break;
@@ -1232,18 +1231,15 @@ public class ChatActivity extends AbstractActivity implements Observer {
         }
     }
 
-    private Menu menu;
-
-
     public void updateKeyboardIconsVisibility(int command, int slash, int panelKb) {
-        if (sendButton.getVisibility() == View.VISIBLE) {
-            a_chat_ic_comand.setTag(command);
-            a_chat_ic_slash.setTag(slash);
-            a_chat_ic_panel_kb.setTag(panelKb);
+        if (mSendButton.getVisibility() == View.VISIBLE) {
+            mChatIcCommand.setTag(command);
+            mChatIcSlash.setTag(slash);
+            mChatIcPanelKb.setTag(panelKb);
         } else {
-            a_chat_ic_comand.setVisibility(command);
-            a_chat_ic_slash.setVisibility(slash);
-            a_chat_ic_panel_kb.setVisibility(panelKb);
+            mChatIcCommand.setVisibility(command);
+            mChatIcSlash.setVisibility(slash);
+            mChatIcPanelKb.setVisibility(panelKb);
         }
     }
 
@@ -1256,7 +1252,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
             switch (nObject.getMessageCode()) {
                 case NotificationObject.UPDATE_MUSIC_PLAYER: {
-                    musicBarWidget.checkUpdate((Object[]) nObject.getWhat());
+                    mMusicBarWidget.checkUpdate((Object[]) nObject.getWhat());
                     break;
                 }
                 case NotificationObject.UPDATE_MUSIC_PHOTO_AND_TAG: {
@@ -1270,8 +1266,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            slide_to_cancel_timer.setText(ChatHelper.getDurationString(time));
-                            a_chat_record.setCurrVoiceRadius(voiceAmplitude);
+                            mSlideToCancelTimer.setText(ChatHelper.getDurationString(time));
+                            mChatRecord.setCurrVoiceRadius(voiceAmplitude);
                         }
                     });
                     break;
@@ -1300,7 +1296,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 }
                 case NotificationObject.BOT_HIDE_COMMAND_LIST_AND_CLEAN_EDIT: {
                     dismissPopUpBotCommandsWithAnimation();
-                    emojiconEditText.setText("");
+                    mEmojiconEditText.setText("");
                     break;
                 }
                 case NotificationObject.CHANGE_CHAT_MUTE_STATUS:
@@ -1311,13 +1307,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         @Override
                         public void run() {
                             if (ChatManager.getManager().isSameChatId(chatId)) {
-                                if (isMuted != null) {
-                                    isMuted = muteFot > 0;
+                                if (mIsMuted != null) {
+                                    mIsMuted = muteFot > 0;
                                     supportInvalidateOptionsMenu();
-                                    if (isMuted)
-                                        t_ic_mute.setVisibility(View.VISIBLE);
+                                    if (mIsMuted)
+                                        mIcMute.setVisibility(View.VISIBLE);
                                     else
-                                        t_ic_mute.setVisibility(View.GONE);
+                                        mIcMute.setVisibility(View.GONE);
                                 }
                             }
                         }
@@ -1328,7 +1324,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         @Override
                         public void run() {
                             if (ChatManager.isHaveChatInfo()) {
-                                MenuItem item = menu.findItem(R.id.action_clear_leave_group);
+                                MenuItem item = mMenu.findItem(R.id.action_clear_leave_group);
                                 item.setVisible(false);
                             }
                         }
@@ -1348,7 +1344,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                     @Override
                                     public void run() {
                                         if (ChatManager.isHaveChatInfo())
-                                            t_chat_subtext.setText(str);
+                                            mChatSubtext.setText(str);
                                     }
                                 });
                             }
@@ -1376,7 +1372,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                     @Override
                                     public void run() {
                                         if (ChatManager.isHaveChatInfo())
-                                            t_chat_subtext.setText(str);
+                                            mChatSubtext.setText(str);
                                     }
                                 });
                             }
@@ -1395,7 +1391,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                 @Override
                                 public void run() {
                                     if (ChatManager.isHaveChatInfo())
-                                        t_chat_subtext.setText(str);
+                                        mChatSubtext.setText(str);
                                 }
                             });
                         }
@@ -1410,13 +1406,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                 if (ChatManager.isHaveChatInfo()) {
                                     try {
 
-                                        t_chat_title.setText(updateChatTitle.title);
+                                        mChatTitle.setText(updateChatTitle.title);
 
                                         TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
                                         TdApi.GroupChat groupChat = groupChatInfo.groupChat;
 
                                         final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, groupChat.id, chatInfo.initials, groupChat.photo.small);
-                                        t_chat_icon.setImageDrawable(dr);
+                                        mChatIcon.setImageDrawable(dr);
 
                                     } catch (Exception e) {
                                         //
@@ -1434,10 +1430,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                             public void run() {
                                 if (ChatManager.isHaveChatInfo()) {
                                     try {
-                                        t_chat_title.setText(cachedUserForTitle.fullName);
+                                        mChatTitle.setText(cachedUserForTitle.fullName);
                                         final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, cachedUserForTitle.tgUser.id,
                                                 chatInfo.initials, cachedUserForTitle.tgUser.profilePhoto.small);
-                                        t_chat_icon.setImageDrawable(dr);
+                                        mChatIcon.setImageDrawable(dr);
                                     } catch (Exception e) {
                                         //
                                     }
@@ -1455,7 +1451,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                                 try {
                                     if (ChatManager.isHaveChatInfo()) {
                                         final IconDrawable dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, updateChatPhoto.photo.small.path);
-                                        t_chat_icon.setImageDrawable(dr);
+                                        mChatIcon.setImageDrawable(dr);
                                     }
                                 } catch (Exception e) {
                                     //
@@ -1468,8 +1464,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (galleryListAdapter != null)
-                                galleryListAdapter.update();
+                            if (mGalleryListAdapter != null)
+                                mGalleryListAdapter.update();
                         }
                     });
                     break;
@@ -1479,36 +1475,30 @@ public class ChatActivity extends AbstractActivity implements Observer {
         }
     }
 
-    private ImageView t_chat_icon;
-    private TextView t_chat_title;
-    private TextView t_chat_subtext;
-    private TextView a_chat_no_msges;
-    private ImageView t_ic_mute;
-
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             toolbar.setNavigationIcon(R.mipmap.ic_back);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
-            t_chat_icon = (ImageView) toolbar.findViewById(R.id.t_chat_icon);
-            t_chat_title = (TextView) toolbar.findViewById(R.id.t_chat_title);
-            t_chat_subtext = (TextView) toolbar.findViewById(R.id.t_chat_subtext);
-            t_ic_mute = (ImageView) toolbar.findViewById(R.id.t_ic_mute);
+            mChatIcon = (ImageView) toolbar.findViewById(R.id.t_chat_icon);
+            mChatTitle = (TextView) toolbar.findViewById(R.id.t_chat_title);
+            mChatSubtext = (TextView) toolbar.findViewById(R.id.t_chat_subtext);
+            mIcMute = (ImageView) toolbar.findViewById(R.id.t_ic_mute);
 
-            if (isMuted != null && isMuted)
-                t_ic_mute.setVisibility(View.VISIBLE);
+            if (mIsMuted != null && mIsMuted)
+                mIcMute.setVisibility(View.VISIBLE);
             else
-                t_ic_mute.setVisibility(View.GONE);
+                mIcMute.setVisibility(View.GONE);
 
-            t_chat_title.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-            t_chat_title.setTextSize(18);
-            t_chat_title.setTextColor(0xffffffff);
+            mChatTitle.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+            mChatTitle.setTextSize(18);
+            mChatTitle.setTextColor(0xffffffff);
 
-            t_chat_subtext.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-            t_chat_subtext.setTextSize(14);
-            t_chat_subtext.setTextColor(0xffd2eafc);
+            mChatSubtext.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+            mChatSubtext.setTextSize(14);
+            mChatSubtext.setTextColor(0xffd2eafc);
 
             ChatInfo chatInfo = ChatManager.getCurrentChatInfo();
             if (chatInfo != null) {
@@ -1539,17 +1529,17 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         break;
                 }
 
-                t_chat_title.setText(chatInfo.chatName);
+                mChatTitle.setText(chatInfo.chatName);
 
-                if (isLeave != null && isLeave) {
-                    t_chat_subtext.setText(AndroidUtil.getResourceString(R.string.you_are_not_in_chat));
+                if (mIsLeave != null && mIsLeave) {
+                    mChatSubtext.setText(AndroidUtil.getResourceString(R.string.you_are_not_in_chat));
                 } else {
-                    t_chat_subtext.setText(subTitle);
+                    mChatSubtext.setText(subTitle);
                 }
 
                 if (file != null) {
                     final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, id, initials, file);
-                    t_chat_icon.setImageDrawable(dr);
+                    mChatIcon.setImageDrawable(dr);
                 }
             }
 

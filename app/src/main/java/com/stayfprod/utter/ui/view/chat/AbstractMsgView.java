@@ -21,7 +21,7 @@ import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.view.AbstractChatView;
 import com.stayfprod.utter.ui.view.IconUpdatable;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 public abstract class AbstractMsgView<X extends AbstractMainMsg> extends AbstractChatView implements IconUpdatable {
@@ -124,8 +124,9 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
 
     public volatile X record;
     protected RecyclerView.ViewHolder viewHolder;
-    private IconDrawable iconDrawable;
-    private IconDrawable iconDrawableForward;
+
+    private IconDrawable mIconDrawable;
+    private IconDrawable mIconDrawableForward;
 
     public AbstractMsgView(Context context) {
         super(context);
@@ -136,7 +137,7 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
 
             private float mDownX;
             private float mDownY;
-            boolean isPressed;
+            boolean mIsPressed;
             private final float SCROLL_THRESHOLD = 10;
             private final long LONG_PRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout() - 10;
             Runnable mBackColorRunnable = new Runnable() {
@@ -149,7 +150,7 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
             Runnable mCancelClickRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    isPressed = false;
+                    mIsPressed = false;
                 }
             };
 
@@ -170,12 +171,12 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
                         }
 
                         mHandler.postDelayed(mCancelClickRunnable, LONG_PRESS_TIMEOUT);
-                        isPressed = true;
+                        mIsPressed = true;
                         break;
                     case MotionEvent.ACTION_MOVE: {
-                        if (isPressed && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
+                        if (mIsPressed && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
                                 || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
-                            isPressed = false;
+                            mIsPressed = false;
                         }
                         break;
                     }
@@ -186,15 +187,15 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
                     }
                     case MotionEvent.ACTION_UP:
                         setBackgroundTransparent();
-                        if (isPressed) {
-                            isPressed = false;
+                        if (mIsPressed) {
+                            mIsPressed = false;
                             mHandler.removeCallbacks(mCancelClickRunnable);
                             boolean result = onViewClick(view, event, false);
                             return true;
                         }
                         break;
                     default: {
-                        isPressed = false;
+                        mIsPressed = false;
                     }
                 }
                 return true;
@@ -213,28 +214,27 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
         if (iconDrawable != null) {
             final Rect dirty;
             if (!isForwardIcon) {
-                this.iconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
-                this.iconDrawable.mPaint = iconDrawable.mPaint;
-                this.iconDrawable.text = iconDrawable.text;
-                dirty = this.iconDrawable.getDirtyBounds();
+                this.mIconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
+                this.mIconDrawable.paint = iconDrawable.paint;
+                this.mIconDrawable.text = iconDrawable.text;
+                dirty = this.mIconDrawable.getDirtyBounds();
             } else {
-                this.iconDrawableForward.emptyBitmap = iconDrawable.emptyBitmap;
-                this.iconDrawableForward.mPaint = iconDrawable.mPaint;
-                this.iconDrawableForward.text = iconDrawable.text;
-                dirty = this.iconDrawableForward.getDirtyBounds();
+                this.mIconDrawableForward.emptyBitmap = iconDrawable.emptyBitmap;
+                this.mIconDrawableForward.paint = iconDrawable.paint;
+                this.mIconDrawableForward.text = iconDrawable.text;
+                dirty = this.mIconDrawableForward.getDirtyBounds();
             }
             postInvalidate(dirty.left, dirty.top, dirty.right, dirty.bottom);
         }
     }
-
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (record != null) {
             int i = getOrientatedIndex();
 
-            if (iconDrawable != null)
-                iconDrawable.draw(canvas);
+            if (mIconDrawable != null)
+                mIconDrawable.draw(canvas);
 
             if (record.msgIcon != null) {
                 switch (record.msgIcon) {
@@ -260,8 +260,8 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
             if (record.isForward) {
                 canvas.drawRect(0, 0, FORWARD_LINE_WIDTH, record.layoutHeight[getOrientatedIndex()], FORWARD_LINE_PAINT);
 
-                if (iconDrawableForward != null) {
-                    iconDrawableForward.draw(canvas);
+                if (mIconDrawableForward != null) {
+                    mIconDrawableForward.draw(canvas);
                 }
 
                 if (record.forwardDrawName[i] != null) {
@@ -345,13 +345,13 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
         this.record = record;
 
         if (record != null && record.cachedUser != null) {
-            if (FileUtils.isTDFileEmpty(record.cachedUser.tgUser.profilePhoto.small)) {
-                iconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.cachedUser.tgUser.id, record.cachedUser.initials);
+            if (FileUtil.isTDFileEmpty(record.cachedUser.tgUser.profilePhoto.small)) {
+                mIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.cachedUser.tgUser.id, record.cachedUser.initials);
                 if (record.cachedUser.tgUser.profilePhoto.small.id > 0)
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_ICON,
                             record.cachedUser.tgUser.profilePhoto.small.id, i, record.tgMessage.id, record.cachedUser.tgUser, this, getItemViewTag(), false);
             } else {
-                iconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT, record.cachedUser.tgUser.profilePhoto.small.path, this, getItemViewTag());
+                mIconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT, record.cachedUser.tgUser.profilePhoto.small.path, this, getItemViewTag());
             }
             setForwardValues(record, i);
         }
@@ -359,8 +359,8 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
 
     private void setForwardValues(X record, int i) {
         if (record.isForward) {
-            if (FileUtils.isTDFileEmpty(record.cachedForwardUser.tgUser.profilePhoto.small)) {
-                iconDrawableForward = IconFactory.createEmptyIcon(IconFactory.Type.CHAT,
+            if (FileUtil.isTDFileEmpty(record.cachedForwardUser.tgUser.profilePhoto.small)) {
+                mIconDrawableForward = IconFactory.createEmptyIcon(IconFactory.Type.CHAT,
                         record.cachedForwardUser.tgUser.id, record.cachedForwardUser.initials);
                 if (record.cachedForwardUser.tgUser.profilePhoto.small.id > 0) {
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_ICON,
@@ -368,7 +368,7 @@ public abstract class AbstractMsgView<X extends AbstractMainMsg> extends Abstrac
                             record.tgMessage.id, record.cachedForwardUser.tgUser, this, getItemViewTag(), true);
                 }
             } else {
-                iconDrawableForward = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT,
+                mIconDrawableForward = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT,
                         record.cachedForwardUser.tgUser.profilePhoto.small.path, this, getItemViewTag(), true);
             }
         }

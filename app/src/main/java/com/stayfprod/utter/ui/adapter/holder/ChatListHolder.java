@@ -31,7 +31,7 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
 
     private static final String LOG = ChatListHolder.class.getSimpleName();
 
-    public static volatile boolean isClickOnItemBlocked = false;
+    public static volatile boolean sIsClickOnItemBlocked = false;
 
     public ChatListHolder(final Context context, final List<ChatInfo> records, final View.OnTouchListener itemTouchListener) {
         super(new DialogView(context));
@@ -40,16 +40,16 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                 DialogView.LAYOUT_HEIGHT));
 
         itemView.setOnTouchListener(new View.OnTouchListener() {
-            private Handler handlerBackground = new Handler();
+            private Handler mHandlerBackground = new Handler();
 
-            Runnable actionChangeBackground = new Runnable() {
+            private Runnable mActionChangeBackground = new Runnable() {
                 @Override
                 public void run() {
                     itemView.setBackgroundColor(0x1A000000);
                 }
             };
 
-            private boolean needOpen;
+            private boolean mNeedOpen;
 
             @Override
             public boolean onTouch(View v, MotionEvent evt) {
@@ -57,7 +57,7 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                     boolean defaultResult = itemTouchListener.onTouch(v, evt);
 
                     if (defaultResult) {
-                        handlerBackground.removeCallbacks(actionChangeBackground);
+                        mHandlerBackground.removeCallbacks(mActionChangeBackground);
                         v.setBackgroundColor(Color.TRANSPARENT);
                         return true;
                     }
@@ -65,35 +65,28 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
 
                 switch (evt.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
-                        handlerBackground.postDelayed(actionChangeBackground, 50);
-                        needOpen = true;
+                        mHandlerBackground.postDelayed(mActionChangeBackground, 50);
+                        mNeedOpen = true;
                         break;
                     }
                     case MotionEvent.ACTION_UP: {
-                        handlerBackground.removeCallbacks(actionChangeBackground);
+                        mHandlerBackground.removeCallbacks(mActionChangeBackground);
                         v.setBackgroundColor(Color.TRANSPARENT);
 
                         int adapterPos = getAdapterPosition();
                         if (adapterPos != -1) {
                             //info блокировка нажатия везде!!!
-                            if (needOpen && !isClickOnItemBlocked) {
-                                isClickOnItemBlocked = true;
-
-                                //Logs.e("1");
+                            if (mNeedOpen && !sIsClickOnItemBlocked) {
+                                sIsClickOnItemBlocked = true;
 
                                 final ChatInfo chatInfo = records.get(adapterPos);
                                 if ((chatInfo.isGroupChat && chatInfo.groupChatFull == null)) {
-                                    //isClickOnItemBlocked = true;
-                                    //Timer.start();
-                                    //Logs.e("2");
-
                                     ChatListManager.getManager().getGroupChatFull((int) chatInfo.tgChatObject.id, new ResultController() {
                                         @Override
                                         public void afterResult(TdApi.TLObject object, int calledConstructor) {
-                                            //Timer.show(this);
                                             final List<CachedUser> botUsers = ChatListManager.getManager().processGroupChatFull(object, calledConstructor);
                                             if (chatInfo.groupChatFull == null) {
-                                                isClickOnItemBlocked = false;
+                                                sIsClickOnItemBlocked = false;
                                                 AndroidUtil.showToastShort("try later...");
                                             } else {
                                                 if (botUsers != null && !botUsers.isEmpty()) {
@@ -103,10 +96,8 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                                                             //openActivity(chatInfo, context);
                                                         }
                                                     });
-                                                    //Logs.e("3");
                                                     openActivity(chatInfo, context);
                                                 } else {
-                                                    //isClickOnItemBlocked = false;
                                                     openActivity(chatInfo, context);
                                                 }
                                             }
@@ -124,18 +115,15 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                                                 //openActivity(chatInfo, context);
                                             }
                                         });
-                                        //Logs.e("4");
                                         openActivity(chatInfo, context);
                                     } else {
                                         openActivity(chatInfo, context);
                                     }
                                 } else if (chatInfo.isBot) {
                                     if (BotManager.getManager().isEmptyBotInfo((int) chatInfo.tgChatObject.id)) {
-                                        //isClickOnItemBlocked = true;
                                         UserManager.getManager().getUserFull((int) chatInfo.tgChatObject.id, new ResultController() {
                                             @Override
                                             public void afterResult(TdApi.TLObject object, int calledConstructor) {
-                                                //isClickOnItemBlocked = false;
                                                 switch (object.getConstructor()) {
                                                     case TdApi.UserFull.CONSTRUCTOR: {
                                                         TdApi.UserFull userFull = (TdApi.UserFull) object;
@@ -145,22 +133,8 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                                                         break;
                                                     }
                                                     default: {
-                                                        isClickOnItemBlocked = false;
+                                                        sIsClickOnItemBlocked = false;
                                                     }
-                                            /*case TdApi.Error.CONSTRUCTOR:
-                                                TdApi.Error error = (TdApi.Error) object;
-                                                if (error.text.contains("unknown chat id")) {
-                                                    ChatManager.getManager().createPrivateChat((int) chatInfo.tgChatObject.id, new ResultController() {
-                                                        @Override
-                                                        public void afterResult(TdApi.TLObject object, int calledConstructor) {
-                                                            switch (object.getConstructor()) {
-                                                                case TdApi.Chat.CONSTRUCTOR: {
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }*/
                                                 }
                                             }
                                         });
@@ -176,9 +150,9 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                     }
                     case MotionEvent.ACTION_CANCEL:
                     case MotionEvent.ACTION_OUTSIDE: {
-                        handlerBackground.removeCallbacks(actionChangeBackground);
+                        mHandlerBackground.removeCallbacks(mActionChangeBackground);
                         v.setBackgroundColor(Color.TRANSPARENT);
-                        needOpen = false;
+                        mNeedOpen = false;
                         break;
                     }
                     case MotionEvent.ACTION_MOVE: {
@@ -193,8 +167,6 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
 
 
     public void openActivity(final ChatInfo chatInfo, final Context context) {
-        /*if (!isClickOnItemBlocked) {
-            isClickOnItemBlocked = true;*/
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
@@ -210,7 +182,6 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
 
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtras(bundle);
-                //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
                 ChatManager.getManager().getChat(0, chatInfo.tgChatObject.id, chatInfo, true, true);
                 context.startActivity(intent);
@@ -218,12 +189,11 @@ public class ChatListHolder extends AbstractHolder<ChatInfo> {
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        isClickOnItemBlocked = false;
+                        sIsClickOnItemBlocked = false;
                     }
                 }, 200);
             }
         });
-        //}
     }
 
     @Override

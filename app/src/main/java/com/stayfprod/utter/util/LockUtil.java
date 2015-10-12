@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
-import android.gesture.GestureUtils;
 import android.gesture.Prediction;
 import android.util.Log;
 
@@ -16,15 +15,13 @@ import com.stayfprod.utter.App;
 import com.stayfprod.utter.ui.view.LockPatternView;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-public class LockUtils {
-    private static final String LOG = LockUtils.class.getSimpleName();
+public class LockUtil {
+    private static final String LOG = LockUtil.class.getSimpleName();
 
     private static final char[] hexArray = "0123456789ABCDEF".toCharArray();
     private static final String FILE_GESTURE = "gesture";
@@ -137,7 +134,7 @@ public class LockUtils {
             case GESTURE:
                 try {
                     Gesture inputGesture = (Gesture) value;
-                    GestureLibrary gestureLibrary = GestureLibraries.fromFile(FileUtils.createFile(App.STG_FOLDER_MAIN, FILE_GESTURE));
+                    GestureLibrary gestureLibrary = GestureLibraries.fromFile(FileUtil.createFile(App.STG_FOLDER_MAIN, FILE_GESTURE));
                     try {
                         gestureLibrary.load();
                     } catch (Exception e) {
@@ -184,7 +181,7 @@ public class LockUtils {
             case GESTURE:
                 try {
                     Gesture inputGesture = (Gesture) value;
-                    GestureLibrary gestureLibrary = GestureLibraries.fromFile(FileUtils.createFile(App.STG_FOLDER_MAIN, FILE_GESTURE));
+                    GestureLibrary gestureLibrary = GestureLibraries.fromFile(FileUtil.createFile(App.STG_FOLDER_MAIN, FILE_GESTURE));
                     try {
                         gestureLibrary.load();
                     } catch (Exception e) {

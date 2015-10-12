@@ -24,7 +24,6 @@ public class FloatingActionButton extends AbstractScaleAnimatedView {
     private Paint mDrawablePaint;
     private Bitmap mBitmap;
 
-
     public FloatingActionButton(Context context) {
         super(context);
         init(Color.WHITE);

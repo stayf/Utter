@@ -18,24 +18,24 @@ import java.io.File;
 
 public class PhotoActivity extends AbstractActivity {
 
-    private File file;
-    private BitmapDrawable bitmapDrawable;
-    private Boolean isImageView;
-    private int msgId;
-    private boolean isFromSharedMedia;
+    private File mFile;
+    private BitmapDrawable mBitmapDrawable;
+    private Boolean mIsImageView;
+    private int mMsgId;
+    private boolean mIsFromSharedMedia;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //выбираем меню в зависисоти от того, есть ли фотка в галерее
-        boolean inGallery = CameraManager.isImageInGallery(PhotoActivity.this, file);
+        boolean inGallery = CameraManager.isImageInGallery(PhotoActivity.this, mFile);
         if (inGallery) {
             getMenuInflater().inflate(R.menu.menu_photo_delete, menu);
-            if (isFromSharedMedia) {
+            if (mIsFromSharedMedia) {
                 menu.getItem(0).setVisible(false);
             }
         } else {
             getMenuInflater().inflate(R.menu.menu_photo, menu);
-            if (isFromSharedMedia) {
+            if (mIsFromSharedMedia) {
                 menu.getItem(1).setVisible(false);
             }
         }
@@ -46,17 +46,17 @@ public class PhotoActivity extends AbstractActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (isImageView != null && isImageView) {
+        if (mIsImageView != null && mIsImageView) {
             switch (id) {
                 case R.id.action_photo_add_to_gallery:
                     //добавляем в галерею, возвращаем, что добавили в галерею, показываем уведомление о добавлении
-                    CameraManager.getManager().galleryAddPic(this, file.getAbsolutePath());
+                    CameraManager.getManager().galleryAddPic(this, mFile.getAbsolutePath());
                     onBackPressed();
                     break;
                 case R.id.action_photo_delete:
                     Intent data = new Intent();
                     data.putExtra("delete", true);
-                    data.putExtra("msgId", msgId);
+                    data.putExtra("msgId", mMsgId);
                     setResult(RESULT_OK, data);
                     onBackPressed();
                     break;
@@ -65,12 +65,12 @@ public class PhotoActivity extends AbstractActivity {
         } else {
             switch (id) {
                 case R.id.action_photo_add_to_gallery:
-                    CameraManager.getManager().galleryAddPic(this, file.getAbsolutePath());
+                    CameraManager.getManager().galleryAddPic(this, mFile.getAbsolutePath());
                     onBackPressed();
                     break;
                 case R.id.action_photo_delete:
                     //удалить, выйти
-                    file.delete();
+                    mFile.delete();
                     onBackPressed();
                     break;
             }
@@ -93,15 +93,15 @@ public class PhotoActivity extends AbstractActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String filePath = extras.getString("filePath");
-            isImageView = extras.getBoolean("imageView");
-            msgId = extras.getInt("msgId");
-            isFromSharedMedia = extras.getBoolean("isFromSharedMedia", false);
+            mIsImageView = extras.getBoolean("imageView");
+            mMsgId = extras.getInt("msgId");
+            mIsFromSharedMedia = extras.getBoolean("isFromSharedMedia", false);
 
-            file = new File(filePath);
-            bitmapDrawable = FileManager.getManager().getBitmapFullScreen(file);
+            mFile = new File(filePath);
+            mBitmapDrawable = FileManager.getManager().getBitmapFullScreen(mFile);
 
             TouchImageView touchImageView = (TouchImageView) findViewById(R.id.photo_touch_image);
-            touchImageView.setImageDrawable(bitmapDrawable);
+            touchImageView.setImageDrawable(mBitmapDrawable);
             touchImageView.setMaxZoom(4f);
         }
         setToolbar();
@@ -109,7 +109,7 @@ public class PhotoActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             toolbar.setNavigationIcon(R.mipmap.ic_back_photo);

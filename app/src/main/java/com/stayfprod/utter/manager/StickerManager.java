@@ -3,12 +3,11 @@ package com.stayfprod.utter.manager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.widget.GridView;
 
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.StickerMicroThumb;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.activity.AbstractActivity;
-import com.stayfprod.utter.util.Logs;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -20,31 +19,41 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class StickerManager extends ResultController {
 
-    private static volatile StickerManager userStickerManager;
-    private List<TdApi.Sticker> cachedStickers = Collections.synchronizedList(new ArrayList<TdApi.Sticker>(200));
-    private List<StickerMicroThumb> cachedTitleStickers = Collections.synchronizedList(new ArrayList<StickerMicroThumb>(20));
-    private Long currentSet = -1L;
+    private static volatile StickerManager sUserStickerManager;
 
-    private boolean isNeedUpdate;
+    public static StickerManager getManager() {
+        if (sUserStickerManager == null) {
+            synchronized (StickerManager.class) {
+                if (sUserStickerManager == null) {
+                    sUserStickerManager = new StickerManager();
+                }
+            }
+        }
+        return sUserStickerManager;
+    }
+
+    private List<TdApi.Sticker> mCachedStickers = Collections.synchronizedList(new ArrayList<TdApi.Sticker>(200));
+    private List<StickerMicroThumb> mCachedTitleStickers = Collections.synchronizedList(new ArrayList<StickerMicroThumb>(20));
+    private Long mCurrentSet = -1L;
+    private boolean mIsNeedUpdate;
+    private GridView mStickerThumbGridView;
+    private AtomicInteger mCounter = new AtomicInteger(0);
 
     public Long getCurrentSet() {
-        return currentSet;
+        return mCurrentSet;
     }
 
     public void setCurrentSet(Long currentSet) {
-        this.currentSet = currentSet;
+        this.mCurrentSet = currentSet;
     }
 
     public List<StickerMicroThumb> getCachedTitleStickers() {
-        return cachedTitleStickers;
+        return mCachedTitleStickers;
     }
 
     public List<TdApi.Sticker> getCachedStickers() {
-        return cachedStickers;
+        return mCachedStickers;
     }
-
-
-    private GridView stickerThumbGridView;
 
     public LinearLayoutManager getMicroStickerLinearLayoutManager() {
         return microStickerLinearLayoutManager;
@@ -55,69 +64,43 @@ public class StickerManager extends ResultController {
     }
 
     public GridView getStickerThumbGridView() {
-        return stickerThumbGridView;
+        return mStickerThumbGridView;
     }
 
     public void setStickerThumbGridView(GridView stickerThumbGridView) {
-        this.stickerThumbGridView = stickerThumbGridView;
+        this.mStickerThumbGridView = stickerThumbGridView;
     }
 
     private LinearLayoutManager microStickerLinearLayoutManager;
 
-    public void cleanStickerViews(){
-        stickerThumbGridView = null;
+    public void cleanStickerViews() {
+        mStickerThumbGridView = null;
         microStickerLinearLayoutManager = null;
     }
 
-    public static StickerManager getManager() {
-        if (userStickerManager == null) {
-            synchronized (StickerManager.class) {
-                if (userStickerManager == null) {
-                    userStickerManager = new StickerManager();
-                }
-            }
-        }
-        return userStickerManager;
-    }
-
     public TdApi.Sticker findStickerByPos(int pos) {
-        return cachedStickers.get(pos);
+        return mCachedStickers.get(pos);
     }
 
     public void destroy() {
-        cachedStickers.clear();
-        cachedTitleStickers.clear();
-        userStickerManager = null;
+        mCachedStickers.clear();
+        mCachedTitleStickers.clear();
+        sUserStickerManager = null;
         ThreadService.runTaskBackground(new Runnable() {
             @Override
             public void run() {
-                try{
-                    StickerRecentManager.getInstance().deleteRecentStickers();
-                }catch (Exception e){
-                    //
-                }
+                StickerRecentManager.getInstance().deleteRecentStickers();
             }
         });
     }
 
     public boolean isNeedRebuild() {
-        return cachedStickers.isEmpty() || isNeedUpdate;
+        return mCachedStickers.isEmpty() || mIsNeedUpdate;
     }
 
-    /*   public void getStickers() {
-           TdApi.GetStickers func = new TdApi.GetStickers("");
-           client().send(func, getManager());
-       }
-   */
     @Override
     public void afterResult(TdApi.TLObject object, int calledConstructor) {
-        /*switch (object.getConstructor()) {
-            case TdApi.Stickers.CONSTRUCTOR:
-                TdApi.Sticker[] stickers = ((TdApi.Stickers) object).stickers;
-                cachedStickers.clear();
-                cachedStickers.addAll(Arrays.asList(stickers));
-                break;
-        }*/
+
     }
 
     public void addGags(int dif, List<TdApi.Sticker> stickers) {
@@ -144,17 +127,14 @@ public class StickerManager extends ResultController {
         }
     }
 
-    private AtomicInteger counter = new AtomicInteger(0);
-
     public void getStickers(boolean rebuild) {
-
         //если прийдет апдейт то запросить стикеры когда юзер выйдет из чата
-        if (!cachedStickers.isEmpty() && !cachedTitleStickers.isEmpty() && !rebuild) {
-            isNeedUpdate = true;
+        if (!mCachedStickers.isEmpty() && !mCachedTitleStickers.isEmpty() && !rebuild) {
+            mIsNeedUpdate = true;
             return;
         }
 
-        counter.set(0);
+        mCounter.set(0);
         TdApi.GetStickerSets getStickerSets = new TdApi.GetStickerSets();
 
         client().send(getStickerSets, new ResultController() {
@@ -165,15 +145,15 @@ public class StickerManager extends ResultController {
                         TdApi.StickerSets stickerSets = (TdApi.StickerSets) object;
 
                         final TdApi.StickerSetInfo[] sets = stickerSets.sets;
-                        cachedStickers.clear();
-                        cachedTitleStickers.clear();
+                        mCachedStickers.clear();
+                        mCachedTitleStickers.clear();
 
                         StickerRecentManager.getInstance().loadRecents();
-                        final int columnMaxCount = AbstractActivity.WINDOW_CURRENT_WIDTH / EmojiConstants.STICKER_THUMB_WIDTH;
-                        final int rowsCount = (int) Math.ceil((double) cachedStickers.size() / columnMaxCount);
+                        final int columnMaxCount = AbstractActivity.sWindowCurrentWidth / EmojConstant.sStickerThumbWidth;
+                        final int rowsCount = (int) Math.ceil((double) mCachedStickers.size() / columnMaxCount);
                         final int maxStickers = rowsCount * columnMaxCount;
-                        final int dif = maxStickers - cachedStickers.size();
-                        addGags(dif, cachedStickers);
+                        final int dif = maxStickers - mCachedStickers.size();
+                        addGags(dif, mCachedStickers);
 
                         List<StickerMicroThumb> microThumbList = new ArrayList<StickerMicroThumb>(2);
                         StickerMicroThumb smile = new StickerMicroThumb();
@@ -184,7 +164,7 @@ public class StickerManager extends ResultController {
                         recent.resourceId = R.drawable.ic_smiles_recent;
                         microThumbList.add(recent);
 
-                        cachedTitleStickers.addAll(microThumbList);
+                        mCachedTitleStickers.addAll(microThumbList);
 
                         bubbleSortStickerSets(sets);
 
@@ -210,18 +190,18 @@ public class StickerManager extends ResultController {
                                             if (!stickerSet.isOfficial) {
                                                 StickerMicroThumb stickerMicroThumb = new StickerMicroThumb();
                                                 stickerMicroThumb.sticker = stickers[0];
-                                                stickerMicroThumb.startPos = cachedStickers.size();
-                                                cachedStickers.addAll(Arrays.asList(stickers));
-                                                cachedTitleStickers.add(stickerMicroThumb);
-                                                addGags(dif, cachedStickers);
+                                                stickerMicroThumb.startPos = mCachedStickers.size();
+                                                mCachedStickers.addAll(Arrays.asList(stickers));
+                                                mCachedTitleStickers.add(stickerMicroThumb);
+                                                addGags(dif, mCachedStickers);
                                             } else {
                                                 //официальные стикеры
                                                 StickerMicroThumb stickerMicroThumb = new StickerMicroThumb();
                                                 stickerMicroThumb.sticker = stickers[0];
-                                                stickerMicroThumb.startPos = cachedStickers.size();
-                                                cachedStickers.addAll(Arrays.asList(stickers));
-                                                cachedTitleStickers.add(stickerMicroThumb);
-                                                addGags(dif, cachedStickers);
+                                                stickerMicroThumb.startPos = mCachedStickers.size();
+                                                mCachedStickers.addAll(Arrays.asList(stickers));
+                                                mCachedTitleStickers.add(stickerMicroThumb);
+                                                addGags(dif, mCachedStickers);
                                             }
                                         }
                                     }

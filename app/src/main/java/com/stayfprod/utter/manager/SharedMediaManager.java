@@ -2,7 +2,6 @@ package com.stayfprod.utter.manager;
 
 
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.NotificationObject;
@@ -10,11 +9,9 @@ import com.stayfprod.utter.model.SharedMedia;
 import com.stayfprod.utter.model.SharedMusic;
 import com.stayfprod.utter.service.AudioPlayer;
 import com.stayfprod.utter.service.ThreadService;
-import com.stayfprod.utter.ui.activity.SharedMediaActivity;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.util.DateUtil;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -25,58 +22,66 @@ import java.util.Iterator;
 import java.util.List;
 
 public class SharedMediaManager extends ResultController {
-    //SearchMessages, SearchMessagesFilterUrl, SearchMessagesFilterVoice,
-    // SearchMessagesFilterPhotoAndVideo, SearchMessagesFilterVoice, SearchMessagesFilterVideo,
-    // SearchMessagesFilterPhoto, SearchMessagesFilterDocument, SearchMessagesFilterAudio, SearchMessagesFilterEmpty
 
-    private static volatile SharedMediaManager sharedMediaManager;
+    private static volatile SharedMediaManager sSharedMediaManager;
 
-    private List<SharedMusic> audioMessages = new ArrayList<SharedMusic>(100);
-    private List<SharedMedia> photoAndVideoProfileMessages = new ArrayList<SharedMedia>(50);
-    private List<SharedMedia> photoAndVideoProfileMessagesSecond = new ArrayList<SharedMedia>(50);
-    private List<SharedMedia> photoAndVideoSharedMessages = new ArrayList<SharedMedia>(100);
+    public static SharedMediaManager getManager() {
+        if (sSharedMediaManager == null) {
+            synchronized (SharedMediaManager.class) {
+                if (sSharedMediaManager == null) {
+                    sSharedMediaManager = new SharedMediaManager();
+                }
+            }
+        }
+        return sSharedMediaManager;
+    }
 
-    private SparseArray<SharedMusic> selectedMusicList = new SparseArray<SharedMusic>(100);
-    private SparseArray<SharedMedia> selectedMediaList = new SparseArray<SharedMedia>(100);
+    private List<SharedMusic> mAudioMessages = new ArrayList<SharedMusic>(100);
+    private List<SharedMedia> mPhotoAndVideoProfileMessages = new ArrayList<SharedMedia>(50);
+    private List<SharedMedia> mPhotoAndVideoProfileMessagesSecond = new ArrayList<SharedMedia>(50);
+    private List<SharedMedia> mPhotoAndVideoSharedMessages = new ArrayList<SharedMedia>(100);
+
+    private SparseArray<SharedMusic> mSelectedMusicList = new SparseArray<SharedMusic>(100);
+    private SparseArray<SharedMedia> mSelectedMediaList = new SparseArray<SharedMedia>(100);
 
     public SparseArray<SharedMedia> getSelectedMediaList() {
-        return selectedMediaList;
+        return mSelectedMediaList;
     }
 
     public SparseArray<SharedMusic> getSelectedMusicList() {
-        return selectedMusicList;
+        return mSelectedMusicList;
     }
 
     public void cleanSelectedMusic() {
-        for (int i = 0; i < selectedMusicList.size(); i++) {
-            int key = selectedMusicList.keyAt(i);
-            SharedMusic obj = selectedMusicList.get(key);
+        for (int i = 0; i < mSelectedMusicList.size(); i++) {
+            int key = mSelectedMusicList.keyAt(i);
+            SharedMusic obj = mSelectedMusicList.get(key);
             obj.isSelected = false;
         }
-        selectedMusicList.clear();
+        mSelectedMusicList.clear();
     }
 
     public void cleanSelectedMedia() {
-        for (int i = 0; i < selectedMediaList.size(); i++) {
-            int key = selectedMediaList.keyAt(i);
-            SharedMedia obj = selectedMediaList.get(key);
+        for (int i = 0; i < mSelectedMediaList.size(); i++) {
+            int key = mSelectedMediaList.keyAt(i);
+            SharedMedia obj = mSelectedMediaList.get(key);
             obj.isSelected = false;
         }
-        selectedMediaList.clear();
+        mSelectedMediaList.clear();
     }
 
     public void deleteSelectedMusicList(final Long chatId) {
         if (chatId != null) {
-            final int[] msgs = new int[selectedMusicList.size()];
+            final int[] msgs = new int[mSelectedMusicList.size()];
 
-            for (int i = 0; i < selectedMusicList.size(); i++) {
-                int key = selectedMusicList.keyAt(i);
-                SharedMusic sharedMusic = selectedMusicList.get(key);
+            for (int i = 0; i < mSelectedMusicList.size(); i++) {
+                int key = mSelectedMusicList.keyAt(i);
+                SharedMusic sharedMusic = mSelectedMusicList.get(key);
                 sharedMusic.isDeleted = true;
                 msgs[i] = sharedMusic.message.id;
             }
 
-            selectedMusicList.clear();
+            mSelectedMusicList.clear();
             final TdApi.DeleteMessages func = new TdApi.DeleteMessages();
             func.chatId = chatId;
             func.messageIds = msgs;
@@ -88,18 +93,13 @@ public class SharedMediaManager extends ResultController {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {
-                                    for (Iterator<SharedMusic> it2 = audioMessages.iterator(); it2.hasNext(); ) {
+                                    for (Iterator<SharedMusic> it2 = mAudioMessages.iterator(); it2.hasNext(); ) {
                                         SharedMusic sharedMusic = it2.next();
                                         if (sharedMusic.isDeleted) {
                                             it2.remove();
                                         }
                                     }
-
                                     SharedMediaManager.this.notifyObservers(new NotificationObject(NotificationObject.UPDATE_SHARED_AUDIO_LIST, null));
-
-                                    //todo удаление в чате
-                                    //cleanSearchAudio();
-                                    //searchAudio(chatId, UserManager.getManager().getCurrUserId());
                                 }
                             });
 
@@ -112,16 +112,16 @@ public class SharedMediaManager extends ResultController {
 
     public void deleteSelectedMediaList(final Long chatId, final boolean isOldChatId) {
         if (chatId != null) {
-            final int[] msgs = new int[selectedMediaList.size()];
+            final int[] msgs = new int[mSelectedMediaList.size()];
 
-            for (int i = 0; i < selectedMediaList.size(); i++) {
-                int key = selectedMediaList.keyAt(i);
-                SharedMedia sharedMedia = selectedMediaList.get(key);
+            for (int i = 0; i < mSelectedMediaList.size(); i++) {
+                int key = mSelectedMediaList.keyAt(i);
+                SharedMedia sharedMedia = mSelectedMediaList.get(key);
                 sharedMedia.isDeleted = true;
                 msgs[i] = sharedMedia.message.id;
             }
 
-            selectedMediaList.clear();
+            mSelectedMediaList.clear();
             final TdApi.DeleteMessages func = new TdApi.DeleteMessages();
             func.chatId = chatId;
             func.messageIds = msgs;
@@ -133,16 +133,6 @@ public class SharedMediaManager extends ResultController {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {
-                                    /*List<SharedMedia> profList = getRequiredForDeleteList(true, isOldChatId);
-                                    for (Iterator<SharedMedia> it = profList.iterator(); it.hasNext(); ) {
-                                        SharedMedia sharedMedia = it.next();
-                                        if (sharedMedia.isDeleted) {
-                                            it.remove();
-                                        } else {
-                                            sharedMedia.totalCount = sharedMedia.totalCount - msgs.length;
-                                        }
-                                    }*/
-
                                     List<SharedMedia> sharedList = getRequiredForDeleteList(false, isOldChatId);
                                     for (Iterator<SharedMedia> it2 = sharedList.iterator(); it2.hasNext(); ) {
                                         SharedMedia sharedMedia = it2.next();
@@ -156,10 +146,6 @@ public class SharedMediaManager extends ResultController {
 
                                     cleanSearchMedia(true, isOldChatId);
                                     searchMedia(chatId, UserManager.getManager().getCurrUserId(), true, isOldChatId);
-                                    //todo удаление в чате
-                                    /*cleanSearchMedia(true, isOldChatId);
-                                    cleanSearchMedia(false, isOldChatId);*/
-                                    //searchMedia(chatId, UserManager.getManager().getCurrUserId(), false, isOldChatId);
                                 }
                             });
                             break;
@@ -175,28 +161,28 @@ public class SharedMediaManager extends ResultController {
     }
 
     public List<SharedMedia> getPhotoAndVideoSharedMessages() {
-        return photoAndVideoSharedMessages;
+        return mPhotoAndVideoSharedMessages;
     }
 
     public List<SharedMedia> getPhotoAndVideoProfileMessages(boolean isOldChatId) {
         if (isOldChatId) {
-            return photoAndVideoProfileMessages;
+            return mPhotoAndVideoProfileMessages;
         } else {
-            return photoAndVideoProfileMessagesSecond;
+            return mPhotoAndVideoProfileMessagesSecond;
         }
     }
 
     public String getPhotoAndVideoMessagesStringSize(boolean isOldChatId) {
         if (isOldChatId) {
-            if (photoAndVideoProfileMessages != null) {
-                if (photoAndVideoProfileMessages.size() > 0) {
-                    return String.valueOf(photoAndVideoProfileMessages.get(0).totalCount);
+            if (mPhotoAndVideoProfileMessages != null) {
+                if (mPhotoAndVideoProfileMessages.size() > 0) {
+                    return String.valueOf(mPhotoAndVideoProfileMessages.get(0).totalCount);
                 }
             }
         } else {
-            if (photoAndVideoProfileMessagesSecond != null) {
-                if (photoAndVideoProfileMessagesSecond.size() > 0) {
-                    return String.valueOf(photoAndVideoProfileMessagesSecond.get(0).totalCount);
+            if (mPhotoAndVideoProfileMessagesSecond != null) {
+                if (mPhotoAndVideoProfileMessagesSecond.size() > 0) {
+                    return String.valueOf(mPhotoAndVideoProfileMessagesSecond.get(0).totalCount);
                 }
             }
         }
@@ -208,18 +194,7 @@ public class SharedMediaManager extends ResultController {
     }
 
     public List<SharedMusic> getAudioMessages() {
-        return audioMessages;
-    }
-
-    public static SharedMediaManager getManager() {
-        if (sharedMediaManager == null) {
-            synchronized (SharedMediaManager.class) {
-                if (sharedMediaManager == null) {
-                    sharedMediaManager = new SharedMediaManager();
-                }
-            }
-        }
-        return sharedMediaManager;
+        return mAudioMessages;
     }
 
     public void forceClose() {
@@ -229,23 +204,23 @@ public class SharedMediaManager extends ResultController {
     public void cleanSearchMedia(boolean forProfile, boolean isOldChatId) {
         if (forProfile) {
             if (isOldChatId) {
-                photoAndVideoProfileMessages.clear();
+                mPhotoAndVideoProfileMessages.clear();
             } else {
-                photoAndVideoProfileMessagesSecond.clear();
+                mPhotoAndVideoProfileMessagesSecond.clear();
             }
         } else
-            photoAndVideoSharedMessages.clear();
+            mPhotoAndVideoSharedMessages.clear();
     }
 
     private List<SharedMedia> getRequiredForDeleteList(boolean forProfile, boolean isOldChatId) {
         if (forProfile) {
             if (isOldChatId) {
-                return photoAndVideoProfileMessages;
+                return mPhotoAndVideoProfileMessages;
             } else {
-                return photoAndVideoProfileMessagesSecond;
+                return mPhotoAndVideoProfileMessagesSecond;
             }
         } else
-            return photoAndVideoSharedMessages;
+            return mPhotoAndVideoSharedMessages;
     }
 
     public void searchMedia(long chatId, int formId, final boolean forProfile, final boolean isOldChatId) {
@@ -273,11 +248,11 @@ public class SharedMediaManager extends ResultController {
                                     //проверять дату
                                     if (remDate == 0) {
                                         remDate = message.date;
-                                        photoAndVideoSharedMessages.add(new SharedMedia(true, DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA)));
+                                        mPhotoAndVideoSharedMessages.add(new SharedMedia(true, DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA)));
                                         processMedia(message, false, isOldChatId, messages.totalCount);
                                     } else {
                                         if (DateUtil.isDifMonths(remDate, message.date)) {
-                                            photoAndVideoSharedMessages.add(new SharedMedia(true, DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA)));
+                                            mPhotoAndVideoSharedMessages.add(new SharedMedia(true, DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA)));
                                             processMedia(message, false, isOldChatId, messages.totalCount);
                                         } else {
                                             processMedia(message, false, isOldChatId, messages.totalCount);
@@ -339,16 +314,16 @@ public class SharedMediaManager extends ResultController {
         }
         if (forProfile) {
             if (isOldChatId) {
-                photoAndVideoProfileMessages.add(sharedMedia);
+                mPhotoAndVideoProfileMessages.add(sharedMedia);
             } else {
-                photoAndVideoProfileMessagesSecond.add(sharedMedia);
+                mPhotoAndVideoProfileMessagesSecond.add(sharedMedia);
             }
         } else
-            photoAndVideoSharedMessages.add(sharedMedia);
+            mPhotoAndVideoSharedMessages.add(sharedMedia);
     }
 
     public void cleanSearchAudio() {
-        audioMessages.clear();
+        mAudioMessages.clear();
     }
 
     public void searchAudio(long chatId, int formId) {
@@ -374,11 +349,11 @@ public class SharedMediaManager extends ResultController {
                                 //проверять дату
                                 if (remDate == 0) {
                                     remDate = message.date;
-                                    audioMessages.add(new SharedMusic(DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA), true));
+                                    mAudioMessages.add(new SharedMusic(DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA), true));
                                     processAudio(message);
                                 } else {
                                     if (DateUtil.isDifMonths(remDate, message.date)) {
-                                        audioMessages.add(new SharedMusic(DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA), true));
+                                        mAudioMessages.add(new SharedMusic(DateUtil.getDateForChat(message.date, DateUtil.DateType.SHARED_MEDIA), true));
                                         processAudio(message);
                                     } else {
                                         processAudio(message);
@@ -415,7 +390,7 @@ public class SharedMediaManager extends ResultController {
                 sharedMusic.name = messageAudio.audio.title;
 
                 sharedMusic.message = message;
-                audioMessages.add(sharedMusic);
+                mAudioMessages.add(sharedMusic);
                 break;
         }
     }

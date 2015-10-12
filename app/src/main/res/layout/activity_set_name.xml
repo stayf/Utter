@@ -6,7 +6,7 @@
     tools:context="com.stayfprod.utter.ui.activity.auth.SetNameActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/a_actionBar"
+        android:id="@+id/a_action_bar"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
@@ -40,7 +40,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/a_actionBar"
+        android:layout_below="@+id/a_action_bar"
         android:layout_marginLeft="18dp"
         android:layout_marginRight="18dp"
         android:layout_marginTop="30dp"

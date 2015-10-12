@@ -16,12 +16,12 @@ import java.util.List;
 
 public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHolder> {
 
-    private List<Country> countryList;
-    private AppCompatActivity activity;
+    private List<Country> mCountryList;
+    private AppCompatActivity mActivity;
 
     public CountryAdapter(List<Country> countryList, Context context) {
-        this.countryList = countryList;
-        this.activity = (AppCompatActivity) context;
+        this.mCountryList = countryList;
+        this.mActivity = (AppCompatActivity) context;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        Country country = countryList.get(position);
+        Country country = mCountryList.get(position);
         holder.code.setText("+" + country.code + "");
         holder.name.setText(country.name);
         holder.title.setText(country.title);
@@ -40,7 +40,7 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return countryList.size();
+        return mCountryList.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -65,12 +65,12 @@ public class CountryAdapter extends RecyclerView.Adapter<CountryAdapter.ViewHold
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Country c = countryList.get(viewHolder.getPosition());
+                    Country c = mCountryList.get(viewHolder.getPosition());
                     Intent data = new Intent();
                     data.putExtra("data", c);
-                    activity.setResult(Activity.RESULT_OK, data);
-                    activity.supportFinishAfterTransition();
-                    activity.overridePendingTransition(R.anim.slide_up_no, R.anim.slide_up_out);
+                    mActivity.setResult(Activity.RESULT_OK, data);
+                    mActivity.supportFinishAfterTransition();
+                    mActivity.overridePendingTransition(R.anim.slide_up_no, R.anim.slide_up_out);
                 }
             });
 

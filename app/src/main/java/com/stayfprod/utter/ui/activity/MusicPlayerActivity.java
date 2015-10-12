@@ -15,7 +15,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.stayfprod.utter.App;
-import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.manager.SharedMediaManager;
@@ -28,7 +27,7 @@ import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.ui.view.DetermineProgressView;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -39,137 +38,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MusicPlayerActivity extends AbstractActivity implements Observer {
 
+    private boolean mIsHaveBackgroundImage = false;
+    private AtomicBoolean mIsTouchedSeekByUser = new AtomicBoolean(false);
+    private int mSeekProgress;
 
-    private boolean isHaveBackgroundImage = false;
-    private AtomicBoolean isTouchedSeekByUser = new AtomicBoolean(false);
-    private int seekProgress;
+    private RelativeLayout mMusicTopLayout;
+    private DetermineProgressView mMusicPlay;
+    private TextView mMusicTimerGone;
+    private TextView mMusicTimerLeft;
+    private SeekBar mAudioSeekBar;
+    private TextView mMusicAuthor;
+    private TextView mMusicName;
+    private ImageView mMusicAlbumImage;
+    private Toolbar mToolbarOne;
+    private Toolbar mToolbarTwo;
+    private ImageView mMusicRepeat;
+    private ImageView mMusicShuffle;
+    private TdApi.Message mLoadedMessage;
 
-    private RelativeLayout a_music_top_layout;
-    private DetermineProgressView a_music_play;
-    private TextView a_music_timer_gone;
-    private TextView a_music_timer_left;
-    private SeekBar s_audio_seekBar;
-    private TextView a_music_author;
-    private TextView a_music_name;
-    private ImageView a_music_album_image;
-    private Toolbar toolbarOne;
-    private Toolbar toolbarTwo;
-    private ImageView a_music_repeat;
-    private ImageView a_music_shuffle;
-    private TdApi.Message loadedMessage;
-
-    private boolean isBackOnTouchList;
-    private long chatId;
-
-    private void getPhoto(final TdApi.Audio audio) {
-        if (audio != null && FileUtils.isTDFileLocal(audio.audio) && !isHaveBackgroundImage) {
-            ThreadService.runTaskBackground(new Runnable() {
-                @Override
-                public void run() {
-                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-                    retriever.setDataSource(audio.audio.path);
-                    byte[] image = retriever.getEmbeddedPicture();
-                    if (image != null && image.length > 0) {
-                        final Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
-                        AndroidUtil.runInUI(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (bitmap != null) {
-                                    isHaveBackgroundImage = true;
-                                    a_music_album_image.setImageBitmap(bitmap);
-                                    updateToolBarStyle();
-                                    updateStyle();
-                                    supportInvalidateOptionsMenu();
-                                }
-                            }
-                        });
-                    } else {
-                        AndroidUtil.runInUI(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateToolBarStyle();
-                                updateStyle();
-                                supportInvalidateOptionsMenu();
-                                a_music_album_image.setImageResource(R.mipmap.ic_nocover);
-                            }
-                        });
-                    }
-                }
-            });
-        } else {
-            if (audio == null) {
-                AndroidUtil.runInUI(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            isHaveBackgroundImage = false;
-                            updateToolBarStyle();
-                            updateStyle();
-                            supportInvalidateOptionsMenu();
-                            a_music_album_image.setImageResource(R.mipmap.ic_nocover);
-                        } catch (Exception e) {
-                            //
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    public void checkOnStart() {
-        AudioPlayer audioPlayer = AudioPlayer.getPlayer();
-
-        if (audioPlayer.getMessageAudio() != null) {
-            getPhoto(audioPlayer.getMessageAudio().audio);
-        } else {
-            getPhoto(null);
-        }
-
-        if (audioPlayer.isPaused()) {
-            TdApi.MessageAudio messageAudio = audioPlayer.getMessageAudio();
-            if (messageAudio != null) {
-                updateDuration(messageAudio, audioPlayer.getCurrentProgress(), false);
-
-                DeterminateProgressDrawable determinateProgressDrawable = a_music_play.getProgressDrawable();
-                determinateProgressDrawable.setMainSettings(
-                        null, DeterminateProgressDrawable.PlayStatus.PLAY,
-                        DeterminateProgressDrawable.ColorRange.BLUE,
-                        LoadingContentType.AUDIO, true, false);
-
-                determinateProgressDrawable.setVisibility(true);
-                determinateProgressDrawable.invalidate();
-
-                a_music_name.setText(messageAudio.audio.title);
-                a_music_author.setText(messageAudio.audio.performer);
-            }
-        }
-    }
-
-    public void updateDuration(TdApi.MessageAudio messageAudio, float progress, boolean byUser) {
-        if ((!isTouchedSeekByUser.get() || byUser) && messageAudio != null) {
-            int maxDuration = messageAudio.audio.duration;//секунды
-
-            int goneSeconds;
-            int leftSeconds;
-
-            if (byUser) {
-                goneSeconds = (int) (progress * maxDuration) / 1000;
-            } else {
-                goneSeconds = (int) (progress * maxDuration) / 100;
-            }
-            leftSeconds = maxDuration - goneSeconds;
-
-            String durationStrGone = ChatHelper.getDurationString(goneSeconds, maxDuration);
-            String durationStrLeft = ChatHelper.getDurationString(leftSeconds, maxDuration);
-
-            a_music_timer_gone.setText(durationStrGone);
-            a_music_timer_left.setText(durationStrLeft);
-
-            if (!byUser) {
-                s_audio_seekBar.setProgress((int) (progress * 10));
-            }
-        }
-    }
+    private boolean mIsBackOnTouchList;
+    private long mChatId;
 
     @Override
     protected void onStart() {
@@ -196,80 +84,80 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            isBackOnTouchList = bundle.getBoolean("isBackOnTouchList", false);
-            chatId = bundle.getLong("chatId");
+            mIsBackOnTouchList = bundle.getBoolean("isBackOnTouchList", false);
+            mChatId = bundle.getLong("chatId");
         }
 
-        s_audio_seekBar = (SeekBar) findViewById(R.id.s_audio_seekBar);
-        s_audio_seekBar.setMax(1000);
+        mAudioSeekBar = (SeekBar) findViewById(R.id.s_audio_seekBar);
+        mAudioSeekBar.setMax(1000);
 
-        a_music_top_layout = (RelativeLayout) findViewById(R.id.a_music_top_layout);
+        mMusicTopLayout = (RelativeLayout) findViewById(R.id.a_music_top_layout);
         final AudioPlayer audioPlayer = AudioPlayer.getPlayer();
-        SharedMediaManager.getManager().searchAudioPlayer(chatId, audioPlayer.getAudioMessages());
+        SharedMediaManager.getManager().searchAudioPlayer(mChatId, audioPlayer.getAudioMessages());
 
-        s_audio_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mAudioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    seekProgress = progress;
+                    mSeekProgress = progress;
                     updateDuration(audioPlayer.getMessageAudio(), progress, true);
                 }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                isTouchedSeekByUser.set(true);
+                mIsTouchedSeekByUser.set(true);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                audioPlayer.seekTo(seekProgress);
-                isTouchedSeekByUser.set(false);
+                audioPlayer.seekTo(mSeekProgress);
+                mIsTouchedSeekByUser.set(false);
             }
         });
-        a_music_play = (DetermineProgressView) findViewById(R.id.a_music_play);
+        mMusicPlay = (DetermineProgressView) findViewById(R.id.a_music_play);
 
-        ImageView a_music_back = (ImageView) findViewById(R.id.a_music_back);
-        a_music_back.setOnClickListener(new View.OnClickListener() {
+        ImageView musicBack = (ImageView) findViewById(R.id.a_music_back);
+        musicBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 audioPlayer.clickBack();
             }
         });
-        ImageView a_music_forward = (ImageView) findViewById(R.id.a_music_forward);
-        a_music_forward.setOnClickListener(new View.OnClickListener() {
+        ImageView musicForward = (ImageView) findViewById(R.id.a_music_forward);
+        musicForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 audioPlayer.clickForward();
             }
         });
 
-        a_music_author = (TextView) findViewById(R.id.a_music_author);
-        a_music_name = (TextView) findViewById(R.id.a_music_name);
+        mMusicAuthor = (TextView) findViewById(R.id.a_music_author);
+        mMusicName = (TextView) findViewById(R.id.a_music_name);
 
-        a_music_author.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-        a_music_author.setTextSize(18);
-        a_music_author.setTextColor(0xFF333333);
+        mMusicAuthor.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+        mMusicAuthor.setTextSize(18);
+        mMusicAuthor.setTextColor(0xFF333333);
 
-        a_music_name.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_music_name.setTextSize(16);
-        a_music_name.setTextColor(0xFF333333);
+        mMusicName.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mMusicName.setTextSize(16);
+        mMusicName.setTextColor(0xFF333333);
 
-        a_music_timer_gone = (TextView) findViewById(R.id.a_music_timer_gone);
-        a_music_timer_gone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_music_timer_gone.setTextSize(12);
-        a_music_timer_gone.setTextColor(0xFF569ACE);
+        mMusicTimerGone = (TextView) findViewById(R.id.a_music_timer_gone);
+        mMusicTimerGone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mMusicTimerGone.setTextSize(12);
+        mMusicTimerGone.setTextColor(0xFF569ACE);
 
-        a_music_timer_left = (TextView) findViewById(R.id.a_music_timer_left);
-        a_music_timer_left.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_music_timer_left.setTextSize(12);
-        a_music_timer_left.setTextColor(0xFFB3B3B3);
+        mMusicTimerLeft = (TextView) findViewById(R.id.a_music_timer_left);
+        mMusicTimerLeft.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mMusicTimerLeft.setTextSize(12);
+        mMusicTimerLeft.setTextColor(0xFFB3B3B3);
 
-        a_music_repeat = (ImageView) findViewById(R.id.a_music_repeat);
-        a_music_shuffle = (ImageView) findViewById(R.id.a_music_shuffle);
+        mMusicRepeat = (ImageView) findViewById(R.id.a_music_repeat);
+        mMusicShuffle = (ImageView) findViewById(R.id.a_music_shuffle);
 
 
-        a_music_repeat.setOnClickListener(new View.OnClickListener() {
+        mMusicRepeat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (audioPlayer.isRepeat()) {
@@ -280,7 +168,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
             }
         });
 
-        a_music_shuffle.setOnClickListener(new View.OnClickListener() {
+        mMusicShuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (audioPlayer.isShuffled()) {
@@ -292,46 +180,44 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
             }
         });
 
-        a_music_album_image = (ImageView) findViewById(R.id.a_music_album_image);
+        mMusicAlbumImage = (ImageView) findViewById(R.id.a_music_album_image);
 
-
-        AndroidUtil.addOnGlobalLayoutListener(a_music_top_layout, new Runnable() {
+        AndroidUtil.addOnGlobalLayoutListener(mMusicTopLayout, new Runnable() {
             @Override
             public void run() {
-                ((RelativeLayout.LayoutParams) s_audio_seekBar.getLayoutParams()).topMargin = a_music_top_layout.getHeight() - AndroidUtil.dp(9);
+                ((RelativeLayout.LayoutParams) mAudioSeekBar.getLayoutParams()).topMargin = mMusicTopLayout.getHeight() - AndroidUtil.dp(9);
             }
         });
 
         updateStyle();
         setToolbar();
 
-
-        a_music_play.setOnClickListener(new View.OnClickListener() {
+        mMusicPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DeterminateProgressDrawable progressDrawable = a_music_play.getProgressDrawable();
+                DeterminateProgressDrawable progressDrawable = mMusicPlay.getProgressDrawable();
 
-                if (progressDrawable.getLoadStatus() != null && loadedMessage != null && audioPlayer.getMsgId() == loadedMessage.id) {
-                    TdApi.MessageAudio messageAudio = (TdApi.MessageAudio) loadedMessage.message;
-                    a_music_play.setTag(audioPlayer.getMsgId());
+                if (progressDrawable.getLoadStatus() != null && mLoadedMessage != null && audioPlayer.getMsgId() == mLoadedMessage.id) {
+                    TdApi.MessageAudio messageAudio = (TdApi.MessageAudio) mLoadedMessage.message;
+                    mMusicPlay.setTag(audioPlayer.getMsgId());
                     switch (progressDrawable.getLoadStatus()) {
                         case NO_LOAD:
-                            if (FileUtils.isTDFileEmpty(messageAudio.audio.audio)) {
+                            if (FileUtil.isTDFileEmpty(messageAudio.audio.audio)) {
                                 FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.SHARED_AUDIO_PLAYER,
-                                        messageAudio.audio.audio.id, -1, loadedMessage.id, a_music_play, messageAudio.audio,
-                                        a_music_play.getTag().toString(), null, a_music_play);
+                                        messageAudio.audio.audio.id, -1, mLoadedMessage.id, mMusicPlay, messageAudio.audio,
+                                        mMusicPlay.getTag().toString(), null, mMusicPlay);
                                 progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                             }
                             break;
                         case PAUSE:
-                            if (FileUtils.isTDFileEmpty(messageAudio.audio.audio)) {
-                                FileManager.getManager().proceedLoad(messageAudio.audio.audio.id, loadedMessage.id, true);
+                            if (FileUtil.isTDFileEmpty(messageAudio.audio.audio)) {
+                                FileManager.getManager().proceedLoad(messageAudio.audio.audio.id, mLoadedMessage.id, true);
                                 progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                             }
                             break;
                         case PROCEED_LOAD:
-                            if (FileUtils.isTDFileEmpty(messageAudio.audio.audio)) {
-                                FileManager.getManager().cancelDownloadFile(messageAudio.audio.audio.id, loadedMessage.id, true);
+                            if (FileUtil.isTDFileEmpty(messageAudio.audio.audio)) {
+                                FileManager.getManager().cancelDownloadFile(messageAudio.audio.audio.id, mLoadedMessage.id, true);
                                 progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PAUSE);
                             }
                             break;
@@ -339,7 +225,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                             break;
                     }
                 } else if (progressDrawable.getPlayStatus() != null) {
-                    a_music_play.setTag(audioPlayer.getMsgId());
+                    mMusicPlay.setTag(audioPlayer.getMsgId());
                     if (audioPlayer.isPlaying()) {
                         audioPlayer.pause();
                     } else {
@@ -359,7 +245,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
         getMenuInflater().inflate(R.menu.menu_music_player, menu);
         MenuItem menuItem = menu.getItem(0);
 
-        if (isHaveBackgroundImage) {
+        if (mIsHaveBackgroundImage) {
             menuItem.setIcon(R.mipmap.ic_playlist_white);
         } else {
             menuItem.setIcon(R.mipmap.ic_playlist_grey);
@@ -374,7 +260,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
 
         switch (id) {
             case R.id.action_playlist:
-                if (isBackOnTouchList) {
+                if (mIsBackOnTouchList) {
                     SharedMediaManager sharedMediaManager = SharedMediaManager.getManager();
                     sharedMediaManager.setCurrentPage(SharedMediaActivity.SHARED_AUDIO);
                     supportFinishAfterTransition();
@@ -383,7 +269,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                     Intent intent = new Intent(this, SharedMediaActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putInt("selectedPage", SharedMediaActivity.SHARED_AUDIO);
-                    bundle.putLong("chatId", chatId);
+                    bundle.putLong("chatId", mChatId);
                     bundle.putBoolean("openPlayerByBack", true);
 
                     intent.putExtras(bundle);
@@ -408,33 +294,144 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
         return super.onOptionsItemSelected(item);
     }
 
+
+    private void getPhoto(final TdApi.Audio audio) {
+        if (audio != null && FileUtil.isTDFileLocal(audio.audio) && !mIsHaveBackgroundImage) {
+            ThreadService.runTaskBackground(new Runnable() {
+                @Override
+                public void run() {
+                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                    retriever.setDataSource(audio.audio.path);
+                    byte[] image = retriever.getEmbeddedPicture();
+                    if (image != null && image.length > 0) {
+                        final Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+                        AndroidUtil.runInUI(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (bitmap != null) {
+                                    mIsHaveBackgroundImage = true;
+                                    mMusicAlbumImage.setImageBitmap(bitmap);
+                                    updateToolBarStyle();
+                                    updateStyle();
+                                    supportInvalidateOptionsMenu();
+                                }
+                            }
+                        });
+                    } else {
+                        AndroidUtil.runInUI(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateToolBarStyle();
+                                updateStyle();
+                                supportInvalidateOptionsMenu();
+                                mMusicAlbumImage.setImageResource(R.mipmap.ic_nocover);
+                            }
+                        });
+                    }
+                }
+            });
+        } else {
+            if (audio == null) {
+                AndroidUtil.runInUI(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            mIsHaveBackgroundImage = false;
+                            updateToolBarStyle();
+                            updateStyle();
+                            supportInvalidateOptionsMenu();
+                            mMusicAlbumImage.setImageResource(R.mipmap.ic_nocover);
+                        } catch (Exception e) {
+                            //
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    public void checkOnStart() {
+        AudioPlayer audioPlayer = AudioPlayer.getPlayer();
+
+        if (audioPlayer.getMessageAudio() != null) {
+            getPhoto(audioPlayer.getMessageAudio().audio);
+        } else {
+            getPhoto(null);
+        }
+
+        if (audioPlayer.isPaused()) {
+            TdApi.MessageAudio messageAudio = audioPlayer.getMessageAudio();
+            if (messageAudio != null) {
+                updateDuration(messageAudio, audioPlayer.getCurrentProgress(), false);
+
+                DeterminateProgressDrawable determinateProgressDrawable = mMusicPlay.getProgressDrawable();
+                determinateProgressDrawable.setMainSettings(
+                        null, DeterminateProgressDrawable.PlayStatus.PLAY,
+                        DeterminateProgressDrawable.ColorRange.BLUE,
+                        LoadingContentType.AUDIO, true, false);
+
+                determinateProgressDrawable.setVisibility(true);
+                determinateProgressDrawable.invalidate();
+
+                mMusicName.setText(messageAudio.audio.title);
+                mMusicAuthor.setText(messageAudio.audio.performer);
+            }
+        }
+    }
+
+    public void updateDuration(TdApi.MessageAudio messageAudio, float progress, boolean byUser) {
+        if ((!mIsTouchedSeekByUser.get() || byUser) && messageAudio != null) {
+            int maxDuration = messageAudio.audio.duration;//секунды
+
+            int goneSeconds;
+            int leftSeconds;
+
+            if (byUser) {
+                goneSeconds = (int) (progress * maxDuration) / 1000;
+            } else {
+                goneSeconds = (int) (progress * maxDuration) / 100;
+            }
+            leftSeconds = maxDuration - goneSeconds;
+
+            String durationStrGone = ChatHelper.getDurationString(goneSeconds, maxDuration);
+            String durationStrLeft = ChatHelper.getDurationString(leftSeconds, maxDuration);
+
+            mMusicTimerGone.setText(durationStrGone);
+            mMusicTimerLeft.setText(durationStrLeft);
+
+            if (!byUser) {
+                mAudioSeekBar.setProgress((int) (progress * 10));
+            }
+        }
+    }
+
     private void updateRepeat() {
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
-        if (isHaveBackgroundImage) {
+        if (mIsHaveBackgroundImage) {
             if (!audioPlayer.isRepeat())
-                a_music_repeat.setImageResource(R.mipmap.ic_repeat_white);
+                mMusicRepeat.setImageResource(R.mipmap.ic_repeat_white);
             else
-                a_music_repeat.setImageResource(R.mipmap.ic_repeat_blue);
+                mMusicRepeat.setImageResource(R.mipmap.ic_repeat_blue);
         } else {
             if (!audioPlayer.isRepeat())
-                a_music_repeat.setImageResource(R.mipmap.ic_repeat_grey);
+                mMusicRepeat.setImageResource(R.mipmap.ic_repeat_grey);
             else
-                a_music_repeat.setImageResource(R.mipmap.ic_repeat_blue);
+                mMusicRepeat.setImageResource(R.mipmap.ic_repeat_blue);
         }
     }
 
     private void updateShuffled() {
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
-        if (isHaveBackgroundImage) {
+        if (mIsHaveBackgroundImage) {
             if (!audioPlayer.isShuffled())
-                a_music_shuffle.setImageResource(R.mipmap.ic_shuffle_white);
+                mMusicShuffle.setImageResource(R.mipmap.ic_shuffle_white);
             else
-                a_music_shuffle.setImageResource(R.mipmap.ic_shuffle_blue);
+                mMusicShuffle.setImageResource(R.mipmap.ic_shuffle_blue);
         } else {
             if (!audioPlayer.isShuffled())
-                a_music_shuffle.setImageResource(R.mipmap.ic_shuffle_grey);
+                mMusicShuffle.setImageResource(R.mipmap.ic_shuffle_grey);
             else
-                a_music_shuffle.setImageResource(R.mipmap.ic_shuffle_blue);
+                mMusicShuffle.setImageResource(R.mipmap.ic_shuffle_blue);
         }
     }
 
@@ -443,8 +440,8 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
         updateRepeat();
         updateShuffled();
 
-        RelativeLayout.LayoutParams albumParams = (RelativeLayout.LayoutParams) a_music_album_image.getLayoutParams();
-        if (isHaveBackgroundImage) {
+        RelativeLayout.LayoutParams albumParams = (RelativeLayout.LayoutParams) mMusicAlbumImage.getLayoutParams();
+        if (mIsHaveBackgroundImage) {
             albumParams.height = RelativeLayout.LayoutParams.MATCH_PARENT;
             albumParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;
             albumParams.addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
@@ -460,23 +457,23 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        toolbarOne = (Toolbar) findViewById(R.id.a_actionBarOne);
-        toolbarTwo = (Toolbar) findViewById(R.id.a_actionBarTwo);
+        mToolbarOne = (Toolbar) findViewById(R.id.a_actionBarOne);
+        mToolbarTwo = (Toolbar) findViewById(R.id.a_actionBarTwo);
         updateToolBarStyle();
     }
 
     @SuppressWarnings("ConstantConditions")
     private void updateToolBarStyle() {
-        if (isHaveBackgroundImage) {
-            toolbarOne.setVisibility(View.VISIBLE);
-            toolbarOne.setNavigationIcon(R.mipmap.ic_back);
-            toolbarTwo.setVisibility(View.GONE);
-            setSupportActionBar(toolbarOne);
+        if (mIsHaveBackgroundImage) {
+            mToolbarOne.setVisibility(View.VISIBLE);
+            mToolbarOne.setNavigationIcon(R.mipmap.ic_back);
+            mToolbarTwo.setVisibility(View.GONE);
+            setSupportActionBar(mToolbarOne);
         } else {
-            toolbarOne.setVisibility(View.GONE);
-            toolbarTwo.setNavigationIcon(R.mipmap.ic_back_grey);
-            toolbarTwo.setVisibility(View.VISIBLE);
-            setSupportActionBar(toolbarTwo);
+            mToolbarOne.setVisibility(View.GONE);
+            mToolbarTwo.setNavigationIcon(R.mipmap.ic_back_grey);
+            mToolbarTwo.setVisibility(View.VISIBLE);
+            setSupportActionBar(mToolbarTwo);
         }
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -486,8 +483,8 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
             }
         };
 
-        toolbarTwo.setNavigationOnClickListener(onClickListener);
-        toolbarOne.setNavigationOnClickListener(onClickListener);
+        mToolbarTwo.setNavigationOnClickListener(onClickListener);
+        mToolbarOne.setNavigationOnClickListener(onClickListener);
     }
 
 
@@ -495,7 +492,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
     public void onBackPressed() {
         UpdateHandler.getHandler().deleteObserver(this);
 
-        if (isBackOnTouchList) {
+        if (mIsBackOnTouchList) {
             AudioPlayer audioPlayer = AudioPlayer.getPlayer();
             audioPlayer.setIsNeedUpdateSharedAudioActivity(true);
             supportFinishAfterTransition();
@@ -521,7 +518,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                     break;
                 }
                 case NotificationObject.UPDATE_MUSIC_PHOTO_AND_TAG: {
-                    isHaveBackgroundImage = false;
+                    mIsHaveBackgroundImage = false;
                     Object[] objects = ((Object[]) nObject.getWhat());
                     AudioPlayer audioPlayer = AudioPlayer.getPlayer();
                     TdApi.Audio audio = ((TdApi.Audio) objects[0]);
@@ -529,7 +526,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                     boolean isPressedPlay = ((boolean) objects[2]);
 
                     if (msgId == audioPlayer.getMsgId()) {
-                        a_music_play.setTag(msgId);
+                        mMusicPlay.setTag(msgId);
                         getPhoto(audio);
                     }
                     if (isPressedPlay) {
@@ -562,7 +559,7 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
                         TdApi.MessageAudio messageAudio = (TdApi.MessageAudio) objects[1];
                         float progress = (float) objects[2];
-                        loadedMessage = (TdApi.Message) objects[3];
+                        mLoadedMessage = (TdApi.Message) objects[3];
 
                         if (TextUtil.isBlank(messageAudio.audio.title)) {
                             messageAudio.audio.title = AndroidUtil.getResourceString(R.string.unknown);
@@ -572,21 +569,21 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                             messageAudio.audio.performer = AndroidUtil.getResourceString(R.string.unknown);
                         }
 
-                        a_music_name.setText(messageAudio.audio.title);
-                        a_music_author.setText(messageAudio.audio.performer);
+                        mMusicName.setText(messageAudio.audio.title);
+                        mMusicAuthor.setText(messageAudio.audio.performer);
 
-                        isHaveBackgroundImage = false;
+                        mIsHaveBackgroundImage = false;
                         updateToolBarStyle();
                         updateStyle();
                         supportInvalidateOptionsMenu();
-                        a_music_album_image.setImageResource(R.mipmap.ic_nocover);
-                        DeterminateProgressDrawable progressDrawable = a_music_play.getProgressDrawable();
+                        mMusicAlbumImage.setImageResource(R.mipmap.ic_nocover);
+                        DeterminateProgressDrawable progressDrawable = mMusicPlay.getProgressDrawable();
 
-                        if (FileUtils.isTDFileEmpty(messageAudio.audio.audio)) {
-                            a_music_play.setTag(audioPlayer.getMsgId());
+                        if (FileUtil.isTDFileEmpty(messageAudio.audio.audio)) {
+                            mMusicPlay.setTag(audioPlayer.getMsgId());
                             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.SHARED_AUDIO_PLAYER,
-                                    messageAudio.audio.audio.id, -1, loadedMessage.id, a_music_play, messageAudio.audio,
-                                    a_music_play.getTag().toString(), null, a_music_play);
+                                    messageAudio.audio.audio.id, -1, mLoadedMessage.id, mMusicPlay, messageAudio.audio,
+                                    mMusicPlay.getTag().toString(), null, mMusicPlay);
                             progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                         }
                     }
@@ -599,16 +596,16 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
         TdApi.MessageAudio messageAudio = (TdApi.MessageAudio) objects[1];
 
-        String name = a_music_name.getText().toString();
-        String author = a_music_author.getText().toString();
+        String name = mMusicName.getText().toString();
+        String author = mMusicAuthor.getText().toString();
 
         if (TextUtil.isBlank(name) || !author.equals(messageAudio.audio.performer) || !name.equals(messageAudio.audio.title)) {
-            a_music_name.setText(messageAudio.audio.title);
-            a_music_author.setText(messageAudio.audio.performer);
+            mMusicName.setText(messageAudio.audio.title);
+            mMusicAuthor.setText(messageAudio.audio.performer);
         }
 
         DeterminateProgressDrawable.PlayStatus playStatus = null;
-        DeterminateProgressDrawable determinateProgressDrawable = a_music_play.getProgressDrawable();
+        DeterminateProgressDrawable determinateProgressDrawable = mMusicPlay.getProgressDrawable();
         float progress = (float) objects[2];
         if (progress != -1f)
             updateDuration(messageAudio, progress, false);

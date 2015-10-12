@@ -32,16 +32,17 @@ public class IntermediateManager extends ResultController {
     private final static String LOG = IntermediateManager.class.getSimpleName();
     private static volatile IntermediateManager intermediateManager;
 
-    private volatile boolean isFirstInit = true;
-    private volatile boolean needDownloadMore = true;
-    private volatile int chatOffset = 0;
+    private volatile boolean mIsFirstInit = true;
+    private volatile boolean mNeedDownloadMore = true;
+    private volatile int mChatOffset = 0;
 
-    private int chatLimit = 10;
-    private IntermediateAdapter chatListAdapter;
-    private LinearLayoutManager chatListLayoutManager;
-    private int findFirstVisibleItemPosition;
-    private final List<ChatInfo> chatList = Collections.synchronizedList(new ArrayList<ChatInfo>());
-    private IntermediateActivity.TypeList typeList;
+    private int mChatLimit = 10;
+    private IntermediateAdapter mChatListAdapter;
+    private LinearLayoutManager mChatListLayoutManager;
+    private int mFirstVisibleItemPosition;
+    private final List<ChatInfo> mChatList = Collections.synchronizedList(new ArrayList<ChatInfo>());
+    private IntermediateActivity.TypeList mTypeList;
+
     public IntermediateActivity.Action action;
     public Integer botId;
     public Integer userId;
@@ -87,15 +88,15 @@ public class IntermediateManager extends ResultController {
     }
 
     public void initRecycleView(Context context, IntermediateActivity.TypeList typeList, IntermediateActivity.Action action, Integer botId, Integer userId) {
-        this.typeList = typeList;
+        this.mTypeList = typeList;
         this.action = action;
         this.botId = botId;
         this.userId = userId;
         final SimpleRecyclerView recyclerView = ((AbstractActivity) context).findView(R.id.a_intermediate_chat_list);
         recyclerView.setHasFixedSize(true);
-        chatListLayoutManager = new LinearLayoutManager(context);
-        recyclerView.setLayoutManager(chatListLayoutManager);
-        chatListAdapter = new IntermediateAdapter(chatList, context);
+        mChatListLayoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(mChatListLayoutManager);
+        mChatListAdapter = new IntermediateAdapter(mChatList, context);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             int visibleItemCount;
@@ -115,45 +116,45 @@ public class IntermediateManager extends ResultController {
                     Log.e(LOG, "onScrolled", e);
                 }
 
-                if (needDownloadMore) {
-                    visibleItemCount = chatListLayoutManager.getChildCount();
-                    totalItemCount = chatListLayoutManager.getItemCount();
-                    findFirstVisibleItemPosition = chatListLayoutManager.findFirstVisibleItemPosition();
-                    if ((visibleItemCount + findFirstVisibleItemPosition) >= totalItemCount * 0.8) {
-                        needDownloadMore = false;
+                if (mNeedDownloadMore) {
+                    visibleItemCount = mChatListLayoutManager.getChildCount();
+                    totalItemCount = mChatListLayoutManager.getItemCount();
+                    mFirstVisibleItemPosition = mChatListLayoutManager.findFirstVisibleItemPosition();
+                    if ((visibleItemCount + mFirstVisibleItemPosition) >= totalItemCount * 0.8) {
+                        mNeedDownloadMore = false;
                         getChats(false);
                     }
                 }
             }
         });
 
-        recyclerView.setAdapter(chatListAdapter);
-        if (isFirstInit) {
-            isFirstInit = false;
+        recyclerView.setAdapter(mChatListAdapter);
+        if (mIsFirstInit) {
+            mIsFirstInit = false;
             getManager().getChats(10, 0, true);
         }
     }
 
     public void getChats(int limit, int offset, boolean isFirstGetChats) {
-        this.chatOffset = offset;
-        this.chatLimit = limit;
+        this.mChatOffset = offset;
+        this.mChatLimit = limit;
         getChats(isFirstGetChats);
     }
 
     public void getChats(boolean isFirstGetChats) {
         TdApi.GetChats func = new TdApi.GetChats();
         if (!isFirstGetChats) {
-            func.limit = chatLimit;
+            func.limit = mChatLimit;
         } else {
             func.limit = AndroidUtil.WINDOW_PORTRAIT_HEIGHT / DialogView.LAYOUT_HEIGHT + 5;
         }
 
-        func.offset = chatOffset;
+        func.offset = mChatOffset;
         if (func.offset == 0) {
-            this.chatList.clear();
+            this.mChatList.clear();
         }
 
-        chatListAdapter.setLoadingData();
+        mChatListAdapter.setLoadingData();
         client().send(func, getManager());
     }
 
@@ -166,11 +167,11 @@ public class IntermediateManager extends ResultController {
                     @Override
                     public void run() {
                         try {
-                            final int remChatOffset = chatOffset;
+                            final int remChatOffset = mChatOffset;
                             final TdApi.Chat[] chatArr = ((TdApi.Chats) object).chats;
 
-                            needDownloadMore = chatArr.length != 0;
-                            chatOffset += chatArr.length;
+                            mNeedDownloadMore = chatArr.length != 0;
+                            mChatOffset += chatArr.length;
 
                             final List<ChatInfo> tempChatList = new ArrayList<>(50);
 
@@ -179,7 +180,7 @@ public class IntermediateManager extends ResultController {
                                 if (ChatListManager.DrawPreparer.isDisplayingDialog(chat)) {
                                     ChatInfo chatInfo = ChatListManager.DrawPreparer.prepareChatInfo(chat, -1);
 
-                                    switch (typeList) {
+                                    switch (mTypeList) {
                                         case USERS_ONLY:
                                             if (!chatInfo.isGroupChat) {
                                                 tempChatList.add(chatInfo);
@@ -203,9 +204,9 @@ public class IntermediateManager extends ResultController {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {
-                                    chatList.addAll(tempChatList);
-                                    if (chatListAdapter != null)
-                                        chatListAdapter.updateDataAfterLoading();
+                                    mChatList.addAll(tempChatList);
+                                    if (mChatListAdapter != null)
+                                        mChatListAdapter.updateDataAfterLoading();
                                     latch.countDown();
                                 }
                             });
@@ -222,9 +223,9 @@ public class IntermediateManager extends ResultController {
     }
 
     public void destroy() {
-        chatListAdapter = null;
-        chatList.clear();
-        chatListLayoutManager = null;
+        mChatListAdapter = null;
+        mChatList.clear();
+        mChatListLayoutManager = null;
         intermediateManager = null;
     }
 }

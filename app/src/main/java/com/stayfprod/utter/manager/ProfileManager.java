@@ -9,7 +9,7 @@ import org.drinkless.td.libcore.telegram.TdApi;
 
 public class ProfileManager extends ResultController {
 
-    private static volatile ProfileManager profileManager;
+    private static volatile ProfileManager sProfileManager;
 
     public static final int ADD_MEMBER_TYPE = 1;
     public static final int ADD_SHARED_MEDIA_TYPE = 2;
@@ -25,37 +25,48 @@ public class ProfileManager extends ResultController {
         BOT
     }
 
+    public static ProfileManager getManager() {
+        if (sProfileManager == null) {
+            synchronized (ProfileManager.class) {
+                if (sProfileManager == null) {
+                    sProfileManager = new ProfileManager();
+                }
+            }
+        }
+        return sProfileManager;
+    }
+
+    private ChatInfo mChatInfo;
+    private ChatInfo mOldChatInfo;
+
     @Override
     public boolean hasChanged() {
         return true;
     }
 
-    private ChatInfo chatInfo;
-    private ChatInfo oldChatInfo;
-
     public void revertOldChatInfo() {
-        chatInfo = oldChatInfo;
-        oldChatInfo = null;
+        mChatInfo = mOldChatInfo;
+        mOldChatInfo = null;
     }
 
     public ChatInfo getOldChatInfo() {
-        return oldChatInfo;
+        return mOldChatInfo;
     }
 
     public void setOldChatInfo(ChatInfo oldChatInfo) {
-        this.oldChatInfo = oldChatInfo;
+        this.mOldChatInfo = oldChatInfo;
     }
 
     public ChatInfo getChatInfo() {
-        return chatInfo;
+        return mChatInfo;
     }
 
     public boolean isSameChatId(long chatId) {
-        return chatInfo != null && chatInfo.tgChatObject != null && chatInfo.tgChatObject.id == chatId;
+        return mChatInfo != null && mChatInfo.tgChatObject != null && mChatInfo.tgChatObject.id == chatId;
     }
 
     public boolean isSameOldChatId(long chatId) {
-        return oldChatInfo != null && oldChatInfo.tgChatObject != null && oldChatInfo.tgChatObject.id == chatId;
+        return mOldChatInfo != null && mOldChatInfo.tgChatObject != null && mOldChatInfo.tgChatObject.id == chatId;
     }
 
     public void forceClose() {
@@ -63,23 +74,12 @@ public class ProfileManager extends ResultController {
     }
 
     public void setChatInfo(ChatInfo chatInfo) {
-        this.chatInfo = chatInfo;
+        this.mChatInfo = chatInfo;
     }
 
     public void clean() {
-        chatInfo = null;
-        oldChatInfo = null;
-    }
-
-    public static ProfileManager getManager() {
-        if (profileManager == null) {
-            synchronized (ProfileManager.class) {
-                if (profileManager == null) {
-                    profileManager = new ProfileManager();
-                }
-            }
-        }
-        return profileManager;
+        mChatInfo = null;
+        mOldChatInfo = null;
     }
 
     public void getChat(long chatId, ResultController resultController) {
@@ -130,19 +130,16 @@ public class ProfileManager extends ResultController {
         return 0;
     }
 
-
     public void addUserToGroup(CachedUser cachedUser, ResultController resultController) {
         //обращение к апи, после ответа back на активити
-
-        if (chatInfo != null) {
+        if (mChatInfo != null) {
             TdApi.AddChatParticipant addChatParticipant = new TdApi.AddChatParticipant();
             addChatParticipant.forwardLimit = 50;
-            addChatParticipant.chatId = chatInfo.tgChatObject.id;
+            addChatParticipant.chatId = mChatInfo.tgChatObject.id;
             addChatParticipant.userId = cachedUser.tgUser.id;
             client().send(addChatParticipant, resultController);
         }
     }
-
 
     @Override
     public void afterResult(TdApi.TLObject object, int calledConstructor) {

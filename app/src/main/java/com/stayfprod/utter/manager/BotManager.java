@@ -41,84 +41,85 @@ public class BotManager extends ResultController {
 
     private static final String LOG = "BotManager";
 
-    private static volatile BotManager botManager;
-    private Pattern currentBotPattern;
-    private List<BotCommand> botCommandList = new ArrayList<>();
-    private List<BotCommand> botCommandListSearch = new ArrayList<>();
-    private BotKeyboardPopup popupBotKeyboard;
-    private BotCommandsAdapter botCommandsAdapter;
-    private RelativeLayout mainLayout;
-    private RelativeLayout keyboard;
-    private volatile int replyMarkupMessageId;
-    private volatile long chatId = 0;
-    private volatile boolean isNeedGetGroupCommandList;
-    private volatile boolean isGroup = false;
-
-    public void setIsGroup(boolean isGroup) {
-        this.isGroup = isGroup;
-    }
-
-    public void setChatId(long chatId) {
-        this.chatId = chatId;
-    }
-
-    public void clean() {
-        chatId = 0;
-        replyMarkupMessageId = 0;
-        keyboard = null;
-        popupBotKeyboard = null;
-        currentBotPattern = null;
-        mainLayout = null;
-        botCommandsAdapter = null;
-        isNeedGetGroupCommandList = false;
-        isGroup = false;
-    }
-
-    public void setPopupBotKeyboard(BotKeyboardPopup popupBotKeyboard, RelativeLayout mainLayout) {
-        this.popupBotKeyboard = popupBotKeyboard;
-        this.mainLayout = mainLayout;
-    }
-
-    public RelativeLayout getKeyboard() {
-        return keyboard;
-    }
+    private static volatile BotManager sBotManager;
 
     public static BotManager getManager() {
-        if (botManager == null) {
+        if (sBotManager == null) {
             synchronized (BotManager.class) {
-                if (botManager == null) {
-                    botManager = new BotManager();
+                if (sBotManager == null) {
+                    sBotManager = new BotManager();
                 }
             }
         }
-        return botManager;
+        return sBotManager;
+    }
+
+    private Pattern mCurrentBotPattern;
+    private List<BotCommand> mBotCommandList = new ArrayList<>();
+    private List<BotCommand> mBotCommandListSearch = new ArrayList<>();
+    private BotKeyboardPopup mPopupBotKeyboard;
+    private BotCommandsAdapter mBotCommandsAdapter;
+    private RelativeLayout mMainLayout;
+    private RelativeLayout mKeyboard;
+    private volatile int mReplyMarkupMessageId;
+    private volatile long mChatId = 0;
+    private volatile boolean mIsNeedGetGroupCommandList;
+    private volatile boolean mIsGroup = false;
+
+    public void setIsGroup(boolean isGroup) {
+        this.mIsGroup = isGroup;
+    }
+
+    public void setChatId(long chatId) {
+        this.mChatId = chatId;
+    }
+
+    public void clean() {
+        mChatId = 0;
+        mReplyMarkupMessageId = 0;
+        mKeyboard = null;
+        mPopupBotKeyboard = null;
+        mCurrentBotPattern = null;
+        mMainLayout = null;
+        mBotCommandsAdapter = null;
+        mIsNeedGetGroupCommandList = false;
+        mIsGroup = false;
+    }
+
+    public void setPopupBotKeyboard(BotKeyboardPopup popupBotKeyboard, RelativeLayout mainLayout) {
+        this.mPopupBotKeyboard = popupBotKeyboard;
+        this.mMainLayout = mainLayout;
+    }
+
+    public RelativeLayout getKeyboard() {
+        return mKeyboard;
     }
 
     public void setAdapter(BotCommandsAdapter botCommandsAdapter) {
-        this.botCommandsAdapter = botCommandsAdapter;
+        this.mBotCommandsAdapter = botCommandsAdapter;
     }
 
     public List<BotCommand> getBotCommandListForSearch() {
-        return botCommandListSearch;
+        return mBotCommandListSearch;
     }
 
     public void findCommand(String text) {
         if (text.startsWith("/")) {
-            botCommandListSearch.clear();
-            for (int i = 0; i < botCommandList.size(); i++) {
-                BotCommand botCommand = botCommandList.get(i);
+            mBotCommandListSearch.clear();
+            for (int i = 0; i < mBotCommandList.size(); i++) {
+                BotCommand botCommand = mBotCommandList.get(i);
                 String textCommand = "/" + botCommand.tgBotCommand.command;
                 if (textCommand.startsWith(text)) {
-                    botCommandListSearch.add(botCommand);
+                    mBotCommandListSearch.add(botCommand);
                 }
             }
 
             AndroidUtil.runInUI(new Runnable() {
                 @Override
                 public void run() {
-                    if (botCommandsAdapter != null) {
-                        botCommandsAdapter.notifyDataSetChanged();
-                        if (botCommandListSearch.size() == 0) {
+                    if (mBotCommandsAdapter != null) {
+                        mBotCommandsAdapter.notifyDataSetChanged();
+                        if (mBotCommandListSearch.size() == 0) {
                             hideCommandList();
                         } else {
                             showCommandList();
@@ -150,38 +151,38 @@ public class BotManager extends ResultController {
     }
 
     public void initBot(CachedUser cachedUser, ChatInfo chatInfo) {
-        replyMarkupMessageId = chatInfo.tgChatObject.replyMarkupMessageId;
-        chatId = chatInfo.tgChatObject.id;
-        botCommandList.clear();
-        botCommandListSearch.clear();
+        mReplyMarkupMessageId = chatInfo.tgChatObject.replyMarkupMessageId;
+        mChatId = chatInfo.tgChatObject.id;
+        mBotCommandList.clear();
+        mBotCommandListSearch.clear();
         processInit(cachedUser);
     }
 
     public void prepareGroupBot(ChatInfo chatInfo) {
-        isGroup = true;
-        isNeedGetGroupCommandList = true;
+        mIsGroup = true;
+        mIsNeedGetGroupCommandList = true;
 
-        replyMarkupMessageId = chatInfo.tgChatObject.replyMarkupMessageId;
-        chatId = chatInfo.tgChatObject.id;
+        mReplyMarkupMessageId = chatInfo.tgChatObject.replyMarkupMessageId;
+        mChatId = chatInfo.tgChatObject.id;
 
-        botCommandList.clear();
-        botCommandListSearch.clear();
+        mBotCommandList.clear();
+        mBotCommandListSearch.clear();
     }
 
     public void prepareGroupBotForUpdate() {
-        isNeedGetGroupCommandList = true;
-        botCommandList.clear();
-        botCommandListSearch.clear();
+        mIsNeedGetGroupCommandList = true;
+        mBotCommandList.clear();
+        mBotCommandListSearch.clear();
     }
 
     public void initGroupBotStart(CachedUser cachedUser) {
-        if (isNeedGetGroupCommandList) {
+        if (mIsNeedGetGroupCommandList) {
             processInit(cachedUser);
         }
     }
 
     public void getBotGroupInfoUpdate(final List<CachedUser> botUsers, final ChatInfo chatInfo) {
-        if (chatInfo.tgChatObject.id == chatId) {
+        if (chatInfo.tgChatObject.id == mChatId) {
             getBotGroupInfo(botUsers, chatInfo, null);
         }
     }
@@ -232,17 +233,17 @@ public class BotManager extends ResultController {
     }
 
     public void initGroupBotFinish() {
-        isNeedGetGroupCommandList = false;
+        mIsNeedGetGroupCommandList = false;
     }
 
     private void processInit(CachedUser cachedUser) {
-        if (keyboard != null) {
+        if (mKeyboard != null) {
             try {
                 final CountDownLatch countDownLatch = new CountDownLatch(1);
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        keyboard.removeAllViews();
+                        mKeyboard.removeAllViews();
                         countDownLatch.countDown();
                     }
                 });
@@ -250,18 +251,14 @@ public class BotManager extends ResultController {
             } catch (InterruptedException e) {
                 Log.e(LOG, "", e);
             }
-            keyboard = null;
+            mKeyboard = null;
         }
 
-        //@class BotInfo @description Provides information about bot and command supported by him
         switch (cachedUser.botInfo.getConstructor()) {
             case TdApi.BotInfoEmpty.CONSTRUCTOR:
-                //@description User is not a bot
 
                 break;
             case TdApi.BotInfoGeneral.CONSTRUCTOR:
-                //@description User is a bot @share_text Small bot description shown when sharing bot
-                // @param_description Big description shown in user info page @commands List of commands cupported by bot
                 TdApi.BotInfoGeneral botInfoGeneral = (TdApi.BotInfoGeneral) cachedUser.botInfo;
                 createPatternAndCommandList(botInfoGeneral, cachedUser);
                 break;
@@ -269,7 +266,7 @@ public class BotManager extends ResultController {
     }
 
     public void createPatternAndCommandList(TdApi.BotInfoGeneral infoGeneral, CachedUser cachedUser) {
-        if (currentBotPattern == null) {
+        if (mCurrentBotPattern == null) {
             StringBuilder stringBuilder = new StringBuilder();
 
             stringBuilder.append("/start|");
@@ -278,30 +275,30 @@ public class BotManager extends ResultController {
 
             for (TdApi.BotCommand command : infoGeneral.commands) {
                 stringBuilder.append("|/").append(command.command);
-                botCommandList.add(new BotCommand(cachedUser, command));
+                mBotCommandList.add(new BotCommand(cachedUser, command));
             }
-            currentBotPattern = Pattern.compile(stringBuilder.toString());
+            mCurrentBotPattern = Pattern.compile(stringBuilder.toString());
         } else {
-            StringBuilder stringBuilder = new StringBuilder(currentBotPattern.pattern());
+            StringBuilder stringBuilder = new StringBuilder(mCurrentBotPattern.pattern());
             for (TdApi.BotCommand command : infoGeneral.commands) {
                 stringBuilder.append("|/").append(command.command);
-                botCommandList.add(new BotCommand(cachedUser, command));
+                mBotCommandList.add(new BotCommand(cachedUser, command));
             }
-            currentBotPattern = Pattern.compile(stringBuilder.toString());
+            mCurrentBotPattern = Pattern.compile(stringBuilder.toString());
         }
-        botCommandListSearch.addAll(botCommandList);
+        mBotCommandListSearch.addAll(mBotCommandList);
     }
 
     public SpannableStringBuilder linkifyDescription(TdApi.BotInfoGeneral infoGeneral) {
         SpannableStringBuilder builder = new SpannableStringBuilder(infoGeneral.description);
-        ChatHelper.addLinks(builder, currentBotPattern, "botLinks");
+        ChatHelper.addLinks(builder, mCurrentBotPattern, "botLinks");
         return builder;
     }
 
     public void linkifyMsg(SpannableStringBuilder builder) {
-        if (currentBotPattern != null) {
+        if (mCurrentBotPattern != null) {
             ChatHelper.addLinks(builder, Pattern.compile("(^|\\s)/\\w+"), "botHelpLinks");
-            ChatHelper.addLinks(builder, currentBotPattern, "botLinks");
+            ChatHelper.addLinks(builder, mCurrentBotPattern, "botLinks");
             //todo добавить действия по клику
         }
     }
@@ -313,35 +310,30 @@ public class BotManager extends ResultController {
 
     public void buildKeyBoard(final TdApi.Message tgMessage, boolean fromUpdate) {
 
-        if (chatId != 0) {
-            if (replyMarkupMessageId == 0) {
-                replyMarkupMessageId = -1;
+        if (mChatId != 0) {
+            if (mReplyMarkupMessageId == 0) {
+                mReplyMarkupMessageId = -1;
                 replyMarkUpNoneAsync();
             }
 
-            if (replyMarkupMessageId == tgMessage.id) {
+            if (mReplyMarkupMessageId == tgMessage.id) {
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
                         switch (tgMessage.replyMarkup.getConstructor()) {
                             case TdApi.ReplyMarkupShowKeyboard.CONSTRUCTOR:
-                                //@description Contains custom keyboard layout for fast reply to bot @rows List of rows of bot commands
-                                //@resize_keyboard Do clients need to resize keyboard
-                                //@one_time Do clients need to hide keyboard after use
-                                //@personal Keyboard is showed automatically only for mentioned users or replied to chat user,
-                                // for incoming messages it is true if and only if keyboard needs to be automatically showed to current user
                                 final TdApi.ReplyMarkupShowKeyboard replyMarkupShowKeyboard = (TdApi.ReplyMarkupShowKeyboard) tgMessage.replyMarkup;
 
                                 Context context = App.getAppContext();
-                                if (keyboard == null) {
+                                if (mKeyboard == null) {
                                     RelativeLayout.LayoutParams keyboardLP = new RelativeLayout.LayoutParams(
                                             RelativeLayout.LayoutParams.MATCH_PARENT,
                                             RelativeLayout.LayoutParams.MATCH_PARENT);
-                                    keyboard = new RelativeLayout(context);
-                                    keyboard.setBackgroundColor(0xFFF5F6F7);
-                                    keyboard.setLayoutParams(keyboardLP);
+                                    mKeyboard = new RelativeLayout(context);
+                                    mKeyboard.setBackgroundColor(0xFFF5F6F7);
+                                    mKeyboard.setLayoutParams(keyboardLP);
                                 } else {
-                                    keyboard.removeAllViews();
+                                    mKeyboard.removeAllViews();
                                 }
 
                                 TableLayout table = new TableLayout(context);
@@ -349,7 +341,7 @@ public class BotManager extends ResultController {
                                 table.setStretchAllColumns(true);
                                 table.setShrinkAllColumns(true);
 
-                                keyboard.addView(table);
+                                mKeyboard.addView(table);
                                 RelativeLayout.LayoutParams tableLP = (RelativeLayout.LayoutParams) table.getLayoutParams();
                                 tableLP.width = RelativeLayout.LayoutParams.MATCH_PARENT;
                                 tableLP.height = RelativeLayout.LayoutParams.MATCH_PARENT;
@@ -413,18 +405,18 @@ public class BotManager extends ResultController {
                                     }
                                     table.addView(row, rowLp);
                                 }
-                                if (keyboard != null) {
-                                    keyboard.invalidate();
-                                    if (popupBotKeyboard != null) {
-                                        if (!isGroup) {
-                                            if (popupBotKeyboard.isShowing()) {
+                                if (mKeyboard != null) {
+                                    mKeyboard.invalidate();
+                                    if (mPopupBotKeyboard != null) {
+                                        if (!mIsGroup) {
+                                            if (mPopupBotKeyboard.isShowing()) {
                                                 updateIconsVisibility(View.GONE, View.GONE, View.VISIBLE);
                                             } else {
                                                 showKeyboardAsync();
                                                 updateIconsVisibility(View.GONE, View.GONE, View.VISIBLE);
                                             }
                                         } else {
-                                            if (popupBotKeyboard.isShowing()) {
+                                            if (mPopupBotKeyboard.isShowing()) {
                                                 updateIconsVisibility(View.GONE, View.GONE, View.VISIBLE);
                                             } else {
                                                 updateIconsVisibility(View.VISIBLE, View.GONE, View.GONE);
@@ -434,8 +426,6 @@ public class BotManager extends ResultController {
                                 }
                                 break;
                             case TdApi.ReplyMarkupForceReply.CONSTRUCTOR:
-                                //@description Instruct clients to force reply to this message @personal Keyboard is showed automatically only for mentioned
-                                // users or replied to chat user, for incoming messages it is true if and only if keyboard needs to be automatically showed to current user
                                 final TdApi.ReplyMarkupForceReply replyMarkupForceReply = (TdApi.ReplyMarkupForceReply) tgMessage.replyMarkup;
                                 //todo как-то заставить юзера ответить на сообщение(походу принудительно показать клаву)
 
@@ -446,12 +436,7 @@ public class BotManager extends ResultController {
 
                                 break;
                             case TdApi.ReplyMarkupHideKeyboard.CONSTRUCTOR:
-                                //@description Instruct clients to hide keyboard after receiving this message. This kind of keyboard can't be received.
-                                // Instead UpdateChatReplyMarkup with message_id == 0 will be send
-                                //@personal Keyboard is showed automatically only for mentioned users or replied to chat user,
-                                // for incoming messages it is true if and only if keyboard needs to be automatically showed to current user
                                 final TdApi.ReplyMarkupHideKeyboard replyMarkupHideKeyboard = (TdApi.ReplyMarkupHideKeyboard) tgMessage.replyMarkup;
-                                //replyMarkupHideKeyboard.personal
 
                                 if (replyMarkupHideKeyboard.personal) {
                                     closeKeyboard();
@@ -459,21 +444,12 @@ public class BotManager extends ResultController {
                                 updateIconsVisibility(View.GONE, View.VISIBLE, View.GONE);
                                 break;
                             case TdApi.ReplyMarkupNone.CONSTRUCTOR:
-                                //@description Absent reply markup
                                 replyMarkUpNone();
                                 break;
                         }
                     }
                 });
-            } /*else if (fromUpdate) {
-                AndroidUtil.runInUI(new Runnable() {
-                    @Override
-                    public void run() {
-                        replyMarkUpNone();
-                    }
-                });
-
-            }*/
+            }
         }
     }
 
@@ -492,21 +468,21 @@ public class BotManager extends ResultController {
     }
 
     public void showKeyboard() {
-        if (keyboard != null && !popupBotKeyboard.isShowing()) {
-            if (popupBotKeyboard.isKeyBoardOpen()) {
-                popupBotKeyboard.showAtBottom();
-                mainLayout.setPadding(0, 0, 0, 0);
+        if (mKeyboard != null && !mPopupBotKeyboard.isShowing()) {
+            if (mPopupBotKeyboard.isKeyBoardOpen()) {
+                mPopupBotKeyboard.showAtBottom();
+                mMainLayout.setPadding(0, 0, 0, 0);
             } else {
-                popupBotKeyboard.showAtBottomFirstTime();
-                mainLayout.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
+                mPopupBotKeyboard.showAtBottomFirstTime();
+                mMainLayout.setPadding(0, 0, 0, AndroidUtil.getKeyboardHeight());
             }
         }
     }
 
     public void closeKeyboard() {
-        if (keyboard != null && popupBotKeyboard.isShowing()) {
-            popupBotKeyboard.dismiss();
-            mainLayout.setPadding(0, 0, 0, 0);
+        if (mKeyboard != null && mPopupBotKeyboard.isShowing()) {
+            mPopupBotKeyboard.dismiss();
+            mMainLayout.setPadding(0, 0, 0, 0);
         }
     }
 
@@ -528,15 +504,11 @@ public class BotManager extends ResultController {
         notifyObservers(new NotificationObject(NotificationObject.BOT_CHANGE_ICON_VISIBILITY, new int[]{command, slash, panelKb}));
     }
 
-    //@description Default chat reply markup has changed. It can happen because new message with reply markup has come or old reply markup was hidden by user
-    //@chat_id Chat identifier @reply_markup_message_id Identifier of message from which reply markup need to be used or 0 if there is no default custom reply markup in the chat
     public void updateChatReplyMarkup(TdApi.UpdateChatReplyMarkup updateChatReplyMarkup) {
-        //Logs.e("replyMarkupMessageIdИИИ=" + updateChatReplyMarkup.chatId + " " + chatId);
-        //Logs.e("updateChatReplyMarkup=" + updateChatReplyMarkup.chatId + " == " + chatId);
-        if (updateChatReplyMarkup.chatId == chatId) {
-            replyMarkupMessageId = updateChatReplyMarkup.replyMarkupMessageId;
+        if (updateChatReplyMarkup.chatId == mChatId) {
+            mReplyMarkupMessageId = updateChatReplyMarkup.replyMarkupMessageId;
         }
-        //Logs.e("updateChatReplyMarkup" + " " + updateChatReplyMarkup.replyMarkupMessageId);
+
         ChatListManager.getManager().updateReplyMarkupMessageId(updateChatReplyMarkup);
 
         ChatManager chatManager = ChatManager.getManager();
@@ -544,7 +516,6 @@ public class BotManager extends ResultController {
             final Integer realPos = chatManager.getRealPos(updateChatReplyMarkup.replyMarkupMessageId);
             if (realPos != null) {
                 final AbstractMainMsg message = (AbstractMainMsg) chatManager.getChatMessageList().get(realPos);
-                //Logs.e("replyMarkupMessageIdXXX" + updateChatReplyMarkup.replyMarkupMessageId + " " + message.tgMessage.id + " " + replyMarkupMessageId);
                 //info необходимо выполнить этот блок после инициализации группы бота в runTaskChatBackground!!
                 ThreadService.runTaskChatBackground(new Runnable() {
                     @Override
@@ -556,20 +527,13 @@ public class BotManager extends ResultController {
         }
     }
 
-    //@description Deletes default reply markup from chat. This method needs to be called after one-time keyboard
-    // or ForceReply reply markup has been used. UpdateChatReplyMarkup will be send if reply markup will be changed @chat_id Chat identifier
-    //@message_id Message identifier of used keyboard
     public void deleteChatReplyMarkup() {
-        //если был флаг one-time
         TdApi.DeleteChatReplyMarkup deleteChatReplyMarkup = new TdApi.DeleteChatReplyMarkup();
-        deleteChatReplyMarkup.chatId = chatId;
-        deleteChatReplyMarkup.messageId = replyMarkupMessageId;
+        deleteChatReplyMarkup.chatId = mChatId;
+        deleteChatReplyMarkup.messageId = mReplyMarkupMessageId;
         client().send(deleteChatReplyMarkup, this);
     }
 
-    //@description Invites bot to a chat (if it is not in the chat sends start) and message to it.
-    // Bot can't be invited in private chat other than chat with a bot @bot_user_id Identifier of the bot @chat_id Identifier of the chat @
-    // parameter Hidden parameter sent to bot for deep linking (https://api.telegram.org/bots#deep-linking)
     public void sendBotStartMessage(Long chatId, ResultController resultController) {
         TdApi.SendBotStartMessage sendBotStartMessage = new TdApi.SendBotStartMessage();
         if (chatId != null) {

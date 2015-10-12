@@ -9,7 +9,7 @@ import android.view.View;
 
 import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 public abstract class AbstractChatView extends View {
@@ -26,12 +26,12 @@ public abstract class AbstractChatView extends View {
             MSG_STATUS_CYCLE_SIZE = Constant.DP_10;
 
     static {
-        BLUE_CYCLE_DRAWABLE = (GradientDrawable) FileUtils.decodeResource(R.drawable.cycle);
-        CLOCK_DRAWABLE = (BitmapDrawable) FileUtils.decodeResource(R.mipmap.ic_clock);
-        BADGE_DRAWABLE = (BitmapDrawable) FileUtils.decodeResource(R.mipmap.ic_badge);
-        ERROR_DRAWABLE = (BitmapDrawable) FileUtils.decodeResource(R.mipmap.ic_error);
-        GROUP_DRAWABLE = (BitmapDrawable) FileUtils.decodeResource(R.mipmap.ic_group);
-        MUTE_DRAWABLE = (BitmapDrawable) FileUtils.decodeResource(R.mipmap.ic_mute);
+        BLUE_CYCLE_DRAWABLE = (GradientDrawable) FileUtil.decodeResource(R.drawable.cycle);
+        CLOCK_DRAWABLE = (BitmapDrawable) FileUtil.decodeResource(R.mipmap.ic_clock);
+        BADGE_DRAWABLE = (BitmapDrawable) FileUtil.decodeResource(R.mipmap.ic_badge);
+        ERROR_DRAWABLE = (BitmapDrawable) FileUtil.decodeResource(R.mipmap.ic_error);
+        GROUP_DRAWABLE = (BitmapDrawable) FileUtil.decodeResource(R.mipmap.ic_group);
+        MUTE_DRAWABLE = (BitmapDrawable) FileUtil.decodeResource(R.mipmap.ic_mute);
 
         BLUE_CYCLE_DRAWABLE.setDither(true);
         CLOCK_DRAWABLE.setDither(true);

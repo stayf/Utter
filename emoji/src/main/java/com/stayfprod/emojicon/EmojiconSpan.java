@@ -17,9 +17,6 @@ public class EmojiconSpan extends DynamicDrawableSpan {
     }
 
     public Drawable getDrawable() {
-        // ошибка в чате ксюши 17_72 откуда 72??? это 36 dp
-        //todo как-то тут оказался NullPointerException после подгрузки стикеров в эмоджах(и потом прокрутки списка)
-        //mDrawable.setBounds(0, 0, size, size);
         return mDrawable;
     }
 }

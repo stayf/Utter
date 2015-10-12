@@ -34,18 +34,17 @@ import java.util.Observer;
 
 public class ChatListActivity extends AbstractActivity implements Observer {
 
-    public static volatile boolean isChatListActivityStarted;
+    public static volatile boolean sIsChatListActivityStarted;
 
-    private MenuDrawerLayout menuDrawerLayout;
-
-    private ImageView userIcon;
-    private TextView userName;
-    private TextView userPhone;
-    private TextView connectionState;
-    private ImageView t_locke_close;
-    private ImageView t_locke_open;
-    private FrameLayout t_locker_layout;
-    private MusicBarWidget musicBarWidget;
+    private MenuDrawerLayout mMenuDrawerLayout;
+    private ImageView mUserIcon;
+    private TextView mUserName;
+    private TextView mUserPhone;
+    private TextView mConnectionState;
+    private ImageView mLockClose;
+    private ImageView mLockOpen;
+    private FrameLayout mLockerLayout;
+    private MusicBarWidget mMusicBarWidget;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,12 +63,12 @@ public class ChatListActivity extends AbstractActivity implements Observer {
 
     @Override
     public void onBackPressed() {
-        if (menuDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
-            menuDrawerLayout.closeDrawer(Gravity.LEFT);
+        if (mMenuDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
+            mMenuDrawerLayout.closeDrawer(Gravity.LEFT);
             return;
         }
 
-        if (!menuDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
+        if (!mMenuDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             super.onBackPressed();
         }
     }
@@ -77,25 +76,25 @@ public class ChatListActivity extends AbstractActivity implements Observer {
     @Override
     public void onStart() {
         super.onStart();
-        ChatListHolder.isClickOnItemBlocked = false;
+        ChatListHolder.sIsClickOnItemBlocked = false;
         updateLocker();
         AudioPlayer.getPlayer().addObserver(this);
-        musicBarWidget.checkOnStart();
+        mMusicBarWidget.checkOnStart();
     }
 
     private void updateLocker() {
         PassCodeManager passCodeManager = PassCodeManager.getManager();
         if (passCodeManager.isEnabledPassCode(this)) {
-            t_locker_layout.setVisibility(View.VISIBLE);
+            mLockerLayout.setVisibility(View.VISIBLE);
             if (passCodeManager.isLockedByUser(this)) {
-                t_locke_open.setVisibility(View.GONE);
-                t_locke_close.setVisibility(View.VISIBLE);
+                mLockOpen.setVisibility(View.GONE);
+                mLockClose.setVisibility(View.VISIBLE);
             } else {
-                t_locke_open.setVisibility(View.VISIBLE);
-                t_locke_close.setVisibility(View.GONE);
+                mLockOpen.setVisibility(View.VISIBLE);
+                mLockClose.setVisibility(View.GONE);
             }
         } else {
-            t_locker_layout.setVisibility(View.GONE);
+            mLockerLayout.setVisibility(View.GONE);
         }
     }
 
@@ -131,50 +130,50 @@ public class ChatListActivity extends AbstractActivity implements Observer {
             return;
         }
 
-        isChatListActivityStarted = true;
+        sIsChatListActivityStarted = true;
 
         UserManager.getManager().addObserver(this);
         UpdateHandler.getHandler().addObserver(this);
 
         setContentView(R.layout.activity_chat_list);
-        menuDrawerLayout = (MenuDrawerLayout) findViewById(R.id.menu_drawer_layout);
+        mMenuDrawerLayout = (MenuDrawerLayout) findViewById(R.id.menu_drawer_layout);
 
-        userIcon = (ImageView) menuDrawerLayout.findViewById(R.id.d_user_icon);
-        userPhone = (TextView) menuDrawerLayout.findViewById(R.id.d_user_phone);
-        userName = (TextView) menuDrawerLayout.findViewById(R.id.d_user_name);
+        mUserIcon = (ImageView) mMenuDrawerLayout.findViewById(R.id.d_user_icon);
+        mUserPhone = (TextView) mMenuDrawerLayout.findViewById(R.id.d_user_phone);
+        mUserName = (TextView) mMenuDrawerLayout.findViewById(R.id.d_user_name);
 
-        userName.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-        userName.setTextSize(17);
-        userName.setTextColor(0xffffffff);
+        mUserName.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+        mUserName.setTextSize(17);
+        mUserName.setTextColor(0xffffffff);
 
-        userPhone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        userPhone.setTextSize(13);
-        userPhone.setTextColor(0xffffffff);
+        mUserPhone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mUserPhone.setTextSize(13);
+        mUserPhone.setTextColor(0xffffffff);
         initToolbar();
 
         UserManager userManager = UserManager.getManager();
         CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userManager.getCurrUserId());
 
-        userIcon.setImageDrawable(IconFactory.createIcon(IconFactory.Type.USER, cachedUser.tgUser.id, cachedUser.initials, cachedUser.tgUser.profilePhoto.small));
-        userName.setText(cachedUser.fullName);
-        userPhone.setText("+" + cachedUser.tgUser.phoneNumber);
+        mUserIcon.setImageDrawable(IconFactory.createIcon(IconFactory.Type.USER, cachedUser.tgUser.id, cachedUser.initials, cachedUser.tgUser.profilePhoto.small));
+        mUserName.setText(cachedUser.fullName);
+        mUserPhone.setText("+" + cachedUser.tgUser.phoneNumber);
 
-        ChatListManager.getManager().initRecycleView(this, menuDrawerLayout);
+        ChatListManager.getManager().initRecycleView(this, mMenuDrawerLayout);
 
-        musicBarWidget = new MusicBarWidget();
-        musicBarWidget.init(this);
+        mMusicBarWidget = new MusicBarWidget();
+        mMusicBarWidget.init(this);
     }
 
     @SuppressWarnings("ConstantConditions")
     private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            connectionState = (TextView) toolbar.findViewById(R.id.t_connection_state);
-            connectionState.setText(Connection.currentState.text);
-            connectionState.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-            connectionState.setTextColor(0xffffffff);
-            connectionState.setTextSize(20);
+            mConnectionState = (TextView) toolbar.findViewById(R.id.t_connection_state);
+            mConnectionState.setText(Connection.currentState.text);
+            mConnectionState.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+            mConnectionState.setTextColor(0xffffffff);
+            mConnectionState.setTextSize(20);
 
             toolbar.setNavigationIcon(R.mipmap.ic_menu);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -182,15 +181,15 @@ public class ChatListActivity extends AbstractActivity implements Observer {
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    menuDrawerLayout.openDrawer(Gravity.LEFT);
+                    mMenuDrawerLayout.openDrawer(Gravity.LEFT);
                 }
             });
 
-            t_locker_layout = findView(R.id.t_locker_layout);
-            t_locke_close = (ImageView) t_locker_layout.findViewById(R.id.t_locke_close);
-            t_locke_open = (ImageView) t_locker_layout.findViewById(R.id.t_locke_open);
+            mLockerLayout = findView(R.id.t_locker_layout);
+            mLockClose = (ImageView) mLockerLayout.findViewById(R.id.t_locke_close);
+            mLockOpen = (ImageView) mLockerLayout.findViewById(R.id.t_locke_open);
 
-            t_locker_layout.setOnClickListener(new View.OnClickListener() {
+            mLockerLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     PassCodeManager passCodeManager = PassCodeManager.getManager();
@@ -213,7 +212,7 @@ public class ChatListActivity extends AbstractActivity implements Observer {
             final IconDrawable dr;
             switch (nObject.getMessageCode()) {
                 case NotificationObject.UPDATE_MUSIC_PLAYER: {
-                    musicBarWidget.checkUpdate((Object[]) nObject.getWhat());
+                    mMusicBarWidget.checkUpdate((Object[]) nObject.getWhat());
                     break;
                 }
                 case NotificationObject.USER_IMAGE_UPDATE:
@@ -222,7 +221,7 @@ public class ChatListActivity extends AbstractActivity implements Observer {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                userIcon.setImageDrawable(dr);
+                                mUserIcon.setImageDrawable(dr);
                             }
                         });
                     } catch (Exception e) {
@@ -237,9 +236,9 @@ public class ChatListActivity extends AbstractActivity implements Observer {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            userIcon.setImageDrawable(dr);
-                            userName.setText(cachedUser.fullName);
-                            userPhone.setText("+" + cachedUser.tgUser.phoneNumber);
+                            mUserIcon.setImageDrawable(dr);
+                            mUserName.setText(cachedUser.fullName);
+                            mUserPhone.setText("+" + cachedUser.tgUser.phoneNumber);
                         }
                     });
                     break;
@@ -248,7 +247,7 @@ public class ChatListActivity extends AbstractActivity implements Observer {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            connectionState.setText(status);
+                            mConnectionState.setText(status);
                         }
                     });
                     break;

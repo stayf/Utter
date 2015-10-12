@@ -8,14 +8,7 @@ import android.widget.TextView;
 
 import com.stayfprod.utter.service.AudioPlayer;
 import com.stayfprod.utter.service.CacheService;
-import com.stayfprod.utter.ui.activity.ChatActivity;
 import com.stayfprod.utter.ui.activity.ChatListActivity;
-import com.stayfprod.utter.ui.activity.MusicPlayerActivity;
-import com.stayfprod.utter.ui.activity.ProfileActivity;
-import com.stayfprod.utter.ui.activity.SharedMediaActivity;
-import com.stayfprod.utter.ui.activity.setting.EditNameActivity;
-import com.stayfprod.utter.ui.activity.setting.PassCodeLockActivity;
-import com.stayfprod.utter.ui.activity.setting.SetPassCodeActivity;
 import com.stayfprod.utter.ui.view.CircleProgressView;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.R;
@@ -28,13 +21,13 @@ import org.drinkless.td.libcore.telegram.TdApi;
 
 public class AuthManager extends ResultController {
 
-    public static volatile boolean isButtonBlocked = false;
-    public static volatile boolean isHaveAuth = false;
-    public static volatile boolean resetAction = false;
+    public static volatile boolean sIsButtonBlocked = false;
+    public static volatile boolean sIsHaveAuth = false;
+    public static volatile boolean sResetAction = false;
 
-    private AppCompatActivity activity;
-    private String phoneNumber;
-    private CircleProgressView progressView;
+    private AppCompatActivity mActivity;
+    private String mPhoneNumber;
+    private CircleProgressView mProgressView;
 
     //info двойная авторизация
     /*TdApi.AuthStateWaitPassword
@@ -44,8 +37,8 @@ public class AuthManager extends ResultController {
     TdApi.SetAuthBotToken*/
 
     public AuthManager(AppCompatActivity activity, CircleProgressView progressView) {
-        this.activity = activity;
-        this.progressView = progressView;
+        this.mActivity = activity;
+        this.mProgressView = progressView;
     }
 
     public void checkAuthState() {
@@ -55,7 +48,7 @@ public class AuthManager extends ResultController {
     public void setPhoneNumber(String phone) {
         TdApi.SetAuthPhoneNumber func = new TdApi.SetAuthPhoneNumber();
         func.phoneNumber = phone;
-        phoneNumber = phone;
+        mPhoneNumber = phone;
         client().send(func, this);
     }
 
@@ -64,7 +57,6 @@ public class AuthManager extends ResultController {
     * */
     public void reset(AppCompatActivity compatActivity) {
         //info флаг ниже вызова клиента не опускать иначе падает
-        //resetAction = true;
         AudioPlayer.getPlayer().stop();
         TdApi.ResetAuth reset = new TdApi.ResetAuth();
         reset.force = false;
@@ -87,7 +79,6 @@ public class AuthManager extends ResultController {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         compatActivity.startActivity(intent);
         compatActivity.supportFinishAfterTransition();
-        //activity = null;
         PassCodeManager passCodeManager = PassCodeManager.getManager();
         passCodeManager.setEnablePassCode(compatActivity, false, null);
     }
@@ -106,39 +97,38 @@ public class AuthManager extends ResultController {
     }
 
     private boolean isActivationCodeActivity() {
-        return activity != null && activity.getClass().getSimpleName().equals(ActivationCodeActivity.class.getSimpleName());
+        return mActivity != null && mActivity.getClass().getSimpleName().equals(ActivationCodeActivity.class.getSimpleName());
     }
 
     @Override
     public void afterResult(TdApi.TLObject object, int calledConstructor) {
-        isButtonBlocked = false;
+        sIsButtonBlocked = false;
 
-        if (progressView != null)
-            progressView.stop();
+        if (mProgressView != null)
+            mProgressView.stop();
 
         switch (object.getConstructor()) {
             case TdApi.AuthStateWaitPhoneNumber.CONSTRUCTOR: {
-                isHaveAuth = true;
-                if (activity != null && !resetAction) {
-                    Intent intent = new Intent(activity, PhoneNumberActivity.class);
-                    activity.startActivity(intent);
-                } /*else
-                    resetAction = false;*/
+                sIsHaveAuth = true;
+                if (mActivity != null && !sResetAction) {
+                    Intent intent = new Intent(mActivity, PhoneNumberActivity.class);
+                    mActivity.startActivity(intent);
+                }
                 break;
             }
             case TdApi.AuthStateWaitCode.CONSTRUCTOR: {
-                isHaveAuth = true;
-                if (activity != null) {
+                sIsHaveAuth = true;
+                if (mActivity != null) {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            Intent intent = new Intent(activity, ActivationCodeActivity.class);
-                            intent.putExtra("phone", phoneNumber);
-                            activity.startActivity(intent);
-                            activity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+                            Intent intent = new Intent(mActivity, ActivationCodeActivity.class);
+                            intent.putExtra("phone", mPhoneNumber);
+                            mActivity.startActivity(intent);
+                            mActivity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
 
-                            if(activity instanceof SetNameActivity){
-                                activity.supportFinishAfterTransition();
+                            if(mActivity instanceof SetNameActivity){
+                                mActivity.supportFinishAfterTransition();
                             }
                         }
                     });
@@ -147,42 +137,42 @@ public class AuthManager extends ResultController {
             }
 
             case TdApi.AuthStateWaitName.CONSTRUCTOR: {
-                isHaveAuth = true;
-                if (activity != null) {
+                sIsHaveAuth = true;
+                if (mActivity != null) {
                     if (isActivationCodeActivity()) {
-                        ((ActivationCodeActivity) activity).unRegisterSmsMonitor();
+                        ((ActivationCodeActivity) mActivity).unRegisterSmsMonitor();
                     }
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            Intent intent = new Intent(activity, SetNameActivity.class);
-                            activity.startActivity(intent);
-                            activity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
-                            activity.supportFinishAfterTransition();
+                            Intent intent = new Intent(mActivity, SetNameActivity.class);
+                            mActivity.startActivity(intent);
+                            mActivity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+                            mActivity.supportFinishAfterTransition();
                         }
                     });
                 }
                 break;
             }
             case TdApi.AuthStateOk.CONSTRUCTOR: {
-                if (activity != null) {
+                if (mActivity != null) {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
                             if (isActivationCodeActivity()) {
-                                ((ActivationCodeActivity) activity).unRegisterSmsMonitor();
+                                ((ActivationCodeActivity) mActivity).unRegisterSmsMonitor();
                             }
-                            Intent intent = new Intent(activity, ChatListActivity.class /*ChatListActivity.class*/ /*SettingActivity.class*/);
+                            Intent intent = new Intent(mActivity, ChatListActivity.class /*ChatListActivity.class*/ /*SettingActivity.class*/);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            if (!isHaveAuth) {
+                            if (!sIsHaveAuth) {
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                             }
-                            activity.startActivity(intent);
-                            if (isHaveAuth) {
-                                activity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
-                                activity.supportFinishAfterTransition();
+                            mActivity.startActivity(intent);
+                            if (sIsHaveAuth) {
+                                mActivity.overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+                                mActivity.supportFinishAfterTransition();
                             } else {
-                                activity.overridePendingTransition(0, 0);
+                                mActivity.overridePendingTransition(0, 0);
                             }
                         }
                     });
@@ -192,10 +182,10 @@ public class AuthManager extends ResultController {
             case TdApi.Error.CONSTRUCTOR: {
                 TdApi.Error error = (TdApi.Error) object;
 
-                if (error.code == 400 && activity != null) {
+                if (error.code == 400 && mActivity != null) {
                     if (error.text.equals("PHONE_CODE_INVALID")) {
-                        final TextView errorView = (TextView) activity.findViewById(R.id.a_activation_code_error);
-                        final EditText code = (EditText) activity.findViewById(R.id.a_activation_code_edit_text_code);
+                        final TextView errorView = (TextView) mActivity.findViewById(R.id.a_activation_code_error);
+                        final EditText code = (EditText) mActivity.findViewById(R.id.a_activation_code_edit_text_code);
                         if (errorView != null && code != null) {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
@@ -209,8 +199,8 @@ public class AuthManager extends ResultController {
                     }
 
                     if (error.text.equals("PHONE_CODE_EMPTY")) {
-                        final TextView errorView = (TextView) activity.findViewById(R.id.a_activation_code_error);
-                        final EditText code = (EditText) activity.findViewById(R.id.a_activation_code_edit_text_code);
+                        final TextView errorView = (TextView) mActivity.findViewById(R.id.a_activation_code_error);
+                        final EditText code = (EditText) mActivity.findViewById(R.id.a_activation_code_edit_text_code);
                         if (errorView != null && code != null) {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
@@ -224,8 +214,8 @@ public class AuthManager extends ResultController {
                     }
 
                     if (error.text.equals("PHONE_NUMBER_INVALID")) {
-                        final TextView errorView = (TextView) activity.findViewById(R.id.a_phone_number_error);
-                        final EditText phone = (EditText) activity.findViewById(R.id.a_phone_number_phone);
+                        final TextView errorView = (TextView) mActivity.findViewById(R.id.a_phone_number_error);
+                        final EditText phone = (EditText) mActivity.findViewById(R.id.a_phone_number_phone);
                         if (errorView != null && phone != null) {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override

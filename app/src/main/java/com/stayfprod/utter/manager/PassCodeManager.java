@@ -8,11 +8,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.stayfprod.utter.R;
 import com.stayfprod.utter.ui.activity.EnterPassCodeActivity;
-import com.stayfprod.utter.ui.activity.setting.SetPassCodeActivity;
-import com.stayfprod.utter.util.LockUtils;
-import com.stayfprod.utter.util.Logs;
+import com.stayfprod.utter.util.LockUtil;
 
 @SuppressLint("CommitPrefEdits")
 public class PassCodeManager {
@@ -23,7 +20,7 @@ public class PassCodeManager {
     private static final String IS_ENABLED_PASS_CODE = "IS_ENABLED_PASS_CODE";
     private static final String PASS_CODE_TYPE = "PASS_CODE_TYPE";
 
-    private static volatile PassCodeManager passCodeManager;
+    private static volatile PassCodeManager sPassCodeManager;
 
     public static final int AUTO_LOCK_DISABLE = 0;
     public static final int AUTO_LOCK_IN_5_MIN = 5;
@@ -32,14 +29,14 @@ public class PassCodeManager {
     public static final int AUTO_LOCK_IN_60_MIN = 60;
 
     public static PassCodeManager getManager() {
-        if (passCodeManager == null) {
+        if (sPassCodeManager == null) {
             synchronized (PassCodeManager.class) {
-                if (passCodeManager == null) {
-                    passCodeManager = new PassCodeManager();
+                if (sPassCodeManager == null) {
+                    sPassCodeManager = new PassCodeManager();
                 }
             }
         }
-        return passCodeManager;
+        return sPassCodeManager;
     }
 
     public void setLockByUser(Context context, boolean val) {
@@ -51,7 +48,7 @@ public class PassCodeManager {
         return getSharedPreferences(context).getBoolean(LOCKED_BY_USER, false);
     }
 
-    public void setEnablePassCode(Context context, boolean val, LockUtils.Type type) {
+    public void setEnablePassCode(Context context, boolean val, LockUtil.Type type) {
         SharedPreferences preferences = getSharedPreferences(context);
         SharedPreferences.Editor editor = preferences.edit();
         if (!val) {
@@ -67,22 +64,22 @@ public class PassCodeManager {
     }
 
     //для определения какой слой показывать при требовании пароля
-    public LockUtils.Type getPassCodeType(Context context) {
-        LockUtils.Type type = null;
+    public LockUtil.Type getPassCodeType(Context context) {
+        LockUtil.Type type = null;
         try {
-            type = LockUtils.Type.valueOf(getSharedPreferences(context).getString(PASS_CODE_TYPE, ""));
+            type = LockUtil.Type.valueOf(getSharedPreferences(context).getString(PASS_CODE_TYPE, ""));
         } catch (Exception e) {
             //
         }
         return type;
     }
 
-    public void addPassCode(Object value, LockUtils.Type type, boolean isTemp) {
-        LockUtils.savePassCode(value, type, isTemp);
+    public void addPassCode(Object value, LockUtil.Type type, boolean isTemp) {
+        LockUtil.savePassCode(value, type, isTemp);
     }
 
-    public boolean comparePassCode(Object value, LockUtils.Type type, boolean isTemp) {
-        return LockUtils.comparePassCode(value, type, isTemp);
+    public boolean comparePassCode(Object value, LockUtil.Type type, boolean isTemp) {
+        return LockUtil.comparePassCode(value, type, isTemp);
     }
 
     public SharedPreferences getSharedPreferences(Context context) {
@@ -132,11 +129,7 @@ public class PassCodeManager {
 
         int maxDiff = getCurrentAutoLockStatus(context);
 
-        if (maxDiff == 0) {
-            return false;
-        }
-
-        return (currentTime - storageTime) / (1000 * 60) >= maxDiff;
+        return maxDiff != 0 && (currentTime - storageTime) / (1000 * 60) >= maxDiff;
     }
 
     public void openEnterPassCodeActivity(Context context, boolean isInSettings) {

@@ -8,7 +8,7 @@ import com.stayfprod.utter.util.AndroidUtil;
 public abstract class AbstractLoadingAdapter<X extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<X> {
 
     protected static final int TYPE_LOADING = Integer.MIN_VALUE + 1;
-    private volatile boolean isLoading;
+    private volatile boolean mIsLoading;
 
     @Override
     public X onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -29,25 +29,25 @@ public abstract class AbstractLoadingAdapter<X extends RecyclerView.ViewHolder> 
     @Override
     public int getItemCount() {
         int itemCount = getBasicItemCount();
-        if (isLoading)
+        if (mIsLoading)
             itemCount += 1;
         return itemCount;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (position == getBasicItemCount() && isLoading) {
+        if (position == getBasicItemCount() && mIsLoading) {
             return TYPE_LOADING;
         }
         return getBasicItemType(position);
     }
 
     public void setLoadingData(){
-        isLoading = true;
+        mIsLoading = true;
     }
 
     public void updateDataAfterLoading(){
-        isLoading = false;
+        mIsLoading = false;
         notifyDataSetChanged();
     }
 

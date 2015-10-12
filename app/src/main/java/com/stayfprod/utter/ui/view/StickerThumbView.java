@@ -9,27 +9,26 @@ import android.util.Log;
 import android.view.View;
 
 import com.crashlytics.android.Crashlytics;
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.manager.ChatManager;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.manager.StickerRecentManager;
-import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
 public class StickerThumbView extends View implements ImageUpdatable {
 
     private static final String LOG = StickerThumbView.class.getSimpleName();
+    private static final Paint PAINT = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
 
-    private volatile BitmapDrawable bitmapDrawable;
-    private static Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
-    private TdApi.Sticker sticker;
+    private volatile BitmapDrawable mBitmapDrawable;
+    private TdApi.Sticker mSticker;
 
     static {
-        paint.setARGB(0, 0, 0, 0);
-        paint.setAlpha(0);
-        paint.setStyle(Paint.Style.STROKE);
+        PAINT.setARGB(0, 0, 0, 0);
+        PAINT.setAlpha(0);
+        PAINT.setStyle(Paint.Style.STROKE);
     }
 
     public StickerThumbView(Context context) {
@@ -38,15 +37,15 @@ public class StickerThumbView extends View implements ImageUpdatable {
             @Override
             public void onClick(View v) {
                 try {
-                    if (sticker != null && FileUtils.isTDFileLocal(sticker.sticker)) {
+                    if (mSticker != null && FileUtil.isTDFileLocal(mSticker.sticker)) {
                         ChatManager manager = ChatManager.getManager();
-                        TdApi.InputMessageContent msg = manager.createStickerMsg(sticker.sticker.path);
+                        TdApi.InputMessageContent msg = manager.createStickerMsg(mSticker.sticker.path);
                         manager.sendMessage(msg);
-                        StickerRecentManager.getInstance().addRecentSticker(sticker);
+                        StickerRecentManager.getInstance().addRecentSticker(mSticker);
                     } else {
-                        if (sticker != null && FileUtils.isTDFileEmpty(sticker.sticker) && sticker.sticker.id > 0) {
+                        if (mSticker != null && FileUtil.isTDFileEmpty(mSticker.sticker) && mSticker.sticker.id > 0) {
                             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.USER_STICKER,
-                                    sticker.sticker.id, Integer.valueOf(StickerThumbView.this.getTag().toString()), -1, sticker, v, v.getTag().toString(), 0, 0);
+                                    mSticker.sticker.id, Integer.valueOf(StickerThumbView.this.getTag().toString()), -1, mSticker, v, v.getTag().toString(), 0, 0);
                         }
                     }
                 } catch (Exception e) {
@@ -68,32 +67,32 @@ public class StickerThumbView extends View implements ImageUpdatable {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (bitmapDrawable == null) {
-            canvas.drawRect(0, 0, EmojiConstants.STICKER_THUMB_WIDTH, EmojiConstants.STICKER_THUMB_HEIGHT, paint);
+        if (mBitmapDrawable == null) {
+            canvas.drawRect(0, 0, EmojConstant.sStickerThumbWidth, EmojConstant.sStickerThumbHeight, PAINT);
         } else {
-            bitmapDrawable.draw(canvas);
+            mBitmapDrawable.draw(canvas);
         }
     }
 
     public void setSticker(TdApi.Sticker sticker) {
-        this.sticker = sticker;
+        this.mSticker = sticker;
         invalidate();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(EmojiConstants.STICKER_THUMB_WIDTH, EmojiConstants.STICKER_THUMB_HEIGHT);
+        setMeasuredDimension(EmojConstant.sStickerThumbWidth, EmojConstant.sStickerThumbHeight);
     }
 
     public void setStickerDrawable(BitmapDrawable bitmapDrawable, boolean... invalidate) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
         //if (invalidate.length > 0 && invalidate[0])
         invalidate();
     }
 
     @Override
     public void setImageAndUpdateAsync(BitmapDrawable bitmapDrawable, boolean... animated) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
         postInvalidate();
     }
 }

@@ -1,26 +1,18 @@
 package com.stayfprod.emojicon;
 
 import com.stayfprod.emojicon.emoji.Emojicon;
-import com.stayfprod.emojicon.emoji.People;
 
-import android.app.Activity;
 import android.content.Context;
-import android.view.LayoutInflater;
 import android.widget.GridView;
 
-import java.util.Arrays;
-
-
 public class EmojiconRecentsGridView extends EmojiconGridView implements EmojiconRecents {
-    EmojiAdapter mAdapter;
 
-    public EmojiconRecentsGridView(Context context, Emojicon[] emojicons,
-                                   EmojiconRecents recents, EmojiconsPopup emojiconsPopup) {
-        //super(context, emojicons, recents, emojiconsPopup,0);
+    private EmojiAdapter mAdapter;
 
+    public EmojiconRecentsGridView(Context context, EmojIconsPopup emojiconsPopup) {
         gridView = new GridView(context);
         gridView.setBackgroundResource(android.R.color.transparent);
-        gridView.setColumnWidth(EmojiConstants.EMOJI_GRID_VIEW_WIDTH);
+        gridView.setColumnWidth(EmojConstant.sEmojGridWidth);
         gridView.setHorizontalSpacing(0);
         gridView.setNumColumns(GridView.AUTO_FIT);
         gridView.setVerticalSpacing(0);
@@ -31,8 +23,8 @@ public class EmojiconRecentsGridView extends EmojiconGridView implements Emojico
 
         mEmojiconPopup = emojiconsPopup;
 
-        EmojiconRecentsManager recents1 = EmojiconRecentsManager.getInstance(context);
-        mAdapter = new EmojiAdapter(context, recents1);
+        EmojiconRecentsManager recents = EmojiconRecentsManager.getInstance(context);
+        mAdapter = new EmojiAdapter(context, recents);
         mAdapter.setEmojiClickListener(new OnEmojiconClickedListener() {
             @Override
             public void onEmojiconClicked(Emojicon emojicon) {

@@ -6,7 +6,6 @@ import android.widget.RelativeLayout;
 
 import com.stayfprod.utter.model.chat.AudioMsg;
 import com.stayfprod.utter.ui.view.chat.AudioMsgView;
-import com.stayfprod.utter.ui.view.chat.VoiceMsgView;
 
 public class AudioChatHolder extends AbstractHolder<AudioMsg> {
 

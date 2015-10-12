@@ -15,7 +15,6 @@ import com.stayfprod.utter.util.AndroidUtil;
 
 public class BotDescriptionHolder extends AbstractHolder<BotDescriptionMsg> {
 
-    private ImageView imageView;
     public TextView description;
     public TextView title;
     public RelativeLayout subLayout;
@@ -36,7 +35,7 @@ public class BotDescriptionHolder extends AbstractHolder<BotDescriptionMsg> {
         subLayoutLP.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
         //иконка
-        imageView = new ImageView(context);
+        ImageView imageView = new ImageView(context);
         imageView.setImageResource(R.mipmap.ic_help);
         imageView.setId(AndroidUtil.generateViewId());
         subLayout.addView(imageView);
@@ -52,7 +51,7 @@ public class BotDescriptionHolder extends AbstractHolder<BotDescriptionMsg> {
         //заголовок
         title = new TextView(context);
         title.setId(AndroidUtil.generateViewId());
-        title.setText("What this bot can do?");
+        title.setText(AndroidUtil.getResourceString(R.string.what_this_bot_can_do));
         title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
         title.setTextColor(0xFF333333);
         title.setTextSize(15);
@@ -88,7 +87,7 @@ public class BotDescriptionHolder extends AbstractHolder<BotDescriptionMsg> {
     public void setValues(BotDescriptionMsg record, int i, Context context) {
         description.setText(record.description);
         if (record.isFullScreen) {
-            itemView.setMinimumHeight(ChatActivity.WINDOW_CURRENT_HEIGHT - AndroidUtil.dp(160));
+            itemView.setMinimumHeight(ChatActivity.sWindowCurrentHeight - AndroidUtil.dp(160));
             ((RelativeLayout.LayoutParams) subLayout.getLayoutParams()).addRule(RelativeLayout.CENTER_VERTICAL);
         } else {
             itemView.setMinimumHeight(0);

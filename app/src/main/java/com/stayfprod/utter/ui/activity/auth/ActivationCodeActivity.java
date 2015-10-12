@@ -24,13 +24,13 @@ import com.stayfprod.utter.R;
 public class ActivationCodeActivity extends AbstractActivity {
     private static String LOG = ActivationCodeActivity.class.getSimpleName();
 
-    private SMSMonitor smsMonitor = null;
-    private String phone = "";
-    private TextView error;
-    private TextView info;
-    private EditText code;
-    private IntentFilter intentFilter;
-    private CircleProgressView progressView;
+    private SMSMonitor mSmsMonitor = null;
+    private String mPhone = "";
+    private TextView mError;
+    private TextView mInfo;
+    private EditText mCode;
+    private IntentFilter mIntentFilter;
+    private CircleProgressView mProgressView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,7 @@ public class ActivationCodeActivity extends AbstractActivity {
         if (App.isBadAppContext(this))
             return;
         setContentView(R.layout.activity_activation_code);
-        smsMonitor = new SMSMonitor() {
+        mSmsMonitor = new SMSMonitor() {
             @Override
             protected void afterReceiveMsg(String code) {
                 try {
@@ -49,7 +49,7 @@ public class ActivationCodeActivity extends AbstractActivity {
                 }
             }
         };
-        intentFilter = new IntentFilter(SMSMonitor.ACTION);
+        mIntentFilter = new IntentFilter(SMSMonitor.ACTION);
 
         setToolbar();
 
@@ -57,26 +57,25 @@ public class ActivationCodeActivity extends AbstractActivity {
         if (extras != null) {
             String phone = extras.getString("phone");
             if (phone != null && !phone.isEmpty()) {
-                this.phone = phone;
+                this.mPhone = phone;
             }
         }
 
-        error = (TextView) findViewById(R.id.a_activation_code_error);
-        code = (EditText) findViewById(R.id.a_activation_code_edit_text_code);
-        info = (TextView) findViewById(R.id.a_activation_code_text_view_info);
+        mError = (TextView) findViewById(R.id.a_activation_code_error);
+        mCode = (EditText) findViewById(R.id.a_activation_code_edit_text_code);
+        mInfo = (TextView) findViewById(R.id.a_activation_code_text_view_info);
 
-        AndroidUtil.setErrorTextViewTypeface(error);
-        AndroidUtil.setTextViewTypeface(info);
-        AndroidUtil.setEditTextTypeface(code);
+        AndroidUtil.setErrorTextViewTypeface(mError);
+        AndroidUtil.setTextViewTypeface(mInfo);
+        AndroidUtil.setEditTextTypeface(mCode);
 
-        info.append(phone);
+        mInfo.append(mPhone);
 
-
-        code.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mCode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    processAction(progressView);
+                    processAction(mProgressView);
                     return true;
                 }
                 return false;
@@ -85,26 +84,26 @@ public class ActivationCodeActivity extends AbstractActivity {
     }
 
     private void processAction(CircleProgressView progressView) {
-        if (!AuthManager.isButtonBlocked) {
-            AuthManager.isButtonBlocked = true;
+        if (!AuthManager.sIsButtonBlocked) {
+            AuthManager.sIsButtonBlocked = true;
             progressView.start();
-            error.setVisibility(View.GONE);
-            code.setBackgroundResource(R.drawable.edittext_bottom_line);
-            String c = code.getText().toString();
+            mError.setVisibility(View.GONE);
+            mCode.setBackgroundResource(R.drawable.edittext_bottom_line);
+            String c = mCode.getText().toString();
             new AuthManager(ActivationCodeActivity.this, progressView).setPhoneCode(c);
         }
     }
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             toolbar.setNavigationIcon(R.mipmap.ic_back);
-            TextView t_toolbar_title = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
-            t_toolbar_title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-            t_toolbar_title.setTextColor(0xffffffff);
-            t_toolbar_title.setTextSize(20);
+            TextView tToolbarTitle = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
+            tToolbarTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+            tToolbarTitle.setTextColor(0xffffffff);
+            tToolbarTitle.setTextSize(20);
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -146,13 +145,13 @@ public class ActivationCodeActivity extends AbstractActivity {
         menuItem.setActionView(R.layout.action_check_layout);
         FrameLayout rootView = (FrameLayout) menuItem.getActionView();
         rootView.findViewById(R.id.ic_check);
-        progressView = (CircleProgressView) rootView.findViewById(R.id.progressView);
-        progressView.init(CircleProgressView.FOR_TOOLBAR);
+        mProgressView = (CircleProgressView) rootView.findViewById(R.id.progressView);
+        mProgressView.init(CircleProgressView.FOR_TOOLBAR);
 
         rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                processAction(progressView);
+                processAction(mProgressView);
             }
         });
         return true;
@@ -170,7 +169,7 @@ public class ActivationCodeActivity extends AbstractActivity {
     public void registerSmsMonitor() {
         if (!isRegisteredSmsMonitor)
             try {
-                registerReceiver(smsMonitor, intentFilter);
+                registerReceiver(mSmsMonitor, mIntentFilter);
                 isRegisteredSmsMonitor = true;
             } catch (Exception e) {
                 Log.w(LOG, "registerSmsMonitor", e);
@@ -180,7 +179,7 @@ public class ActivationCodeActivity extends AbstractActivity {
     public void unRegisterSmsMonitor() {
         if (isRegisteredSmsMonitor)
             try {
-                unregisterReceiver(smsMonitor);
+                unregisterReceiver(mSmsMonitor);
                 isRegisteredSmsMonitor = false;
             } catch (Throwable e) {
                 Log.w(LOG, "unRegisterSmsMonitor", e);

@@ -152,7 +152,7 @@ public class IndeterminateProgressDrawable extends Drawable implements Animatabl
     }
 
     private int getIndeterminateStrokeColor() {
-        if (this.mProgressState == 3 && this.mStrokeColors.length != 1) {
+        if (this.mProgressState == PROGRESS_STATE_KEEP_SHRINK && this.mStrokeColors.length != 1) {
             float value = Math.max(0.0F, Math.min(1.0F, (float) (SystemClock.uptimeMillis() - this.mLastProgressStateTime) / (float) this.mKeepDuration));
             int prev_index = this.mStrokeColorIndex == 0 ? this.mStrokeColors.length - 1 : this.mStrokeColorIndex - 1;
             return ColorUtil.getMiddleColor(this.mStrokeColors[prev_index], this.mStrokeColors[this.mStrokeColorIndex], value);

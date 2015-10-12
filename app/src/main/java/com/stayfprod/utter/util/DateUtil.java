@@ -45,10 +45,7 @@ public class DateUtil {
 
         int diffMonth = firstMonth - lastMonth;
 
-        if (diffMonth != 0) {
-            return true;
-        }
-        return false;
+        return diffMonth != 0;
     }
 
     public static boolean isDifDates(int firstDate, int lastDate) {
@@ -63,15 +60,12 @@ public class DateUtil {
         int lastDAY = lastCalendar.get(Calendar.DAY_OF_YEAR);
         int diffDAYS = firstDAY - lastDAY;
 
-        if (diffDAYS != 0) {
-            return true;
-        }
-        return false;
+        return diffDAYS != 0;
     }
 
     //todo глянуть как ведет себя апи при смены дня! Можно самому сделать обновление дат в списке.
     public static String getDateForChat(int receivedTimeUTC, DateType dateType) {
-        long longReceivedTime = ((long) receivedTimeUTC) * SECOND_IN_MILLIS; //+ ((long)TimeZone.getDefault().getRawOffset());
+        long longReceivedTime = ((long) receivedTimeUTC) * SECOND_IN_MILLIS;
 
         Date receivedDate = new Date(longReceivedTime);
         if (dateType == DateType.CHAT_MSG) {

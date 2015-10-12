@@ -10,8 +10,8 @@ public class NotificationObject {
 
     public static final int CHANGE_CONNECTION = 5;
 
-    public static final int UPDATE_USER_STATUS = 467;
-    public static final int UPDATE_MEMBER_COUNT = 46447;
+    public static final int UPDATE_USER_STATUS = 110;
+    public static final int UPDATE_MEMBER_COUNT = 111;
 
     public static final int UPDATE_CHAT_TITLE = 70;
     public static final int UPDATE_CHAT_PHOTO = 71;

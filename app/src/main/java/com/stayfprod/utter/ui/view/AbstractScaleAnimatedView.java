@@ -16,7 +16,6 @@ import android.view.animation.OvershootInterpolator;
 
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.ui.listener.AnimatorEndListener;
-import com.stayfprod.utter.util.Logs;
 
 public abstract class AbstractScaleAnimatedView extends View {
 

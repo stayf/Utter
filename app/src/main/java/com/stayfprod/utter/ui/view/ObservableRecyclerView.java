@@ -14,10 +14,9 @@ import android.view.ViewGroup;
 
 import com.stayfprod.utter.model.ScrollState;
 
-
 public class ObservableRecyclerView extends RecyclerView implements Scrollable {
 
-    private static int recyclerViewLibraryVersion = 22;
+    private static int sRecyclerViewLibraryVersion = 22;
 
     private int mPrevFirstVisiblePosition;
     private int mPrevFirstVisibleChildHeight = -1;
@@ -256,7 +255,7 @@ public class ObservableRecyclerView extends RecyclerView implements Scrollable {
 
     @SuppressWarnings("deprecation")
     public int getChildAdapterPosition(View child) {
-        if (22 <= recyclerViewLibraryVersion) {
+        if (22 <= sRecyclerViewLibraryVersion) {
             return super.getChildAdapterPosition(child);
         }
         return getChildPosition(child);
@@ -271,7 +270,7 @@ public class ObservableRecyclerView extends RecyclerView implements Scrollable {
         try {
             super.getChildAdapterPosition(null);
         } catch (NoSuchMethodError e) {
-            recyclerViewLibraryVersion = 21;
+            sRecyclerViewLibraryVersion = 21;
         }
     }
 

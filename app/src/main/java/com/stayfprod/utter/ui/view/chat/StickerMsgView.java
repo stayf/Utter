@@ -11,15 +11,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.manager.StickerManager;
 import com.stayfprod.utter.model.chat.StickerMsg;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.Logs;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -28,7 +27,6 @@ import java.util.List;
 public class StickerMsgView extends AbstractMsgView<StickerMsg> implements ImageUpdatable {
 
     public static final Paint EMPTY_STICKER_PAINT = new Paint();
-
     public static final int MAX_STICKER_USER_HEIGHT = Constant.DP_70;
     public static final int MAX_STICKER_CHAT_HEIGHT = Constant.DP_150;
 
@@ -41,7 +39,6 @@ public class StickerMsgView extends AbstractMsgView<StickerMsg> implements Image
     public static int[] calculateStickerChatSize(int w, int h) {
         int maxH = MAX_STICKER_CHAT_HEIGHT;
         if (maxH >= h) {
-            //если меньше, то нужно увеличить до размера высоты
             return new int[]{w * h / maxH, maxH};
         } else {
             return new int[]{w * maxH / h, maxH};
@@ -53,8 +50,8 @@ public class StickerMsgView extends AbstractMsgView<StickerMsg> implements Image
         int h = 0;
         switch (type) {
             case USER_STICKER_THUMB:
-                w = EmojiConstants.STICKER_THUMB_WIDTH;
-                h = EmojiConstants.STICKER_THUMB_HEIGHT;
+                w = EmojConstant.sStickerThumbWidth;
+                h = EmojConstant.sStickerThumbHeight;
                 break;
             default: {
                 if (bounds.length == 2) {
@@ -86,7 +83,7 @@ public class StickerMsgView extends AbstractMsgView<StickerMsg> implements Image
         return maxHeight;
     }
 
-    private BitmapDrawable bitmapDrawable;
+    private BitmapDrawable mBitmapDrawable;
 
     public StickerMsgView(Context context) {
         super(context);
@@ -100,20 +97,20 @@ public class StickerMsgView extends AbstractMsgView<StickerMsg> implements Image
     @Override
     public void setValues(StickerMsg record, int i, final Context context, RecyclerView.ViewHolder viewHolder) {
         super.setValues(record, i, context, viewHolder);
-        bitmapDrawable = null;
+        mBitmapDrawable = null;
 
         TdApi.MessageSticker messageSticker = (TdApi.MessageSticker) record.tgMessage.message;
 
-        if (FileUtils.isTDFileLocal(messageSticker.sticker.sticker)) {
-            bitmapDrawable = FileManager.getManager().getStickerFromFile(messageSticker.sticker.sticker.path,
+        if (FileUtil.isTDFileLocal(messageSticker.sticker.sticker)) {
+            mBitmapDrawable = FileManager.getManager().getStickerFromFile(messageSticker.sticker.sticker.path,
                     FileManager.TypeLoad.CHAT_STICKER, this, getItemViewTag(), null, record.stickerWidth, record.stickerHeight);
         } else {
-            if (FileUtils.isTDFileEmpty(messageSticker.sticker.thumb.photo)) {
+            if (FileUtil.isTDFileEmpty(messageSticker.sticker.thumb.photo)) {
                 FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_STICKER_THUMB,
                         messageSticker.sticker.thumb.photo.id, i, record.tgMessage.id, messageSticker.sticker,
                         this, getItemViewTag(), record.stickerWidth, record.stickerHeight, messageSticker.sticker.sticker.id, i);
             } else {
-                bitmapDrawable = FileManager.getManager().getStickerFromFile(messageSticker.sticker.thumb.photo.path,
+                mBitmapDrawable = FileManager.getManager().getStickerFromFile(messageSticker.sticker.thumb.photo.path,
                         FileManager.TypeLoad.CHAT_STICKER_THUMB, this, getItemViewTag(), null, record.stickerWidth, record.stickerHeight);
                 FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_STICKER,
                         messageSticker.sticker.sticker.id, i, record.tgMessage.id, messageSticker.sticker, this, getItemViewTag(), record.stickerWidth, record.stickerHeight);
@@ -124,30 +121,30 @@ public class StickerMsgView extends AbstractMsgView<StickerMsg> implements Image
 
     @Override
     public void setImageAndUpdateAsync(BitmapDrawable bitmapDrawable, boolean... animated) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
         postInvalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (bitmapDrawable == null) {
+        if (mBitmapDrawable == null) {
             canvas.drawRect(0f, 0f, (float) record.stickerWidth, (float) record.stickerHeight, EMPTY_STICKER_PAINT);
         } else {
-            bitmapDrawable.draw(canvas);
+            mBitmapDrawable.draw(canvas);
         }
     }
 
     public static void measure(StickerMsg chatMessage, TdApi.MessageContent message) {
         TdApi.MessageSticker messageSticker = (TdApi.MessageSticker) message;
         TdApi.File file = messageSticker.sticker.sticker;
-        if (FileUtils.isTDFileLocal(file)) {
+        if (FileUtil.isTDFileLocal(file)) {
             if (messageSticker.sticker.height <= 0 || messageSticker.sticker.width <= 0) {
                 List<TdApi.Sticker> stickers = StickerManager.getManager().getCachedStickers();
                 for (int i = 0; i < stickers.size(); i++) {
                     TdApi.Sticker sticker = stickers.get(i);
                     //todo Индекс по стикерам!!!
-                    if (sticker != null && FileUtils.isTDFileLocal(sticker.sticker)) {
+                    if (sticker != null && FileUtil.isTDFileLocal(sticker.sticker)) {
                         if (sticker.sticker.path.equalsIgnoreCase(file.path)) {
                             messageSticker.sticker.height = sticker.height;
                             messageSticker.sticker.width = sticker.width;

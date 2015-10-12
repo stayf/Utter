@@ -7,11 +7,10 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.google.webp.libwebp;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class WebpSupportService extends Service {
@@ -51,7 +50,7 @@ public class WebpSupportService extends Service {
                 resBitmap = tmpBitmap;
             }
         }
-        String tmpFile = FileUtils.createTmpPngFile(resBitmap);
+        String tmpFile = FileUtil.createTmpPngFile(resBitmap);
         publishResults(tmpFile, key, path);
         return Service.START_NOT_STICKY;
     }
@@ -82,7 +81,7 @@ public class WebpSupportService extends Service {
         } catch (Exception e) {
             return null;
         } finally {
-            FileUtils.close(fis);
+            FileUtil.close(fis);
         }
         return decodeViaLibrary(bytes);
     }

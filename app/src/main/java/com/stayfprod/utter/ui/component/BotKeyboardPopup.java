@@ -25,18 +25,18 @@ public class BotKeyboardPopup extends PopupWindow {
         void onKeyboardClose();
     }
 
-    private OnSoftKeyboardOpenCloseListener onSoftKeyboardOpenCloseListener;
-    private int keyBoardHeight = 0;
-    private Boolean isFirstOpening = false;
-    private Boolean isOpenedKeyboard = false;
-    private Boolean isOpenedPopup = false;
+    private int mKeyBoardHeight = 0;
+    private Boolean mIsFirstOpening = false;
+    private Boolean mIsOpenedKeyboard = false;
+    private Boolean mIsOpenedPopup = false;
     private Context mContext;
-    private View rootView;
+    private View mRootView;
+    private OnSoftKeyboardOpenCloseListener mOnSoftKeyboardOpenCloseListener;
 
     public BotKeyboardPopup(Context context, View rootView) {
         super(context);
         mContext = context;
-        this.rootView = rootView;
+        this.mRootView = rootView;
         setContentView(BotManager.getManager().getKeyboard());
         setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         setSize(WindowManager.LayoutParams.MATCH_PARENT, (int) mContext.getResources().getDimension(com.stayfprod.emojicon.R.dimen.keyboard_height));
@@ -44,11 +44,11 @@ public class BotKeyboardPopup extends PopupWindow {
     }
 
     public void setOnSoftKeyboardOpenCloseListener(OnSoftKeyboardOpenCloseListener listener) {
-        this.onSoftKeyboardOpenCloseListener = listener;
+        this.mOnSoftKeyboardOpenCloseListener = listener;
     }
 
     public void showAtBottom() {
-        isFirstOpening = false;
+        mIsFirstOpening = false;
         setContentView(BotManager.getManager().getKeyboard());
         showAtLocation(((Activity) mContext).getWindow().getDecorView(), Gravity.BOTTOM | Gravity.LEFT, 0, 0);
     }
@@ -56,15 +56,15 @@ public class BotKeyboardPopup extends PopupWindow {
     public void showAtBottomFirstTime() {
         setContentView(BotManager.getManager().getKeyboard());
         showAtLocation(((Activity) mContext).getWindow().getDecorView(), Gravity.BOTTOM | Gravity.LEFT, 0, 0);
-        isFirstOpening = true;
+        mIsFirstOpening = true;
     }
 
     public Boolean isKeyBoardOpen() {
-        return isOpenedKeyboard;
+        return mIsOpenedKeyboard;
     }
 
     public Boolean isPopupOpen() {
-        return isOpenedPopup;
+        return mIsOpenedPopup;
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -82,17 +82,17 @@ public class BotKeyboardPopup extends PopupWindow {
     }
 
     public void setSizeForSoftKeyboard() {
-        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        mRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
 
                 Rect r = new Rect();
-                rootView.getWindowVisibleDisplayFrame(r);
+                mRootView.getWindowVisibleDisplayFrame(r);
                 int screenHeight;
                 if (Build.VERSION.SDK_INT >= 5.0) {
                     screenHeight = calculateScreenHeightForLollipop();
                 } else {
-                    screenHeight = rootView.getRootView().getHeight();
+                    screenHeight = mRootView.getRootView().getHeight();
                 }
                 int heightDifference = screenHeight - (r.bottom - r.top);
 
@@ -101,20 +101,20 @@ public class BotKeyboardPopup extends PopupWindow {
                     heightDifference -= mContext.getResources().getDimensionPixelSize(resourceId);
                 }
 
-                isOpenedPopup = rootView.getPaddingBottom() > 0;
+                mIsOpenedPopup = mRootView.getPaddingBottom() > 0;
 
                 if (heightDifference > 100) {
-                    keyBoardHeight = heightDifference;
-                    setSize(WindowManager.LayoutParams.MATCH_PARENT, keyBoardHeight);
-                    if (!isOpenedKeyboard) {
-                        if (onSoftKeyboardOpenCloseListener != null)
-                            onSoftKeyboardOpenCloseListener.onKeyboardOpen(keyBoardHeight);
+                    mKeyBoardHeight = heightDifference;
+                    setSize(WindowManager.LayoutParams.MATCH_PARENT, mKeyBoardHeight);
+                    if (!mIsOpenedKeyboard) {
+                        if (mOnSoftKeyboardOpenCloseListener != null)
+                            mOnSoftKeyboardOpenCloseListener.onKeyboardOpen(mKeyBoardHeight);
                     }
-                    isOpenedKeyboard = true;
+                    mIsOpenedKeyboard = true;
                 } else {
-                    isOpenedKeyboard = false;
-                    if (onSoftKeyboardOpenCloseListener != null && isShowing() && !isFirstOpening)
-                        onSoftKeyboardOpenCloseListener.onKeyboardClose();
+                    mIsOpenedKeyboard = false;
+                    if (mOnSoftKeyboardOpenCloseListener != null && isShowing() && !mIsFirstOpening)
+                        mOnSoftKeyboardOpenCloseListener.onKeyboardClose();
                 }
             }
         });

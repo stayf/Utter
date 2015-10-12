@@ -21,23 +21,23 @@ import org.drinkless.td.libcore.telegram.TdApi;
 
 public class MusicBarWidget {
 
-    private RelativeLayout a_music_bar_layout;
-    private MusicBar musicBar;
-    private long chatId;
-    private boolean openPlayerByBack;
+    private RelativeLayout mMusicBarLayout;
+    private MusicBar mMusicBar;
+    private long mChatId;
+    private boolean mOpenPlayerByBack;
 
     public void setOpenPlayerByBack(boolean openPlayerByBack) {
-        this.openPlayerByBack = openPlayerByBack;
+        this.mOpenPlayerByBack = openPlayerByBack;
     }
 
     public void checkOnStart() {
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
 
         if (audioPlayer.isPaused()) {
-            musicBar.stop();
-            musicBar.setProgress(audioPlayer.getCurrentProgress());
-            musicBar.setName(audioPlayer.getMessageAudio().audio.performer + " - " + audioPlayer.getMessageAudio().audio.title);
-            musicBar.invalidateUI();
+            mMusicBar.stop();
+            mMusicBar.setProgress(audioPlayer.getCurrentProgress());
+            mMusicBar.setName(audioPlayer.getMessageAudio().audio.performer + " - " + audioPlayer.getMessageAudio().audio.title);
+            mMusicBar.invalidateUI();
             showMusicBar();
         } else {
             hideMusicBar();
@@ -45,18 +45,18 @@ public class MusicBarWidget {
     }
 
     public void init(final AbstractActivity abstractActivity) {
-        a_music_bar_layout = abstractActivity.findView(R.id.a_music_bar_layout);
-        musicBar = (MusicBar) a_music_bar_layout.findViewById(R.id.music_bar);
+        mMusicBarLayout = abstractActivity.findView(R.id.a_music_bar_layout);
+        mMusicBar = (MusicBar) mMusicBarLayout.findViewById(R.id.music_bar);
         final AudioPlayer audioPlayer = AudioPlayer.getPlayer();
 
-        musicBar.setOnCloseClickListener(new View.OnClickListener() {
+        mMusicBar.setOnCloseClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 audioPlayer.stop();
             }
         });
 
-        musicBar.setOnPlayClickListener(new View.OnClickListener() {
+        mMusicBar.setOnPlayClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (audioPlayer.isPlaying())
@@ -66,24 +66,24 @@ public class MusicBarWidget {
             }
         });
 
-        a_music_bar_layout.setOnClickListener(new View.OnClickListener() {
+        mMusicBarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //уход в активити
-                if (openPlayerByBack) {
+                if (mOpenPlayerByBack) {
                     abstractActivity.supportFinishAfterTransition();
                     abstractActivity.overridePendingTransition(R.anim.slide_enter, R.anim.slide_exit);
                 } else {
-                    Intent intent = new Intent(a_music_bar_layout.getContext(), MusicPlayerActivity.class);
+                    Intent intent = new Intent(mMusicBarLayout.getContext(), MusicPlayerActivity.class);
                     Bundle bundle = new Bundle();
-                    bundle.putBoolean("isBackOnTouchList", SharedMediaActivity.isOpenedSharedMediaActivity);
-                    bundle.putLong("chatId", chatId);
+                    bundle.putBoolean("isBackOnTouchList", SharedMediaActivity.sIsOpenedSharedMediaActivity);
+                    bundle.putLong("chatId", mChatId);
                     intent.putExtras(bundle);
-                    if (SharedMediaActivity.isOpenedSharedMediaActivity) {
-                        a_music_bar_layout.getContext().startActivity(intent);
-                        ((AbstractActivity) a_music_bar_layout.getContext()).overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
+                    if (SharedMediaActivity.sIsOpenedSharedMediaActivity) {
+                        mMusicBarLayout.getContext().startActivity(intent);
+                        ((AbstractActivity) mMusicBarLayout.getContext()).overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
                     } else {
-                        a_music_bar_layout.getContext().startActivity(intent);
+                        mMusicBarLayout.getContext().startActivity(intent);
                     }
                 }
             }
@@ -91,29 +91,21 @@ public class MusicBarWidget {
     }
 
     public void showMusicBar() {
-        a_music_bar_layout.setVisibility(View.VISIBLE);
-        a_music_bar_layout.setTranslationY(0);
-        /*ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(a_music_bar_layout, "translationY", -AndroidUtil.dp(43), 0);
-        objectAnimator.addListener(new AnimatorEndListener() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-
-            }
-        });
-        objectAnimator.setDuration(150).start();*/
+        mMusicBarLayout.setVisibility(View.VISIBLE);
+        mMusicBarLayout.setTranslationY(0);
     }
 
     public void hideMusicBar() {
-        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(a_music_bar_layout, "translationY", 0, -AndroidUtil.dp(43));
+        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(mMusicBarLayout, "translationY", 0, -AndroidUtil.dp(43));
         objectAnimator.addListener(new AnimatorEndListener() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                a_music_bar_layout.setVisibility(View.GONE);
+                mMusicBarLayout.setVisibility(View.GONE);
             }
         });
         objectAnimator.setDuration(150).start();
-        if (musicBar != null) {
-            musicBar.setName("");
+        if (mMusicBar != null) {
+            mMusicBar.setName("");
         }
     }
 
@@ -130,7 +122,7 @@ public class MusicBarWidget {
                 updateAll(objects);
                 break;
             case AudioPlayer.ACTION_UPLOAD_NEW_TRACK:
-                //updateAll(objects);
+
                 break;
         }
     }
@@ -139,27 +131,27 @@ public class MusicBarWidget {
         AudioPlayer audioPlayer = AudioPlayer.getPlayer();
         TdApi.MessageAudio messageAudio = (TdApi.MessageAudio) objects[1];
 
-        if ((messageAudio != null && (musicBar.isEmptyDrawName() || (musicBar.getTag() != null && ((int) musicBar.getTag()) != messageAudio.audio.audio.id)))) {
-            musicBar.setName(messageAudio.audio.performer + " - " + messageAudio.audio.title);
-            musicBar.setTag(messageAudio.audio.audio.id);
+        if ((messageAudio != null && (mMusicBar.isEmptyDrawName() || (mMusicBar.getTag() != null && ((int) mMusicBar.getTag()) != messageAudio.audio.audio.id)))) {
+            mMusicBar.setName(messageAudio.audio.performer + " - " + messageAudio.audio.title);
+            mMusicBar.setTag(messageAudio.audio.audio.id);
             TdApi.Message message = (TdApi.Message) objects[3];
-            chatId = message.chatId;
-            SharedMediaManager.getManager().searchAudioPlayer(chatId, audioPlayer.getAudioMessages());
+            mChatId = message.chatId;
+            SharedMediaManager.getManager().searchAudioPlayer(mChatId, audioPlayer.getAudioMessages());
 
         }
 
         float progress = (float) objects[2];
         if (progress != -1f)
-            musicBar.setProgress(progress);
+            mMusicBar.setProgress(progress);
         if (audioPlayer.isPlaying()) {
-            musicBar.play();
-            if (a_music_bar_layout.getVisibility() == View.GONE) {
+            mMusicBar.play();
+            if (mMusicBarLayout.getVisibility() == View.GONE) {
                 showMusicBar();
             }
         } else {
-            musicBar.stop();
+            mMusicBar.stop();
         }
-        musicBar.invalidateUI();
+        mMusicBar.invalidateUI();
     }
 
 }

@@ -5,13 +5,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.service.CacheService;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.view.chat.GeoMsgView;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -22,17 +21,17 @@ import java.net.URL;
 public class GeoPointManager {
     private static final String LOG = GeoPointManager.class.getSimpleName();
 
-    private static volatile GeoPointManager geoPointManager;
+    private static volatile GeoPointManager sGeoPointManager;
 
     public static GeoPointManager getManager() {
-        if (geoPointManager == null) {
+        if (sGeoPointManager == null) {
             synchronized (GeoPointManager.class) {
-                if (geoPointManager == null) {
-                    geoPointManager = new GeoPointManager();
+                if (sGeoPointManager == null) {
+                    sGeoPointManager = new GeoPointManager();
                 }
             }
         }
-        return geoPointManager;
+        return sGeoPointManager;
     }
 
     public Bitmap getGoogleMapThumbnail(double lati, double longi, String key) {
@@ -51,7 +50,7 @@ public class GeoPointManager {
             if (urlc != null) {
                 urlc.disconnect();
             }
-            FileUtils.close(inputStream);
+            FileUtil.close(inputStream);
         }
 
         return bmp;

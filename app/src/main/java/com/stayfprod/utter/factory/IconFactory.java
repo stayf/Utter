@@ -10,7 +10,7 @@ import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.view.IconUpdatable;
 import com.stayfprod.utter.ui.view.chat.ContactMsgView;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -57,7 +57,7 @@ public class IconFactory {
 
     public static IconDrawable createIcon(Type type, int id, String text, TdApi.File file) {
         if (file != null) {
-            if (FileUtils.isTDFileLocal(file)) {
+            if (FileUtil.isTDFileLocal(file)) {
                 return createBitmapIcon(type, file.path);
             } else {
                 return createEmptyIcon(type, id, text);
@@ -73,8 +73,8 @@ public class IconFactory {
             key = bitmapPath + type.getHeight();
             drawable = CacheService.getManager().getIconDrawableFromCache(key);
             if (drawable == null) {
-                BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(bitmapPath,
-                        FileUtils.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH, false));
+                BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
+                        FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                 drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                 drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
                 CacheService.getManager().addToDrawableCache(key, drawable);
@@ -105,7 +105,7 @@ public class IconFactory {
                 TdApi.User user = ((TdApi.PrivateChatInfo) chatInfo).user;
                 TdApi.File file = user.profilePhoto.small;
 
-                if (FileUtils.isTDFileLocal(file)) {
+                if (FileUtil.isTDFileLocal(file)) {
                     fileLocal = file;
                 }
                 break;
@@ -114,7 +114,7 @@ public class IconFactory {
                 TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo;
                 TdApi.GroupChat groupChat = groupChatInfo.groupChat;
 
-                if (FileUtils.isTDFileLocal(groupChat.photo.small)) {
+                if (FileUtil.isTDFileLocal(groupChat.photo.small)) {
                     fileLocal = groupChat.photo.small;
                 }
                 break;
@@ -126,8 +126,8 @@ public class IconFactory {
             final String key = bitmapPath + type.getHeight();
             IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
             if (drawable == null) {
-                BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(bitmapPath,
-                        FileUtils.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH, false));
+                BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
+                        FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                 drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                 drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
                 CacheService.getManager().addToDrawableCache(key, drawable);
@@ -147,8 +147,8 @@ public class IconFactory {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                         IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
                         if (drawable == null) {
-                            BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(bitmapPath,
-                                    FileUtils.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH, false));
+                            BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
+                                    FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
                             CacheService.getManager().addToDrawableCache(key, drawable);
@@ -179,8 +179,8 @@ public class IconFactory {
                         IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
                         if (drawable == null) {
                             //todo стоит сохранять все же в кеше картинку и проверять ее???
-                            BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(bitmapPath,
-                                    FileUtils.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH, false));
+                            BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
+                                    FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
                             CacheService.getManager().addToDrawableCache(key, drawable);
@@ -210,8 +210,8 @@ public class IconFactory {
                         final IconDrawable cachedDrawable = CacheService.getManager().getIconDrawableFromCache(key);
                         if (cachedDrawable == null) {
                             //todo стоит сохранять все же в кеше картинку и проверять ее???
-                            BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(bitmapPath,
-                                    FileUtils.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH, false));
+                            BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
+                                    FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             final IconDrawable drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
                             CacheService.getManager().addToDrawableCache(key, drawable);

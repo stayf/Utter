@@ -13,18 +13,18 @@ import java.util.List;
 
 public class ChatListAdapter extends AbstractLoadingAdapter<AbstractHolder> {
 
-    private View.OnTouchListener itemTouchListener;
-    private List<ChatInfo> records;
-    private Context context;
+    private View.OnTouchListener mItemTouchListener;
+    private List<ChatInfo> mRecords;
+    private Context mContext;
 
     public ChatListAdapter(List<ChatInfo> records, Context context) {
-        this.records = records;
-        this.context = context;
+        this.mRecords = records;
+        this.mContext = context;
     }
 
     @Override
     public AbstractHolder onCreateFooterViewHolder(ViewGroup parent, int viewType) {
-      return new LoadingHolder(context);
+      return new LoadingHolder(mContext);
     }
 
     @Override
@@ -34,19 +34,19 @@ public class ChatListAdapter extends AbstractLoadingAdapter<AbstractHolder> {
 
     @Override
     public AbstractHolder onCreateBasicItemViewHolder(ViewGroup parent, int viewType) {
-        return new ChatListHolder(context, records, itemTouchListener);
+        return new ChatListHolder(mContext, mRecords, mItemTouchListener);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void onBindBasicItemView(AbstractHolder holder, int position) {
-        ChatInfo record = records.get(position);
-        holder.setValues(record, position, context);
+        ChatInfo record = mRecords.get(position);
+        holder.setValues(record, position, mContext);
     }
 
     @Override
     public int getBasicItemCount() {
-        return records.size();
+        return mRecords.size();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ChatListAdapter extends AbstractLoadingAdapter<AbstractHolder> {
     * Объявить до onCreateViewHolder
     * */
     public void setOnItemTouchListener(View.OnTouchListener itemTouchListener) {
-        this.itemTouchListener = itemTouchListener;
+        this.mItemTouchListener = itemTouchListener;
     }
 }
 

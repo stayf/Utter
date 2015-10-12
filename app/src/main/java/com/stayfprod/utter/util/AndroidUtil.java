@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -95,14 +94,14 @@ public class AndroidUtil {
 
     public static void runInUI(Runnable runnable) {
         if (Looper.getMainLooper().getThread() != Thread.currentThread()) {
-            App.appHandler.post(runnable);
+            App.getAppHandler().post(runnable);
         } else {
             runnable.run();
         }
     }
 
     public static void runInUI(Runnable runnable, int time) {
-        App.appHandler.postDelayed(runnable, time);
+        App.getAppHandler().postDelayed(runnable, time);
     }
 
     public static int dp(float value) {
@@ -132,7 +131,7 @@ public class AndroidUtil {
     }
 
     public static int getKeyboardHeight() {
-        switch (App.appContext.getResources().getConfiguration().orientation) {
+        switch (App.getAppContext().getResources().getConfiguration().orientation) {
             case Configuration.ORIENTATION_PORTRAIT:
                 return P_KEYBOARD_HEIGHT;
             case Configuration.ORIENTATION_LANDSCAPE:
@@ -142,7 +141,7 @@ public class AndroidUtil {
     }
 
     public static void setKeyboardHeight(int values) {
-        switch (App.appContext.getResources().getConfiguration().orientation) {
+        switch (App.getAppContext().getResources().getConfiguration().orientation) {
             case Configuration.ORIENTATION_PORTRAIT:
                 P_KEYBOARD_HEIGHT = values;
             case Configuration.ORIENTATION_LANDSCAPE:
@@ -335,7 +334,6 @@ public class AndroidUtil {
                     new_height = (int) (original_height * scale);
                     dy = (new_height - size) >> 1;
 
-                    //Logs.e(dy + " " + new_height + " " + scale + " " + original_height);
                     bitmapDrawable.setBounds(0, -dy, size, size + dy);
                 }
             }
@@ -420,28 +418,10 @@ public class AndroidUtil {
         });
     }
 
-    /**
-     * Return a float value within the range.
-     * This is just a wrapper for Math.min() and Math.max().
-     * This may be useful if you feel it confusing ("Which is min and which is max?").
-     *
-     * @param value    the target value
-     * @param minValue minimum value. If value is less than this, minValue will be returned
-     * @param maxValue maximum value. If value is greater than this, maxValue will be returned
-     * @return float value limited to the range
-     */
     public static float getFloat(final float value, final float minValue, final float maxValue) {
         return Math.min(maxValue, Math.max(minValue, value));
     }
 
-    /**
-     * Add an OnGlobalLayoutListener for the view.
-     * This is just a convenience method for using {@code ViewTreeObserver.OnGlobalLayoutListener()}.
-     * This also handles removing listener when onGlobalLayout is called.
-     *
-     * @param view     the target view to add global layout listener
-     * @param runnable runnable to be executed after the view is laid out
-     */
     public static void addOnGlobalLayoutListener(final View view, final Runnable runnable) {
         ViewTreeObserver vto = view.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {

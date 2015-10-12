@@ -45,7 +45,7 @@ public class CountryActivity extends AbstractActivity {
 
     @SuppressWarnings("ALL")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             TextView t_toolbar_title = (TextView) toolbar.findViewById(R.id.t_toolbar_title);

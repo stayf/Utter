@@ -21,7 +21,7 @@ import com.stayfprod.utter.model.chat.VoiceMsg;
 import com.stayfprod.utter.service.VoiceController;
 import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -47,7 +47,7 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
     private static final int THUMB_START_Y;
 
     static {
-        THUMB_DRAWABLE = (GradientDrawable) FileUtils.decodeResource(R.drawable.audio_progress_thumb);
+        THUMB_DRAWABLE = (GradientDrawable) FileUtil.decodeResource(R.drawable.audio_progress_thumb);
 
         LEFT_PAINT.setColor(0xFF68ade1);
         RIGHT_PAINT.setColor(0xFFDCEBF5);
@@ -64,16 +64,16 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
         THUMB_START_Y = (int) (SEEK_BAR_START_Y - ((THUMB_HEIGHT - SEEK_BAR_HEIGHT) >> 1));
     }
 
-    private volatile boolean isThumbVisible;
-    private volatile int min = 0;
-    private volatile int max = 100;
-    private volatile int playProgress = 0;
-    private StringBuffer timer = new StringBuffer(20);
-    private DeterminateProgressDrawable progressDrawable;
+    private volatile boolean mIsThumbVisible;
+    private volatile int mMin = 0;
+    private volatile int mMax = 100;
+    private volatile int mPlayProgress = 0;
+    private StringBuffer mTimer = new StringBuffer(20);
+    private DeterminateProgressDrawable mProgressDrawable;
 
     public VoiceMsgView(Context context) {
         super(context);
-        progressDrawable = new DeterminateProgressDrawable() {
+        mProgressDrawable = new DeterminateProgressDrawable() {
             @Override
             public void invalidate() {
                 VoiceMsgView.this.invalidate();
@@ -83,7 +83,7 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
 
     @Override
     public boolean isClickOnActionButton(View view, MotionEvent event) {
-        Rect bounds = progressDrawable.getBounds();
+        Rect bounds = mProgressDrawable.getBounds();
         return (event.getX() >= bounds.left + getSubContainerMarginLeft(record)
                 && event.getX() <= bounds.right + getSubContainerMarginLeft(record)
                 && event.getY() >= bounds.top + getSubContainerMarginTop(record)
@@ -95,31 +95,31 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
         //info тут проверка на квадрат, но лучше сделать круг
         if (isIgnoreEvent || isClickOnActionButton(view, event)) {
             final TdApi.MessageVoice messageAudio = (TdApi.MessageVoice) record.tgMessage.message;
-            if (progressDrawable.getLoadStatus() != null) {
+            if (mProgressDrawable.getLoadStatus() != null) {
                 //нажать на точно такой же контент
-                switch (progressDrawable.getLoadStatus()) {
+                switch (mProgressDrawable.getLoadStatus()) {
                     case NO_LOAD:
-                        if (FileUtils.isTDFileEmpty(messageAudio.voice.voice)) {
+                        if (FileUtil.isTDFileEmpty(messageAudio.voice.voice)) {
                             FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.VOICE,
                                     messageAudio.voice.voice.id, -1, record.tgMessage.id, VoiceMsgView.this, messageAudio.voice, getItemViewTag());
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
 
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageAudio, messageAudio.voice.voice.id, viewHolder.getLayoutPosition());
                         }
                         break;
                     case PAUSE:
-                        if (FileUtils.isTDFileEmpty(messageAudio.voice.voice)) {
+                        if (FileUtil.isTDFileEmpty(messageAudio.voice.voice)) {
                             FileManager.getManager().proceedLoad(messageAudio.voice.voice.id, record.tgMessage.id, !isIgnoreEvent);
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PROCEED_LOAD);
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageAudio, messageAudio.voice.voice.id, viewHolder.getLayoutPosition());
                         }
                         break;
                     case PROCEED_LOAD:
-                        if (FileUtils.isTDFileEmpty(messageAudio.voice.voice)) {
+                        if (FileUtil.isTDFileEmpty(messageAudio.voice.voice)) {
                             FileManager.getManager().cancelDownloadFile(messageAudio.voice.voice.id, record.tgMessage.id, !isIgnoreEvent);
-                            progressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PAUSE);
+                            mProgressDrawable.changeLoadStatusAndUpdate(DeterminateProgressDrawable.LoadStatus.PAUSE);
                             if (!isIgnoreEvent)
                                 ChatManager.getManager().pressOnSameFiles(messageAudio, messageAudio.voice.voice.id, viewHolder.getLayoutPosition());
                         }
@@ -128,10 +128,10 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
                         break;
                 }
             }
-            if (progressDrawable.getPlayStatus() != null) {
-                switch (progressDrawable.getPlayStatus()) {
+            if (mProgressDrawable.getPlayStatus() != null) {
+                switch (mProgressDrawable.getPlayStatus()) {
                     case PLAY:
-                        if (FileUtils.isTDFileLocal(messageAudio.voice.voice)) {
+                        if (FileUtil.isTDFileLocal(messageAudio.voice.voice)) {
                             VoiceController.getController().startToPlayVoice(messageAudio.voice.voice.path, VoiceMsgView.this, messageAudio.voice.duration);
                         }
                         break;
@@ -146,27 +146,26 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
     }
 
     public void setThumbVisible(boolean isThumbVisible) {
-        this.isThumbVisible = isThumbVisible;
-        //postInvalidate();
+        this.mIsThumbVisible = isThumbVisible;
     }
 
     public void setProgress(int val, boolean... invalidate) {
-        this.playProgress = val;
+        this.mPlayProgress = val;
         if (invalidate.length > 0 && invalidate[0]) {
             invalidate();
         }
     }
 
     public void setTimer(String timer, boolean... invalidate) {
-        this.timer.setLength(0);
-        this.timer.append(timer);
+        this.mTimer.setLength(0);
+        this.mTimer.append(timer);
         if (invalidate.length > 0 && invalidate[0]) {
             invalidate();
         }
     }
 
     public void setMax(int val) {
-        this.max = val;
+        this.mMax = val;
     }
 
     @Override
@@ -180,20 +179,20 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
         setTimer(record.duration);
         int processLoad = -1;
         VoiceController player = VoiceController.getController();
-        if (FileUtils.isTDFileLocal(messageVoice.voice.voice)) {
-            isThumbVisible = true;
+        if (FileUtil.isTDFileLocal(messageVoice.voice.voice)) {
+            mIsThumbVisible = true;
             if (player.isPlaying() && player.getPlayingFile().equals(messageVoice.voice.voice.path) && player.getMsgId() == record.tgMessage.id) {
                 player.rebuildLinks(messageVoice.voice.voice.path, this, messageVoice.voice.duration);
                 playStatus = DeterminateProgressDrawable.PlayStatus.PAUSE;
                 //info здесь можно сделать получение текущего прогресса из плеера
             } else {
                 player.cleanLinks(this);
-                playProgress = 0;
+                mPlayProgress = 0;
                 playStatus = DeterminateProgressDrawable.PlayStatus.PLAY;
             }
         } else {
-            playProgress = 0;
-            isThumbVisible = false;
+            mPlayProgress = 0;
+            mIsThumbVisible = false;
             FileManager fileManager = FileManager.getManager();
 
             if (fileManager.isHaveStorageObjectByFileID(messageVoice.voice.voice.id, record.tgMessage.id)) {
@@ -215,13 +214,13 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
             player.cleanLinks(this);
         }
 
-        progressDrawable.setMainSettings(loadStatus, playStatus, DeterminateProgressDrawable.ColorRange.BLUE,
+        mProgressDrawable.setMainSettings(loadStatus, playStatus, DeterminateProgressDrawable.ColorRange.BLUE,
                 LoadingContentType.AUDIO, true, false);
-        progressDrawable.setBounds(0, 0);
-        progressDrawable.setVisibility(true);
+        mProgressDrawable.setBounds(0, 0);
+        mProgressDrawable.setVisibility(true);
 
         if (processLoad != -1) {
-            progressDrawable.setProgressWithAnimation(processLoad);
+            mProgressDrawable.setProgressWithAnimation(processLoad);
         }
         invalidate();
     }
@@ -231,26 +230,26 @@ public class VoiceMsgView extends AbstractMsgView<VoiceMsg> {
         super.onDraw(canvas);
         int i = getOrientatedIndex();
 
-        progressDrawable.draw(canvas);
+        mProgressDrawable.draw(canvas);
 
-        float k = ((record.timerStartX[i] - TIMER_MARGIN_LEFT - SEEK_BAR_START_X) / max);
-        float centerThumbX = k * playProgress + SEEK_BAR_START_X;
+        float k = ((record.timerStartX[i] - TIMER_MARGIN_LEFT - SEEK_BAR_START_X) / mMax);
+        float centerThumbX = k * mPlayProgress + SEEK_BAR_START_X;
 
         canvas.drawRect(SEEK_BAR_START_X, SEEK_BAR_START_Y, centerThumbX, SEEK_BAR_START_Y + SEEK_BAR_HEIGHT, LEFT_PAINT);
         canvas.drawRect(centerThumbX, SEEK_BAR_START_Y, record.timerStartX[i] - TIMER_MARGIN_LEFT, SEEK_BAR_START_Y + SEEK_BAR_HEIGHT, RIGHT_PAINT);
 
         int startThumbX = (int) (centerThumbX - (THUMB_HEIGHT >> 1));
 
-        if (isThumbVisible) {
+        if (mIsThumbVisible) {
             THUMB_DRAWABLE.setBounds(startThumbX, THUMB_START_Y, startThumbX + THUMB_HEIGHT, THUMB_START_Y + THUMB_HEIGHT);
             THUMB_DRAWABLE.draw(canvas);
         }
 
-        canvas.drawText(timer.toString(), record.timerStartX[i], TIMER_START_Y, TIMER_PAINT);
+        canvas.drawText(mTimer.toString(), record.timerStartX[i], TIMER_START_Y, TIMER_PAINT);
     }
 
     public DeterminateProgressDrawable getProgressDrawable() {
-        return progressDrawable;
+        return mProgressDrawable;
     }
 
     public static void measure(VoiceMsg chatMessage, TdApi.MessageContent message) {

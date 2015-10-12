@@ -19,8 +19,8 @@ import com.stayfprod.utter.util.TextUtil;
 
 public class SetNameActivity extends AbstractActivity {
 
-    private EditText firstName;
-    private EditText secondName;
+    private EditText mFirstName;
+    private EditText mSecondName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +29,12 @@ public class SetNameActivity extends AbstractActivity {
             return;
         setContentView(R.layout.activity_set_name);
 
-        firstName = (EditText) findViewById(R.id.a_set_name_first);
-        secondName = (EditText) findViewById(R.id.a_set_name_second);
+        mFirstName = (EditText) findViewById(R.id.a_set_name_first);
+        mSecondName = (EditText) findViewById(R.id.a_set_name_second);
         TextView info = (TextView) findViewById(R.id.a_set_name_info);
         AndroidUtil.setTextViewTypeface(info);
-        AndroidUtil.setEditTextTypeface(firstName);
-        AndroidUtil.setEditTextTypeface(secondName);
+        AndroidUtil.setEditTextTypeface(mFirstName);
+        AndroidUtil.setEditTextTypeface(mSecondName);
         setToolbar();
     }
 
@@ -51,12 +51,12 @@ public class SetNameActivity extends AbstractActivity {
         rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String fn = firstName.getText().toString();
+                String fn = mFirstName.getText().toString();
                 if (TextUtil.isNotBlank(fn)) {
-                    if (!AuthManager.isButtonBlocked) {
-                        AuthManager.isButtonBlocked = true;
+                    if (!AuthManager.sIsButtonBlocked) {
+                        AuthManager.sIsButtonBlocked = true;
                         progressView.start();
-                        String ln = secondName.getText().toString();
+                        String ln = mSecondName.getText().toString();
                         new AuthManager(SetNameActivity.this, progressView).setUserName(fn, ln);
                     }
                 }
@@ -67,13 +67,13 @@ public class SetNameActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            TextView t_toolbar_title = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
-            t_toolbar_title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-            t_toolbar_title.setTextColor(0xffffffff);
-            t_toolbar_title.setTextSize(20);
+            TextView tToolbarTitle = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
+            tToolbarTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+            tToolbarTitle.setTextColor(0xffffffff);
+            tToolbarTitle.setTextSize(20);
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }

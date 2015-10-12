@@ -19,14 +19,13 @@ import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.factory.StaticLayoutFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
 public class ContactMsgView extends AbstractMsgView<ContactMsg> {
 
-
-    private IconDrawable userIconDrawable;
+    private IconDrawable mUserIconDrawable;
 
     public ContactMsgView(Context context) {
         super(context);
@@ -56,7 +55,7 @@ public class ContactMsgView extends AbstractMsgView<ContactMsg> {
         TdApi.MessageContact messageContact = (TdApi.MessageContact) record.tgMessage.message;
 
         if (UserManager.isEmptyUser(record.contact)) {
-            userIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.contact.tgUser.id, record.contact.initials);
+            mUserIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.contact.tgUser.id, record.contact.initials);
 
             final UserManager userManager = UserManager.getManager();
             final String tag = getItemViewTag();
@@ -70,12 +69,12 @@ public class ContactMsgView extends AbstractMsgView<ContactMsg> {
                             TdApi.User user = (TdApi.User) object;
                             final CachedUser cachedUser = userManager.insertUserInCache(user);
                             if (AndroidUtil.isItemViewVisible(ContactMsgView.this, tag)) {
-                                if (FileUtils.isTDFileEmpty(cachedUser.tgUser.profilePhoto.small)) {
+                                if (FileUtil.isTDFileEmpty(cachedUser.tgUser.profilePhoto.small)) {
                                     if (cachedUser.tgUser.profilePhoto.small.id > 0)
                                         FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CONTACT_ICON,
                                                 cachedUser.tgUser.profilePhoto.small.id, intTag, msgId, cachedUser.tgUser, ContactMsgView.this, tag);
                                 } else {
-                                    userIconDrawable = IconFactory.createBitmapIconForContact(IconFactory.Type.CHAT, cachedUser.tgUser.profilePhoto.small.path, ContactMsgView.this, tag);
+                                    mUserIconDrawable = IconFactory.createBitmapIconForContact(IconFactory.Type.CHAT, cachedUser.tgUser.profilePhoto.small.path, ContactMsgView.this, tag);
                                 }
                             }
                             break;
@@ -84,15 +83,15 @@ public class ContactMsgView extends AbstractMsgView<ContactMsg> {
                 }
             });
         } else {
-            if (FileUtils.isTDFileEmpty(record.contact.tgUser.profilePhoto.small)) {
+            if (FileUtil.isTDFileEmpty(record.contact.tgUser.profilePhoto.small)) {
                 if (record.contact.tgUser.profilePhoto.small.id > 0)
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CONTACT_ICON,
                             record.contact.tgUser.profilePhoto.small.id, i, record.tgMessage.id, record.contact.tgUser, ContactMsgView.this, getItemViewTag(), false);
                 else {
-                    userIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.contact.tgUser.id, record.contact.initials);
+                    mUserIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT, record.contact.tgUser.id, record.contact.initials);
                 }
             } else {
-                userIconDrawable = IconFactory.createBitmapIconForContact(IconFactory.Type.CHAT, record.contact.tgUser.profilePhoto.small.path, ContactMsgView.this, getItemViewTag());
+                mUserIconDrawable = IconFactory.createBitmapIconForContact(IconFactory.Type.CHAT, record.contact.tgUser.profilePhoto.small.path, ContactMsgView.this, getItemViewTag());
             }
         }
         invalidate();
@@ -135,9 +134,9 @@ public class ContactMsgView extends AbstractMsgView<ContactMsg> {
         int i = getOrientatedIndex();
         canvas.save();
 
-        if (userIconDrawable != null) {
+        if (mUserIconDrawable != null) {
             canvas.translate(0, Constant.DP_1);
-            userIconDrawable.draw(canvas);
+            mUserIconDrawable.draw(canvas);
         }
 
         canvas.restore();
@@ -156,12 +155,11 @@ public class ContactMsgView extends AbstractMsgView<ContactMsg> {
         chatMessage.contact = userManager.getUserByIdNoRequest(messageContact.userId, messageContact);
         //пересланный контакт может быть у юзера под другим именем
         //Logs.e("xxx=" + chatMessage.contact.initials      + " " + chatMessage.contact.fullName + " " + chatMessage.contact.tgUser.id + " " + UserManager.getManager().getCurrUserId());
-
         measureByOrientation(chatMessage);
     }
 
     public void setUserIconDrawableAndUpdateAsync(IconDrawable userIconDrawable) {
-        this.userIconDrawable = userIconDrawable;
+        this.mUserIconDrawable = userIconDrawable;
         postInvalidate();
     }
 }

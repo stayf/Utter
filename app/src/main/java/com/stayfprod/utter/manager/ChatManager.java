@@ -57,7 +57,7 @@ import com.stayfprod.utter.ui.view.chat.PhotoMsgView;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
 import com.stayfprod.utter.ui.view.chat.TextMsgView;
 import com.stayfprod.utter.ui.view.chat.VideoMsgView;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.util.DateUtil;
@@ -65,7 +65,6 @@ import com.stayfprod.utter.ui.activity.PhotoActivity;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.util.TextUtil;
 
-import org.drinkless.td.libcore.telegram.Client;
 import org.drinkless.td.libcore.telegram.TdApi;
 
 import java.util.ArrayList;
@@ -77,92 +76,104 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChatManager extends ResultController {
 
     private final static String LOG = ChatManager.class.getSimpleName();
-    private static volatile ChatManager chatManager;
+    private static volatile ChatManager sChatManager;
 
-    public static volatile boolean isNeedRemoveChat = false;
+    public static volatile boolean sIsNeedRemoveChat = false;
 
-    private ChatAdapter chatAdapter;
-    private final Integer chatLimit = 10;
-    private volatile Integer chatOffset;
-    private volatile Long chatId;
-    private volatile Integer chatFromId;
-    private volatile ChatInfo chatInfo;
-    private volatile boolean isFirstGetChat;
-
-    private SimpleRecyclerView recyclerView;
-    private LinearLayoutManager gridLayoutManager;
-    private volatile boolean needDownloadMore = true;
-    private volatile List<AbstractChatMsg> chatMessageList = Collections.synchronizedList(new ArrayList<AbstractChatMsg>(100));
-
-    //хранит дату последнего сообщения в чате
-    private volatile int remDate = 0;
-
-    //для индексов, что бы не сбились, счетчит разделителей(они не в индексацию)
-    private volatile int dividersCounter = 0;
-    private volatile int tempUnreadCount = 0;
+    public static ChatManager getManager() {
+        if (sChatManager == null) {
+            synchronized (ChatListManager.class) {
+                if (sChatManager == null) {
+                    sChatManager = new ChatManager();
+                }
+            }
+        }
+        return sChatManager;
+    }
 
     public volatile int lastVisibleItem;
     public volatile int firstVisibleItem;
-    private ImageView imageScrollView;
 
-    private final SparseArray<List<Integer>> indexPosListUserArray = new SparseArray<List<Integer>>(); //userID, pos
-    private final SparseIntArray indexPosIdMsgArray = new SparseIntArray(); //msgId,pos
+    private ChatAdapter mChatAdapter;
+    private final Integer mChatLimit = 10;
+    private volatile Integer mChatOffset;
+    private volatile Long mChatId;
+    private volatile Integer mChatFromId;
+    private volatile ChatInfo mChatInfo;
+    private volatile boolean mIsFirstGetChat;
+
+    private SimpleRecyclerView mRecyclerView;
+    private LinearLayoutManager mGridLayoutManager;
+    private volatile boolean mNeedDownloadMore = true;
+    private volatile List<AbstractChatMsg> mChatMessageList = Collections.synchronizedList(new ArrayList<AbstractChatMsg>(100));
+
+    //хранит дату последнего сообщения в чате
+    private volatile int mRemDate = 0;
+
+    //для индексов, что бы не сбились, счетчит разделителей(они не в индексацию)
+    private volatile int mDividersCounter = 0;
+    private volatile int mTempUnreadCount = 0;
+
+    private ImageView mImageScrollView;
+
+    private final SparseArray<List<Integer>> mIndexPosListUserArray = new SparseArray<List<Integer>>(); //userID, pos
+    private final SparseIntArray mIndexPosIdMsgArray = new SparseIntArray(); //msgId,pos
 
     //отклоненние для отправленныйх мной сообщений(не перестраиваем индекс если мое собщение) Всегда отрицательный
-    private AtomicInteger indexNewMsgDeviation = new AtomicInteger(0);
+    private AtomicInteger mIndexNewMsgDeviation = new AtomicInteger(0);
 
     public static ChatInfo getCurrentChatInfo() {
-        return getManager().chatInfo;
+        return getManager().mChatInfo;
     }
 
     public static boolean isHaveChatInfo() {
-        return getManager().chatInfo != null;
+        return getManager().mChatInfo != null;
     }
 
     public static boolean isHaveChatId() {
-        return getManager().chatId != null;
+        return getManager().mChatId != null;
     }
 
     public static Long getCurrentChatId() {
-        return getManager().chatId;
+        return getManager().mChatId;
     }
 
     public boolean isSameChatId(long chatId) {
-        return this.chatId != null && this.chatId == chatId;
+        return this.mChatId != null && this.mChatId == chatId;
     }
 
     public void stopScroll() {
-        if (recyclerView != null) {
-            recyclerView.stopScroll();
+        if (mRecyclerView != null) {
+            mRecyclerView.stopScroll();
         }
     }
 
     public void clean() {
-        chatAdapter = null;
-        chatInfo = null;//по нему смотрим делать ли в чате что-то
-        chatId = null;
-        indexPosIdMsgArray.clear();
-        indexPosListUserArray.clear();
-        chatMessageList.clear();
+        mChatAdapter = null;
+        mChatInfo = null;//по нему смотрим делать ли в чате что-то
+        mChatId = null;
+        mIndexPosIdMsgArray.clear();
+        mIndexPosListUserArray.clear();
+        mChatMessageList.clear();
         firstVisibleItem = 0;
         lastVisibleItem = 0;
-        tempUnreadCount = 0;
-        dividersCounter = 0;
-        remDate = 0;
-        imageScrollView = null;
-        recyclerView = null;
+        mTempUnreadCount = 0;
+        mDividersCounter = 0;
+        mRemDate = 0;
+        mImageScrollView = null;
+        mRecyclerView = null;
         //scrollToPos = 0;
-        chatManager = null;
+        sChatManager = null;
     }
 
     private void setVisibilityNoMsges(final int visibility) {
         try {
-            final TextView a_chat_no_msges = (TextView) ((View) recyclerView.getParent()).findViewById(R.id.a_chat_no_msges);
-            if (a_chat_no_msges.getVisibility() != visibility) {
+            final TextView chatNoMsges = (TextView) ((View) mRecyclerView.getParent()).findViewById(R.id.a_chat_no_msges);
+            if (chatNoMsges.getVisibility() != visibility) {
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        a_chat_no_msges.setVisibility(visibility);
+                        chatNoMsges.setVisibility(visibility);
                     }
                 });
             }
@@ -172,19 +183,19 @@ public class ChatManager extends ResultController {
     }
 
     public void cleanHistory() {
-        this.chatOffset = 0;
-        final int size = chatMessageList.size();
+        this.mChatOffset = 0;
+        final int size = mChatMessageList.size();
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                indexNewMsgDeviation.set(0);
-                if (chatInfo.isBot) {
+                mIndexNewMsgDeviation.set(0);
+                if (mChatInfo.isBot) {
                     try {
-                        AbstractChatMsg abstractChatMsg = chatMessageList.get(size - 1);
-                        chatMessageList.clear();
+                        AbstractChatMsg abstractChatMsg = mChatMessageList.get(size - 1);
+                        mChatMessageList.clear();
 
                         if (abstractChatMsg instanceof BotDescriptionMsg) {
-                            chatMessageList.add(abstractChatMsg);
+                            mChatMessageList.add(abstractChatMsg);
                         } else {
                             BotDescriptionMsg botDescription = new BotDescriptionMsg();
                             botDescription.type = AbstractChatMsg.Type.MSG_BOT_DESCRIPTION;
@@ -195,38 +206,27 @@ public class ChatManager extends ResultController {
                                 botDescription.description = new SpannableString("");
                             }
                             botDescription.isFullScreen = true;
-                            chatMessageList.add(botDescription);
+                            mChatMessageList.add(botDescription);
                         }
 
-                        chatAdapter.notifyDataSetChanged();
+                        mChatAdapter.notifyDataSetChanged();
                         notifyObservers(new NotificationObject(NotificationObject.BOT_SHOW_START, null));
-                        dividersCounter = 1;
+                        mDividersCounter = 1;
                     } catch (Exception e) {
                         //
                     }
                 } else {
-                    dividersCounter = 0;
-                    chatMessageList.clear();
-                    chatAdapter.notifyItemRangeRemoved(0, size);
+                    mDividersCounter = 0;
+                    mChatMessageList.clear();
+                    mChatAdapter.notifyItemRangeRemoved(0, size);
                 }
             }
         });
-        isNeedRemoveChat = true;
-        this.indexPosIdMsgArray.clear();
-        this.indexPosListUserArray.clear();
-        if (!chatInfo.isBot)
+        sIsNeedRemoveChat = true;
+        this.mIndexPosIdMsgArray.clear();
+        this.mIndexPosListUserArray.clear();
+        if (!mChatInfo.isBot)
             setVisibilityNoMsges(View.VISIBLE);
-    }
-
-    public static ChatManager getManager() {
-        if (chatManager == null) {
-            synchronized (ChatListManager.class) {
-                if (chatManager == null) {
-                    chatManager = new ChatManager();
-                }
-            }
-        }
-        return chatManager;
     }
 
     public void changeChatPhoto(String file, long chatId) {
@@ -254,14 +254,14 @@ public class ChatManager extends ResultController {
     }
 
     public void readChatHistory() {
-        if (isHaveChatInfo() && chatInfo.tgChatObject.unreadCount != 0) {
-            chatInfo.tgChatObject.unreadCount = 0;
+        if (isHaveChatInfo() && mChatInfo.tgChatObject.unreadCount != 0) {
+            mChatInfo.tgChatObject.unreadCount = 0;
             TdApi.GetChatHistory func = new TdApi.GetChatHistory();
             func.limit = 1;
             func.offset = 0;
-            func.chatId = this.chatId;
-            func.fromId = this.chatFromId;
-            ChatListManager.getManager().readHistory(chatInfo.tgChatObject.id);
+            func.chatId = this.mChatId;
+            func.fromId = this.mChatFromId;
+            ChatListManager.getManager().readHistory(mChatInfo.tgChatObject.id);
             client().send(func, new ResultController() {
                 @Override
                 public void afterResult(TdApi.TLObject object, int calledConstructor) {
@@ -272,11 +272,11 @@ public class ChatManager extends ResultController {
     }
 
     public AbstractChatMsg getChatMsgByPos(int pos) {
-        if (pos < 0 || pos >= chatMessageList.size()) {
+        if (pos < 0 || pos >= mChatMessageList.size()) {
             return null;
         }
-        synchronized (indexPosIdMsgArray) {
-            return chatMessageList.get(pos);
+        synchronized (mIndexPosIdMsgArray) {
+            return mChatMessageList.get(pos);
         }
     }
 
@@ -307,19 +307,19 @@ public class ChatManager extends ResultController {
     }
 
     public void rebuildIndexes() {
-        synchronized (indexPosIdMsgArray) {
+        synchronized (mIndexPosIdMsgArray) {
             if (isHaveChatId()) {
-                indexNewMsgDeviation.set(0);
-                indexPosIdMsgArray.clear();
-                indexPosListUserArray.clear();
+                mIndexNewMsgDeviation.set(0);
+                mIndexPosIdMsgArray.clear();
+                mIndexPosListUserArray.clear();
 
-                for (int i = 0; i < chatMessageList.size(); i++) {
-                    AbstractChatMsg abstractChatMessage = chatMessageList.get(i);
+                for (int i = 0; i < mChatMessageList.size(); i++) {
+                    AbstractChatMsg abstractChatMessage = mChatMessageList.get(i);
                     //info в индекс попадают все сообщения получаемы от телеграмма(без разделитель даты и кол-ва новых сообщений и информации о боте)
                     if (abstractChatMessage != null && abstractChatMessage.tgMessage != null) {
                         if (abstractChatMessage instanceof AbstractMainMsg) {
                             AbstractMainMsg chatMessage = (AbstractMainMsg) abstractChatMessage;
-                            indexPosIdMsgArray.put(chatMessage.tgMessage.id, i);
+                            mIndexPosIdMsgArray.put(chatMessage.tgMessage.id, i);
                             addToIndexPosListUserArray(chatMessage.tgMessage.fromId, i);
                         }
                     }
@@ -329,7 +329,7 @@ public class ChatManager extends ResultController {
     }
 
     public synchronized void deleteMessageFromChat(int msg[], long cid) {
-        if (isHaveChatId() && cid == chatId) {
+        if (isHaveChatId() && cid == mChatId) {
             try {
                 for (int i = 0; i < msg.length; i++) {
                     int id = msg[i];
@@ -341,10 +341,9 @@ public class ChatManager extends ResultController {
                             @Override
                             public void run() {
                                 if (isHaveChatId()) {
-                                    // FIXME:  java.lang.IndexOutOfBoundsException: Invalid index 8, size is 6
                                     try {
-                                        chatMessageList.remove((int) pos);
-                                        chatAdapter.notifyItemRemoved(pos);
+                                        mChatMessageList.remove((int) pos);
+                                        mChatAdapter.notifyItemRemoved(pos);
                                     } catch (Exception e) {
                                         Log.e(LOG, "deleteMessageFromChat", e);
                                         Crashlytics.logException(e);
@@ -358,17 +357,17 @@ public class ChatManager extends ResultController {
                         //первый
                         if (pos == 0) {
                             //смотрим только на верхний элемент(pos верный)
-                            if (chatMessageList.size() > 0) {
-                                AbstractChatMsg.Type type = chatMessageList.get(pos).type;
+                            if (mChatMessageList.size() > 0) {
+                                AbstractChatMsg.Type type = mChatMessageList.get(pos).type;
                                 if (type == AbstractChatMsg.Type.DATE_DIVIDER || type == AbstractChatMsg.Type.NEW_MSG_DIVIDER) {
-                                    dividersCounter--;
+                                    mDividersCounter--;
                                     final CountDownLatch deleteLatchTwo = new CountDownLatch(1);
                                     AndroidUtil.runInUI(new Runnable() {
                                         @Override
                                         public void run() {
                                             if (isHaveChatId()) {
-                                                chatMessageList.remove((int) pos);
-                                                chatAdapter.notifyItemRemoved(pos);
+                                                mChatMessageList.remove((int) pos);
+                                                mChatAdapter.notifyItemRemoved(pos);
                                                 deleteLatchTwo.countDown();
                                             }
                                         }
@@ -376,15 +375,15 @@ public class ChatManager extends ResultController {
                                     deleteLatchTwo.await();
                                     //выше даты может быть разделитель новых сообщений
                                     try {
-                                        if (chatMessageList.get(pos).type == AbstractChatMsg.Type.NEW_MSG_DIVIDER) {
-                                            dividersCounter--;
+                                        if (mChatMessageList.get(pos).type == AbstractChatMsg.Type.NEW_MSG_DIVIDER) {
+                                            mDividersCounter--;
                                             final CountDownLatch deleteLatchThree = new CountDownLatch(1);
                                             AndroidUtil.runInUI(new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     if (isHaveChatId()) {
-                                                        chatMessageList.remove((int) pos);
-                                                        chatAdapter.notifyItemRemoved(pos);
+                                                        mChatMessageList.remove((int) pos);
+                                                        mChatAdapter.notifyItemRemoved(pos);
                                                         deleteLatchThree.countDown();
                                                     }
                                                 }
@@ -396,34 +395,33 @@ public class ChatManager extends ResultController {
                                     }
                                 }
                                 //сменить в списке чатов
-                                if (chatMessageList.size() != 0) {
+                                if (mChatMessageList.size() != 0) {
                                     //todo внутри тоже сделать countDown??
-                                    //Logs.e(chatMessageList.size());
-                                    ChatListManager.getManager().justUpdateChat(chatId, chatMessageList.get(0).tgMessage);
+                                    //Logs.e(mChatMessageList.size());
+                                    ChatListManager.getManager().justUpdateChat(mChatId, mChatMessageList.get(0).tgMessage);
                                 }
                             }
 
                         } else {
                             //последний
-                            if (pos == chatMessageList.size() - 1) {
+                            if (pos == mChatMessageList.size() - 1) {
                                 //не может быть последняя всегда дата
                             } else {
                                 //в серединке
                                 //смотрим выше, не дата ли стоит(тут именно pos тк сообщение мы удалили раньше)
-                                //fixme java.lang.IndexOutOfBoundsException: Invalid index 3, size is 3
-                                if (chatMessageList.size() > 0) {
-                                    if (chatMessageList.get(pos).type == AbstractChatMsg.Type.DATE_DIVIDER) {
+                                if (mChatMessageList.size() > 0) {
+                                    if (mChatMessageList.get(pos).type == AbstractChatMsg.Type.DATE_DIVIDER) {
                                         //смотрим ниже
-                                        if (chatMessageList.get(pos - 1).type == AbstractChatMsg.Type.DATE_DIVIDER) {
+                                        if (mChatMessageList.get(pos - 1).type == AbstractChatMsg.Type.DATE_DIVIDER) {
                                             //сверху и с низу сообщения даты, удаляем верхнюю дату
-                                            dividersCounter--;
+                                            mDividersCounter--;
                                             final CountDownLatch deleteLatchFour = new CountDownLatch(1);
                                             AndroidUtil.runInUI(new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     if (isHaveChatId()) {
-                                                        chatMessageList.remove(pos - 1);
-                                                        chatAdapter.notifyItemRemoved(pos - 1);
+                                                        mChatMessageList.remove(pos - 1);
+                                                        mChatAdapter.notifyItemRemoved(pos - 1);
                                                         deleteLatchFour.countDown();
                                                     }
                                                 }
@@ -440,13 +438,13 @@ public class ChatManager extends ResultController {
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        if (chatMessageList.size() == 0) {
-                            isNeedRemoveChat = true;
+                        if (mChatMessageList.size() == 0) {
+                            sIsNeedRemoveChat = true;
                             setVisibilityNoMsges(View.VISIBLE);
                         }
 
-                        if (chatInfo.isBot && chatMessageList.size() == 1) {
-                            isNeedRemoveChat = true;
+                        if (mChatInfo.isBot && mChatMessageList.size() == 1) {
+                            sIsNeedRemoveChat = true;
                             notifyObservers(new NotificationObject(NotificationObject.BOT_SHOW_START, null));
                         }
                     }
@@ -462,14 +460,14 @@ public class ChatManager extends ResultController {
 
     public void deleteChatHistory() {
         TdApi.DeleteChatHistory func = new TdApi.DeleteChatHistory();
-        func.chatId = chatId;
+        func.chatId = mChatId;
         client().send(func, getManager());
     }
 
     public void deleteChatParticipant() {
         TdApi.DeleteChatParticipant func = new TdApi.DeleteChatParticipant();
-        func.chatId = chatId;
-        func.userId = chatFromId;
+        func.chatId = mChatId;
+        func.userId = mChatFromId;
         client().send(func, getManager());
     }
 
@@ -482,13 +480,13 @@ public class ChatManager extends ResultController {
 
     public void deleteAndLeaveSelf(final ResultController after) {
         TdApi.DeleteChatHistory func = new TdApi.DeleteChatHistory();
-        func.chatId = chatId;
+        func.chatId = mChatId;
         client().send(func, new ResultController() {
             @Override
             public void afterResult(TdApi.TLObject object, int calledConstructor) {
                 TdApi.DeleteChatParticipant func = new TdApi.DeleteChatParticipant();
-                func.chatId = chatId;
-                func.userId = chatFromId;
+                func.chatId = mChatId;
+                func.userId = mChatFromId;
                 client().send(func, after);
             }
         });
@@ -497,7 +495,7 @@ public class ChatManager extends ResultController {
     public void sendMessage(TdApi.InputMessageContent messageContent) {
         readChatHistory();
         TdApi.SendMessage func = new TdApi.SendMessage();
-        func.chatId = chatId;
+        func.chatId = mChatId;
         func.message = messageContent;
         client().send(func, getManager());
     }
@@ -540,16 +538,16 @@ public class ChatManager extends ResultController {
 
     public TdApi.InputMessageContent createForwardMsg(int msgId) {
         TdApi.InputMessageForwarded messageForwarded = new TdApi.InputMessageForwarded();
-        messageForwarded.fromChatId = chatId;
+        messageForwarded.fromChatId = mChatId;
         messageForwarded.messageId = msgId;
         return messageForwarded;
     }
 
     public void forwardMessages(int msgId[], long fromChatId) {
-        //Logs.e(msgId + " " + fromChatId + " " + chatId);
+        //Logs.e(msgId + " " + fromChatId + " " + mChatId);
         TdApi.ForwardMessages forwardMessages = new TdApi.ForwardMessages();
         forwardMessages.fromChatId = fromChatId;
-        forwardMessages.chatId = chatId;
+        forwardMessages.chatId = mChatId;
         forwardMessages.messageIds = msgId;
         client().send(forwardMessages, new ResultController() {
             @Override
@@ -582,7 +580,7 @@ public class ChatManager extends ResultController {
                         try {
                             if (ChatManager.isHaveChatInfo()) {
                                 Integer pos = chatManager.getRealPos(chatMessage.tgMessage.id);
-                                AbstractChatMsg message = chatMessageList.get(pos);
+                                AbstractChatMsg message = mChatMessageList.get(pos);
                                 if (message != null) {
                                     ChatManager manager = ChatManager.getManager();
                                     if (which == 0) {
@@ -608,35 +606,35 @@ public class ChatManager extends ResultController {
     }
 
     public void initRecycleView(final Context context, Boolean isLeave) {
-        recyclerView = (SimpleRecyclerView) ((Activity) context).findViewById(R.id.a_chat_recycler_view);
-        recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        gridLayoutManager = new LinearLayoutManager(context);
-        gridLayoutManager.setReverseLayout(true);
-        recyclerView.setLayoutManager(gridLayoutManager);
+        mRecyclerView = (SimpleRecyclerView) ((Activity) context).findViewById(R.id.a_chat_recycler_view);
+        mRecyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        mGridLayoutManager = new LinearLayoutManager(context);
+        mGridLayoutManager.setReverseLayout(true);
+        mRecyclerView.setLayoutManager(mGridLayoutManager);
 
-        imageScrollView = (ImageView) ((Activity) context).findViewById(R.id.a_chat_ic_scroll);
+        mImageScrollView = (ImageView) ((Activity) context).findViewById(R.id.a_chat_ic_scroll);
 
         if (isLeave != null && isLeave) {
-            ((RelativeLayout.LayoutParams) imageScrollView.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            ((RelativeLayout.LayoutParams) mImageScrollView.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         }
 
-        imageScrollView.setOnClickListener(new View.OnClickListener() {
+        mImageScrollView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerView.scrollToPosition(0);
-                checkImageScroll(imageScrollView, 0);
+                mRecyclerView.scrollToPosition(0);
+                checkImageScroll(mImageScrollView, 0);
             }
         });
 
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(context, recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(context, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 if (view instanceof PhotoMsgView) {
                     try {
-                        PhotoMsg chatMessage = (PhotoMsg) chatMessageList.get(position);
+                        PhotoMsg chatMessage = (PhotoMsg) mChatMessageList.get(position);
                         TdApi.MessagePhoto messagePhoto = (TdApi.MessagePhoto) chatMessage.tgMessage.message;
                         TdApi.PhotoSize photoSize = messagePhoto.photo.photos[chatMessage.photoIndex];
-                        if (FileUtils.isTDFileLocal(photoSize.photo)) {
+                        if (FileUtil.isTDFileLocal(photoSize.photo)) {
                             Intent intent = new Intent(context, PhotoActivity.class);
                             intent.putExtra("filePath", photoSize.photo.path);
                             intent.putExtra("imageView", true);
@@ -652,9 +650,8 @@ public class ChatManager extends ResultController {
 
             @Override
             public void onItemLongClick(View view, int position) {
-                //fixme    java.lang.IndexOutOfBoundsException: Invalid index 0, size is 0
                 try {
-                    AbstractChatMsg abstractChatMessage = chatMessageList.get(position);
+                    AbstractChatMsg abstractChatMessage = mChatMessageList.get(position);
                     if (abstractChatMessage instanceof AbstractMainMsg) {
                         AbstractMainMsg chatMessage = (AbstractMainMsg) abstractChatMessage;
                         if (AbstractChatMsg.Type.isUserMsg(chatMessage.type) && chatMessage.msgIcon != OutputMsgIconType.NOT_SEND) {
@@ -668,12 +665,12 @@ public class ChatManager extends ResultController {
             }
         }));
 
-        //recyclerView.scrollToPosition(scrollToPos);
+        //mRecyclerView.scrollToPosition(scrollToPos);
 
-        chatAdapter = new ChatAdapter(getChatMessageList(), context);
-        recyclerView.setAdapter(chatAdapter);
+        mChatAdapter = new ChatAdapter(getChatMessageList(), context);
+        mRecyclerView.setAdapter(mChatAdapter);
 
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             int visibleItemCount;
             int totalItemCount;
             boolean isOnce = false;
@@ -685,7 +682,7 @@ public class ChatManager extends ResultController {
                     case RecyclerView.SCROLL_STATE_DRAGGING:
                         break;
                     case RecyclerView.SCROLL_STATE_IDLE:
-                        FileManager.canDownloadFile = true;
+                        FileManager.sCanDownloadFile = true;
                         FileManager.getManager().tryToLoad(firstVisibleItem, lastVisibleItem);
                         break;
                     case RecyclerView.SCROLL_STATE_SETTLING:
@@ -700,29 +697,29 @@ public class ChatManager extends ResultController {
 
                 if (absDy > 30) {
                     isOnce = true;
-                    FileManager.canDownloadFile = false;
+                    FileManager.sCanDownloadFile = false;
                 } else {
-                    FileManager.canDownloadFile = true;
+                    FileManager.sCanDownloadFile = true;
                 }
 
-                firstVisibleItem = gridLayoutManager.findFirstVisibleItemPosition();
-                lastVisibleItem = gridLayoutManager.findLastVisibleItemPosition();
+                firstVisibleItem = mGridLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = mGridLayoutManager.findLastVisibleItemPosition();
 
-                if (needDownloadMore) {
-                    visibleItemCount = gridLayoutManager.getChildCount();
-                    totalItemCount = gridLayoutManager.getItemCount();
+                if (mNeedDownloadMore) {
+                    visibleItemCount = mGridLayoutManager.getChildCount();
+                    totalItemCount = mGridLayoutManager.getItemCount();
                     if ((visibleItemCount + firstVisibleItem) >= totalItemCount * 0.8) {
-                        needDownloadMore = false;
+                        mNeedDownloadMore = false;
                         getChat(false);
                     }
                 }
 
-                if (FileManager.canDownloadFile && isOnce) {
+                if (FileManager.sCanDownloadFile && isOnce) {
                     isOnce = false;
                     //FileManager.getManager().tryToLoad(firstVisibleItem, lastVisibleItem);
                 }
 
-                checkImageScroll(imageScrollView, firstVisibleItem);
+                checkImageScroll(mImageScrollView, firstVisibleItem);
             }
         });
     }
@@ -750,42 +747,42 @@ public class ChatManager extends ResultController {
     }
 
     public List<AbstractChatMsg> getChatMessageList() {
-        return chatMessageList;
+        return mChatMessageList;
     }
 
     public void getChat(int offset, long chatId, ChatInfo currChatInfo, boolean isFirstGetChat, boolean... isNotSendRequest) {
-        this.chatOffset = offset;
-        this.chatId = chatId;
-        this.chatFromId = UserManager.getManager().getCurrUserId();
-        this.chatInfo = currChatInfo;
-        this.tempUnreadCount = currChatInfo.tgChatObject != null ? currChatInfo.tgChatObject.unreadCount : 0;
+        this.mChatOffset = offset;
+        this.mChatId = chatId;
+        this.mChatFromId = UserManager.getManager().getCurrUserId();
+        this.mChatInfo = currChatInfo;
+        this.mTempUnreadCount = currChatInfo.tgChatObject != null ? currChatInfo.tgChatObject.unreadCount : 0;
         getChat(isFirstGetChat, isNotSendRequest);
     }
 
     public void getChat(boolean isFirstGetChat, boolean... isNotSendRequest) {
-        if (chatOffset != null && this.chatId != null) {
-            this.isFirstGetChat = isFirstGetChat;
+        if (mChatOffset != null && this.mChatId != null) {
+            this.mIsFirstGetChat = isFirstGetChat;
             TdApi.GetChatHistory func = new TdApi.GetChatHistory();
-            if (this.isFirstGetChat) {
+            if (this.mIsFirstGetChat) {
                 func.limit = AndroidUtil.WINDOW_PORTRAIT_HEIGHT / AbstractMsgView.MIN_MSG_HEIGHT + 5;
             } else {
-                func.limit = chatLimit;
+                func.limit = mChatLimit;
             }
 
-            func.offset = this.chatOffset;
-            func.chatId = this.chatId;
-            func.fromId = this.chatFromId;
+            func.offset = this.mChatOffset;
+            func.chatId = this.mChatId;
+            func.fromId = this.mChatFromId;
 
             if (func.offset == 0) {
-                this.remDate = 0;
-                this.chatMessageList.clear();
-                this.indexPosIdMsgArray.clear();
-                this.indexPosListUserArray.clear();
-                this.indexNewMsgDeviation.set(0);
+                this.mRemDate = 0;
+                this.mChatMessageList.clear();
+                this.mIndexPosIdMsgArray.clear();
+                this.mIndexPosListUserArray.clear();
+                this.mIndexNewMsgDeviation.set(0);
             }
 
             if (isNotSendRequest.length == 0 || !isNotSendRequest[0]) {
-                chatAdapter.setLoadingData();
+                mChatAdapter.setLoadingData();
                 client().send(func, getManager());
             }
         }
@@ -800,7 +797,7 @@ public class ChatManager extends ResultController {
     public Integer getRealPos(int messageId) {
         Integer pos = getIndexPosIdByMsgId(messageId);
         if (pos != null) {
-            int dev = indexNewMsgDeviation.get();
+            int dev = mIndexNewMsgDeviation.get();
             return pos + dev * (-1);
         }
         return null;
@@ -810,8 +807,8 @@ public class ChatManager extends ResultController {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                if (isHaveChatId() && chatMessageList.size() > pos && chatAdapter != null) {
-                    chatAdapter.notifyItemChanged(pos);
+                if (isHaveChatId() && mChatMessageList.size() > pos && mChatAdapter != null) {
+                    mChatAdapter.notifyItemChanged(pos);
                 }
             }
         });
@@ -821,21 +818,14 @@ public class ChatManager extends ResultController {
         if (updateMessageId != null && isSameChatId(updateMessageId.chatId)) {
             final Integer realPos = getRealPos(updateMessageId.oldId);
             if (realPos != null) {
-                //fixme java.lang.ClassCastException: com.stayfprod.utter.model.chat.DateDivider cannot be cast to com.stayfprod.utter.model.chat.AbstractMainMsg
-                //происходит после добавления бота в группу где последнее сообщение разделитель
-               /* for (int i = 0; i < chatMessageList.size(); i++) {
-                    AbstractChatMsg msg = chatMessageList.get(i);
-                    Logs.e(msg.type + " " + msg.tgMessage + " == UpdateMessageId=" + updateMessageId);
-                }*/
-
-                final AbstractMainMsg message = (AbstractMainMsg) chatMessageList.get(realPos);
+                final AbstractMainMsg message = (AbstractMainMsg) mChatMessageList.get(realPos);
                 message.tgMessage.id = updateMessageId.newId;
 
-                int notRealPos = realPos - indexNewMsgDeviation.get() * (-1);
+                int notRealPos = realPos - mIndexNewMsgDeviation.get() * (-1);
                 //индексируем по новому Id
                 addToIndexPosIdMsgArray(updateMessageId.newId, notRealPos);
 
-                message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(chatInfo.tgChatObject, updateMessageId.newId);
+                message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(mChatInfo.tgChatObject, updateMessageId.newId);
                 AbstractMsgView.measureByOrientation(message);
                 notifyItemChangedByPosUI(realPos);
             }
@@ -846,7 +836,7 @@ public class ChatManager extends ResultController {
         if (updateMessageDate != null && isSameChatId(updateMessageDate.chatId)) {
             final Integer realPos = getRealPos(updateMessageDate.messageId);
             if (realPos != null) {
-                final AbstractMainMsg message = (AbstractMainMsg) chatMessageList.get(realPos);
+                final AbstractMainMsg message = (AbstractMainMsg) mChatMessageList.get(realPos);
                 message.tgMessage.date = updateMessageDate.newDate;
                 message.date = generateDate(updateMessageDate.newDate);
                 AbstractMsgView.measureByOrientation(message);
@@ -861,19 +851,19 @@ public class ChatManager extends ResultController {
             if (chatReadOutbox.lastReadOutboxMessageId == 0) {
                 return;
             }
-            int dif = (chatReadOutbox.lastReadOutboxMessageId - chatInfo.tgChatObject.lastReadOutboxMessageId);
-            chatInfo.tgChatObject.lastReadOutboxMessageId = chatReadOutbox.lastReadOutboxMessageId;
+            int dif = (chatReadOutbox.lastReadOutboxMessageId - mChatInfo.tgChatObject.lastReadOutboxMessageId);
+            mChatInfo.tgChatObject.lastReadOutboxMessageId = chatReadOutbox.lastReadOutboxMessageId;
             try {
-                if (dif >= chatMessageList.size()) {
-                    dif = chatMessageList.size() - 1;
+                if (dif >= mChatMessageList.size()) {
+                    dif = mChatMessageList.size() - 1;
                 }
                 for (int i = 0; i < dif; i++) {
                     //todo небольшая оптимизация msgIcon у всех будет одинаковый + не оябзательно пробегаться по всем
-                    AbstractChatMsg abstractChatMsg = chatMessageList.get(i);
+                    AbstractChatMsg abstractChatMsg = mChatMessageList.get(i);
                     if (abstractChatMsg != null) {
                         if (abstractChatMsg instanceof AbstractMainMsg) {
                             AbstractMainMsg message = (AbstractMainMsg) abstractChatMsg;
-                            message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(chatInfo.tgChatObject, message.tgMessage.id);
+                            message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(mChatInfo.tgChatObject, message.tgMessage.id);
                         }
                     }
                 }
@@ -888,18 +878,18 @@ public class ChatManager extends ResultController {
     public void updateChatReadInbox(TdApi.UpdateChatReadInbox chatReadInbox) {
         if (chatReadInbox != null && isSameChatId(chatReadInbox.chatId)) {
 
-            int dif = (chatReadInbox.lastReadInboxMessageId - chatInfo.tgChatObject.lastReadInboxMessageId);
-            chatInfo.tgChatObject.lastReadInboxMessageId = chatReadInbox.lastReadInboxMessageId;
+            int dif = (chatReadInbox.lastReadInboxMessageId - mChatInfo.tgChatObject.lastReadInboxMessageId);
+            mChatInfo.tgChatObject.lastReadInboxMessageId = chatReadInbox.lastReadInboxMessageId;
             //todo BUGG протестить
-            if (chatInfo.tgChatObject.lastReadInboxMessageId != 0
-                    && chatInfo.tgChatObject.lastReadOutboxMessageId != 0
-                    && chatInfo.tgChatObject.lastReadInboxMessageId >= chatInfo.tgChatObject.lastReadOutboxMessageId) {
-                chatInfo.tgChatObject.unreadCount = chatInfo.tgChatObject.lastReadInboxMessageId - chatInfo.tgChatObject.lastReadOutboxMessageId;
+            if (mChatInfo.tgChatObject.lastReadInboxMessageId != 0
+                    && mChatInfo.tgChatObject.lastReadOutboxMessageId != 0
+                    && mChatInfo.tgChatObject.lastReadInboxMessageId >= mChatInfo.tgChatObject.lastReadOutboxMessageId) {
+                mChatInfo.tgChatObject.unreadCount = mChatInfo.tgChatObject.lastReadInboxMessageId - mChatInfo.tgChatObject.lastReadOutboxMessageId;
             } else {
-                if (chatInfo.tgChatObject.lastReadInboxMessageId == 0 || chatInfo.tgChatObject.lastReadOutboxMessageId == 0) {
+                if (mChatInfo.tgChatObject.lastReadInboxMessageId == 0 || mChatInfo.tgChatObject.lastReadOutboxMessageId == 0) {
 
                 } else {
-                    chatInfo.tgChatObject.unreadCount = chatReadInbox.unreadCount;
+                    mChatInfo.tgChatObject.unreadCount = chatReadInbox.unreadCount;
                     dif = chatReadInbox.unreadCount;
                 }
             }
@@ -908,16 +898,16 @@ public class ChatManager extends ResultController {
                 return;
             }
             try {
-                if (dif >= chatMessageList.size()) {
-                    dif = chatMessageList.size() - 1;
+                if (dif >= mChatMessageList.size()) {
+                    dif = mChatMessageList.size() - 1;
                 }
 
                 for (int i = 0; i < dif; i++) {
-                    AbstractChatMsg abstractChatMsg = chatMessageList.get(i);
+                    AbstractChatMsg abstractChatMsg = mChatMessageList.get(i);
                     if (abstractChatMsg != null) {
                         if (abstractChatMsg instanceof AbstractMainMsg) {
                             AbstractMainMsg message = (AbstractMainMsg) abstractChatMsg;
-                            message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(chatInfo.tgChatObject, message.tgMessage.id);
+                            message.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(mChatInfo.tgChatObject, message.tgMessage.id);
                         }
                     }
                 }
@@ -930,26 +920,26 @@ public class ChatManager extends ResultController {
     }
 
     public void addToIndexPosIdMsgArray(int msgId, int pos) {
-        synchronized (this.indexPosIdMsgArray) {
-            this.indexPosIdMsgArray.put(msgId, pos);
+        synchronized (this.mIndexPosIdMsgArray) {
+            this.mIndexPosIdMsgArray.put(msgId, pos);
         }
     }
 
     public void addToIndexPosListUserArray(int userId, int pos) {
-        synchronized (indexPosListUserArray) {
-            List<Integer> posList = indexPosListUserArray.get(userId);
+        synchronized (mIndexPosListUserArray) {
+            List<Integer> posList = mIndexPosListUserArray.get(userId);
             if (posList == null) {
                 posList = new ArrayList<Integer>();
             }
             posList.add(pos);
-            indexPosListUserArray.put(userId, posList);
+            mIndexPosListUserArray.put(userId, posList);
         }
     }
 
     public Integer getIndexPosIdByMsgId(int msgId) {
-        synchronized (indexPosIdMsgArray) {
-            if (indexPosIdMsgArray.indexOfKey(msgId) >= 0) {
-                return indexPosIdMsgArray.get(msgId);
+        synchronized (mIndexPosIdMsgArray) {
+            if (mIndexPosIdMsgArray.indexOfKey(msgId) >= 0) {
+                return mIndexPosIdMsgArray.get(msgId);
             } else {
                 return null;
             }
@@ -957,8 +947,8 @@ public class ChatManager extends ResultController {
     }
 
     public List<Integer> getIndexPosListByUserId(int userId) {
-        synchronized (this.indexPosListUserArray) {
-            return this.indexPosListUserArray.get(userId);
+        synchronized (this.mIndexPosListUserArray) {
+            return this.mIndexPosListUserArray.get(userId);
         }
     }
 
@@ -967,8 +957,8 @@ public class ChatManager extends ResultController {
     }
 
     public void notifySetDataChanged() {
-        if (isHaveChatId() && chatAdapter != null)
-            chatAdapter.notifyDataSetChanged();
+        if (isHaveChatId() && mChatAdapter != null)
+            mChatAdapter.notifyDataSetChanged();
     }
 
     public void notifySetDataChangedAsync() {
@@ -982,7 +972,7 @@ public class ChatManager extends ResultController {
 
     public void changeChatTitle(String chatName, final ResultController resultController) {
         TdApi.ChangeChatTitle changeChatTitle = new TdApi.ChangeChatTitle();
-        changeChatTitle.chatId = chatId;
+        changeChatTitle.chatId = mChatId;
         changeChatTitle.title = chatName;
         client().send(changeChatTitle, resultController);
     }
@@ -992,7 +982,7 @@ public class ChatManager extends ResultController {
             if (i == inputPos) {
                 continue;
             }
-            View view = gridLayoutManager.findViewByPosition(i);
+            View view = mGridLayoutManager.findViewByPosition(i);
             if (view instanceof AbstractMsgView) {
 
                 AbstractMsgView abstractMsgView = (AbstractMsgView) view;
@@ -1037,7 +1027,7 @@ public class ChatManager extends ResultController {
             //chatMessage.tgMessage = message;
             UserManager userManager = UserManager.getManager();
             chatMessage.cachedUser = userManager.getUserByIdWithRequestAsync(message.fromId);
-            chatMessage.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(chatInfo.tgChatObject, message.id);
+            chatMessage.msgIcon = ChatHelper.getTypeOfOutputMsgIcon(mChatInfo.tgChatObject, message.id);
             chatMessage.isForward = !(message.forwardFromId <= 0);
 
             if (chatMessage.isForward) {
@@ -1222,7 +1212,6 @@ public class ChatManager extends ResultController {
                 chatMessage.type = AbstractChatMsg.Type.SYSTEM_MSG;
                 //info Сообщения о вступлении в группу по ссылке теперь являются отдельным типом сообщений.
 
-                //fixme NullPointerException
                 try {
                     CachedUser inviter = userManager.getUserByIdWithRequestAsync(messageChatJoinByLink.inviterId);
                     CachedUser who = userManager.getUserByIdWithRequestAsync(chatMessage.tgMessage.fromId);
@@ -1298,7 +1287,6 @@ public class ChatManager extends ResultController {
                             chatAddParticipant.user.firstName + " " + chatAddParticipant.user.lastName);
 
                 UserManager.getManager().insertUserInCache(chatAddParticipant.user);
-                //UserManager.getManager().getUser(chatAddParticipant.user.id);
                 break;
             }
             case TdApi.MessageChatDeleteParticipant.CONSTRUCTOR: {
@@ -1376,7 +1364,7 @@ public class ChatManager extends ResultController {
         if (isHaveChatId()) {
             final Integer pos = getRealPos(mc.messageId);
             if (pos != null) {
-                final AbstractChatMsg chatMessage = chatMessageList.get(pos);
+                final AbstractChatMsg chatMessage = mChatMessageList.get(pos);
                 /*if (chatMessage instanceof PhotoMsg) {
                     PhotoMsg photoMsg = (PhotoMsg) chatMessage;
                     TdApi.MessagePhoto messagePhoto = ((TdApi.MessagePhoto) photoMsg.tgMessage.message);
@@ -1392,23 +1380,23 @@ public class ChatManager extends ResultController {
     public synchronized void addMyMsg(final TdApi.Message message) {
         if (message != null && isSameChatId(message.chatId)) {
             setVisibilityNoMsges(View.GONE);
-            isNeedRemoveChat = false;
+            sIsNeedRemoveChat = false;
 
             final DateDivider dateDivider;
             TdApi.Message tgMessage = null;
-            if (!chatMessageList.isEmpty()) {
-                tgMessage = chatMessageList.get(0).tgMessage;
+            if (!mChatMessageList.isEmpty()) {
+                tgMessage = mChatMessageList.get(0).tgMessage;
             }
 
-            if (chatMessageList.isEmpty() || tgMessage == null || DateUtil.isDifDates(tgMessage.date, message.date)) {
+            if (mChatMessageList.isEmpty() || tgMessage == null || DateUtil.isDifDates(tgMessage.date, message.date)) {
                 dateDivider = new DateDivider();
                 dateDivider.type = AbstractChatMsg.Type.DATE_DIVIDER;
                 dateDivider.date_divider = DateUtil.getDateForChat(message.date, DateUtil.DateType.CHAT_SEPARATOR);
-                indexNewMsgDeviation.decrementAndGet();
+                mIndexNewMsgDeviation.decrementAndGet();
             } else dateDivider = null;
-            this.chatOffset += 1;
+            this.mChatOffset += 1;
 
-            final AbstractChatMsg newChatMessage = handleMsg(message, indexNewMsgDeviation.decrementAndGet());
+            final AbstractChatMsg newChatMessage = handleMsg(message, mIndexNewMsgDeviation.decrementAndGet());
 
             final CountDownLatch countDownLatch = new CountDownLatch(1);
             AndroidUtil.runInUI(new Runnable() {
@@ -1416,18 +1404,17 @@ public class ChatManager extends ResultController {
                 public void run() {
                     if (isHaveChatId()) {
                         if (dateDivider != null) {
-                            chatMessageList.add(0, dateDivider);
-                            chatMessageList.add(0, newChatMessage);
-                            chatAdapter.notifyItemRangeInserted(0, 2);
+                            mChatMessageList.add(0, dateDivider);
+                            mChatMessageList.add(0, newChatMessage);
+                            mChatAdapter.notifyItemRangeInserted(0, 2);
                         } else {
-                            chatMessageList.add(0, newChatMessage);
-                            chatAdapter.notifyItemInserted(0);
+                            mChatMessageList.add(0, newChatMessage);
+                            mChatAdapter.notifyItemInserted(0);
                         }
-                        //int firstPos = gridLayoutManager.findFirstVisibleItemPosition();
 
                         if (firstVisibleItem <= 1) {
-                            recyclerView.scrollToPosition(0);
-                            checkImageScroll(imageScrollView, 0);
+                            mRecyclerView.scrollToPosition(0);
+                            checkImageScroll(mImageScrollView, 0);
                         }
                     }
                     countDownLatch.countDown();
@@ -1443,9 +1430,9 @@ public class ChatManager extends ResultController {
 
     public boolean addReceivedMsg(final TdApi.Message message) {
         boolean returned = true;
-        if (this.chatInfo != null) {
+        if (this.mChatInfo != null) {
             returned = false;
-            this.chatInfo.tgChatObject.unreadCount++;
+            this.mChatInfo.tgChatObject.unreadCount++;
             addMyMsg(message);
         }
         return returned;
@@ -1457,7 +1444,7 @@ public class ChatManager extends ResultController {
     }
 
     public boolean isEmptyMessageList() {
-        return chatMessageList.size() == 0;
+        return mChatMessageList.size() == 0;
     }
 
     @Override
@@ -1469,7 +1456,7 @@ public class ChatManager extends ResultController {
                     cleanHistory();
                 }
                 if (TdApi.DeleteChatParticipant.CONSTRUCTOR == calledConstructor) {
-                    TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
+                    TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) mChatInfo.tgChatObject.type;
                     groupChatInfo.groupChat.left = true;
                     notifyObservers(new NotificationObject(NotificationObject.LEFT_CHAT, null));
                 }
@@ -1483,51 +1470,51 @@ public class ChatManager extends ResultController {
             }
             case TdApi.Messages.CONSTRUCTOR: {
 
-                final int remChatOffset = this.chatOffset;
+                final int remChatOffset = this.mChatOffset;
                 final TdApi.Messages messages = (TdApi.Messages) object;
-                needDownloadMore = messages.messages.length != 0;
-                this.chatOffset += messages.messages.length;
+                mNeedDownloadMore = messages.messages.length != 0;
+                this.mChatOffset += messages.messages.length;
                 final List<AbstractChatMsg> tempMessageList = new ArrayList<>(50);
                 int counterNewDividers = 0;
 
                 for (int i = 0; i < messages.messages.length; i++) {
                     TdApi.Message message = messages.messages[i];
 
-                    if (remDate != 0 && DateUtil.isDifDates(remDate, message.date)) {
+                    if (mRemDate != 0 && DateUtil.isDifDates(mRemDate, message.date)) {
                         DateDivider dateDivider = new DateDivider();
                         dateDivider.type = AbstractChatMsg.Type.DATE_DIVIDER;
-                        dateDivider.date_divider = DateUtil.getDateForChat(remDate, DateUtil.DateType.CHAT_SEPARATOR);
+                        dateDivider.date_divider = DateUtil.getDateForChat(mRemDate, DateUtil.DateType.CHAT_SEPARATOR);
                         tempMessageList.add(dateDivider);
-                        dividersCounter++;
+                        mDividersCounter++;
                         counterNewDividers++;
                     }
 
-                    if (tempUnreadCount > 5 && ((remChatOffset + i) == tempUnreadCount)) {
+                    if (mTempUnreadCount > 5 && ((remChatOffset + i) == mTempUnreadCount)) {
                         MsgDivider msgDivider = new MsgDivider();
                         msgDivider.type = AbstractChatMsg.Type.NEW_MSG_DIVIDER;
-                        msgDivider.msg_divider = tempUnreadCount + AndroidUtil.getResourceString(R.string._new_messages);
+                        msgDivider.msg_divider = mTempUnreadCount + AndroidUtil.getResourceString(R.string._new_messages);
                         tempMessageList.add(msgDivider);
-                        dividersCounter++;
+                        mDividersCounter++;
                         counterNewDividers++;
                     }
 
-                    remDate = message.date;
-                    tempMessageList.add(handleMsg(message, remChatOffset + i + dividersCounter));
+                    mRemDate = message.date;
+                    tempMessageList.add(handleMsg(message, remChatOffset + i + mDividersCounter));
                 }
 
                 //последнее сообщение в чате ставим дату
-                if (messages.messages.length == 0 && remDate != 0) {
+                if (messages.messages.length == 0 && mRemDate != 0) {
                     DateDivider dateDivider = new DateDivider();
                     dateDivider.type = AbstractChatMsg.Type.DATE_DIVIDER;
-                    dateDivider.date_divider = DateUtil.getDateForChat(remDate, DateUtil.DateType.CHAT_SEPARATOR);
+                    dateDivider.date_divider = DateUtil.getDateForChat(mRemDate, DateUtil.DateType.CHAT_SEPARATOR);
                     tempMessageList.add(dateDivider);
-                    dividersCounter++;
+                    mDividersCounter++;
                     counterNewDividers++;
-                    remDate = 0;
+                    mRemDate = 0;
                 }
 
                 //если бот то самое последние сообщение - инфа о нем
-                if (chatInfo != null && chatInfo.isBot && messages.messages.length == 0) {
+                if (mChatInfo != null && mChatInfo.isBot && messages.messages.length == 0) {
                     BotDescriptionMsg botDescription = new BotDescriptionMsg();
                     botDescription.type = AbstractChatMsg.Type.MSG_BOT_DESCRIPTION;
                     CachedUser cachedUser = UserManager.getManager().getUserByIdWithRequestAsync(getCurrentChatId());
@@ -1537,17 +1524,17 @@ public class ChatManager extends ResultController {
                         botDescription.description = new SpannableString("");
                     }
 
-                    if (chatMessageList.size() == 0) {
+                    if (mChatMessageList.size() == 0) {
                         botDescription.isFullScreen = true;
                     }
 
                     tempMessageList.add(botDescription);
-                    dividersCounter++;
+                    mDividersCounter++;
                     counterNewDividers++;
                 }
 
                 if (calledConstructor == TdApi.GetChatHistory.CONSTRUCTOR) {
-                    if (this.isFirstGetChat && messages.messages.length == 0 && chatMessageList.size() == 0 && tempMessageList.size() == 0)
+                    if (this.mIsFirstGetChat && messages.messages.length == 0 && mChatMessageList.size() == 0 && tempMessageList.size() == 0)
                         setVisibilityNoMsges(View.VISIBLE);
 
 
@@ -1556,16 +1543,16 @@ public class ChatManager extends ResultController {
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (chatAdapter != null)
-                                chatMessageList.addAll(tempMessageList);
-                            if (isFirstGetChat) {
+                            if (mChatAdapter != null)
+                                mChatMessageList.addAll(tempMessageList);
+                            if (mIsFirstGetChat) {
                                 readChatHistory();
                             }
-                            if (chatAdapter != null)
-                                chatAdapter.updateDataAfterLoading();
+                            if (mChatAdapter != null)
+                                mChatAdapter.updateDataAfterLoading();
 
-                            if (isFirstGetChat) {
-                                if (chatInfo != null && chatInfo.isBot && chatMessageList.size() == 1)
+                            if (mIsFirstGetChat) {
+                                if (mChatInfo != null && mChatInfo.isBot && mChatMessageList.size() == 1)
                                     notifyObservers(new NotificationObject(NotificationObject.BOT_SHOW_START, null));
                                 ChatManager.getManager().callAfterInitChatAction();
                             }
@@ -1582,8 +1569,8 @@ public class ChatManager extends ResultController {
                 break;
             }
             case TdApi.Error.CONSTRUCTOR:
-                if (chatAdapter != null) {
-                    chatAdapter.updateDataAfterLoadingAsync();
+                if (mChatAdapter != null) {
+                    mChatAdapter.updateDataAfterLoadingAsync();
                 }
                 break;
         }

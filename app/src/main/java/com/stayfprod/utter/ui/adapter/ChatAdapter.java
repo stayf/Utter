@@ -25,17 +25,17 @@ import java.util.List;
 
 public class ChatAdapter extends AbstractLoadingAdapter<AbstractHolder> {
 
-    private List<AbstractChatMsg> records;
-    private Context context;
+    private List<AbstractChatMsg> mRecords;
+    private Context mContext;
 
     public ChatAdapter(List<AbstractChatMsg> records, Context context) {
-        this.records = records;
-        this.context = context;
+        this.mRecords = records;
+        this.mContext = context;
     }
 
     @Override
     public AbstractHolder onCreateFooterViewHolder(ViewGroup parent, int viewType) {
-        return new LoadingHolder(context);
+        return new LoadingHolder(mContext);
     }
 
     @Override
@@ -53,10 +53,6 @@ public class ChatAdapter extends AbstractLoadingAdapter<AbstractHolder> {
                 return new SystemMsgChatHolder(context);
             case SYSTEM_CHANGE_TITLE_MSG:
                 return new ChangeChatPhotoHolder(context);
-
-
-
-
 
             case DATE_DIVIDER:
                 return new DateDividerChatHolder(context);
@@ -112,17 +108,17 @@ public class ChatAdapter extends AbstractLoadingAdapter<AbstractHolder> {
     @SuppressWarnings("ALL")
     @Override
     public void onBindBasicItemView(AbstractHolder holder, int position) {
-        holder.setValues(records.get(position), position, context);
+        holder.setValues(mRecords.get(position), position, mContext);
     }
 
     @Override
     public int getBasicItemCount() {
-        return records.size();
+        return mRecords.size();
     }
 
     @Override
     public int getBasicItemType(int position) {
-        return records.get(position).type.getValue();
+        return mRecords.get(position).type.getValue();
     }
 
 }

@@ -10,10 +10,10 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:background="#FFFFFF"
-        android:layout_alignParentBottom="true">
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/p_mute_hour_layout"

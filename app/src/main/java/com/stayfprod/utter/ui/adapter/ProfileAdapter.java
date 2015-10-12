@@ -20,7 +20,6 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.ContactListManager;
 import com.stayfprod.utter.manager.ProfileManager;
 import com.stayfprod.utter.manager.SharedMediaManager;
-import com.stayfprod.utter.manager.UserManager;
 import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.Contact;
 import com.stayfprod.utter.ui.activity.ContactListActivity;
@@ -43,13 +42,12 @@ public class ProfileAdapter extends RecyclerView.Adapter<AbstractHolder<Object>>
 
     private LayoutInflater mInflater;
     private ArrayList<Object> mItems;
-    private SharedMediaAdapter sharedMediaAdapter;
-    private Context context;
+    private SharedMediaAdapter mSharedMediaAdapter;
+    private Context mContext;
     public FOR mFor;
 
-
     public ProfileAdapter(Context context, FOR mFor, ArrayList<Object> items) {
-        this.context = context;
+        this.mContext = context;
         this.mFor = mFor;
         this.mInflater = LayoutInflater.from(context);
         if (items == null) {
@@ -60,7 +58,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<AbstractHolder<Object>>
     }
 
     public SharedMediaAdapter getSharedMediaAdapter() {
-        return sharedMediaAdapter;
+        return mSharedMediaAdapter;
     }
 
     @Override
@@ -75,18 +73,18 @@ public class ProfileAdapter extends RecyclerView.Adapter<AbstractHolder<Object>>
 
     @Override
     public AbstractHolder<Object> onCreateViewHolder(ViewGroup parent, int viewType) {
-        RelativeLayout relativeLayout = new RelativeLayout(context);
+        RelativeLayout relativeLayout = new RelativeLayout(mContext);
         switch (viewType) {
             case ADD_MEMBER_TYPE:
                 return new AddMemberHolder(relativeLayout, mFor);
             case ADD_SHARED_MEDIA_TYPE:
                 return new SharedMediaHolder(relativeLayout, mFor);
             case ADD_USER_LIST_TYPE:
-                return new UserListHolder(new ContactView(context), mFor);
+                return new UserListHolder(new ContactView(mContext), mFor);
             case ADD_GROUP_TYPE:
                 return new AddGroupHolder(relativeLayout, mFor);
             case ADD_USER_TOP_LIST_TYPE:
-                return new UserTopListHolder(new ContactView(context), mFor);
+                return new UserTopListHolder(new ContactView(mContext), mFor);
             case INFO_NAME_TYPE:
             default:
                 return new NameHolder(relativeLayout, mFor);
@@ -102,7 +100,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<AbstractHolder<Object>>
         } else {
             viewHolder.itemView.setPadding(0, 0, 0, 0);
         }
-        viewHolder.setValues(mItems.get(position), position, context);
+        viewHolder.setValues(mItems.get(position), position, mContext);
     }
 
     static class UserTopListHolder extends AbstractHolder<Object> {
@@ -337,10 +335,10 @@ public class ProfileAdapter extends RecyclerView.Adapter<AbstractHolder<Object>>
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
             SharedMediaManager sharedMediaManager = SharedMediaManager.getManager();
 
-            sharedMediaAdapter = new SharedMediaAdapter(sharedMediaManager.getPhotoAndVideoProfileMessages(!((ProfileActivity) context).isSubProfile), context, null);
+            mSharedMediaAdapter = new SharedMediaAdapter(sharedMediaManager.getPhotoAndVideoProfileMessages(!((ProfileActivity) context).isSubProfile), context, null);
 
             recyclerView.setLayoutManager(linearLayoutManager);
-            recyclerView.setAdapter(sharedMediaAdapter);
+            recyclerView.setAdapter(mSharedMediaAdapter);
 
             container.addView(recyclerView);
 

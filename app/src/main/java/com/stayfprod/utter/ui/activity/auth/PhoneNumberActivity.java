@@ -25,16 +25,15 @@ import com.stayfprod.utter.R;
 public class PhoneNumberActivity extends AbstractActivity {
     private static final int REQUEST_COUNTRY = 44;
 
-    private Context context;
-
-    private EditText country_code;
-    private EditText country;
-    private TextView error;
-    private EditText phone;
-    private CircleProgressView progressView;
+    private Context mContext;
+    private EditText mCountryCode;
+    private EditText mCountry;
+    private TextView mError;
+    private EditText mPhone;
+    private CircleProgressView mProgressView;
 
     private void openCountryActivity() {
-        Intent intent_info = new Intent(context, CountryActivity.class);
+        Intent intent_info = new Intent(mContext, CountryActivity.class);
         startActivityForResult(intent_info, REQUEST_COUNTRY);
         overridePendingTransition(R.anim.slide_up_in, R.anim.slide_up_no);
     }
@@ -45,8 +44,8 @@ public class PhoneNumberActivity extends AbstractActivity {
         if (requestCode == REQUEST_COUNTRY) {
             if (resultCode == RESULT_OK) {
                 Country c = data.getExtras().getParcelable("data");
-                country_code.setText("+" + c.code);
-                country.setText(c.name);
+                mCountryCode.setText("+" + c.code);
+                mCountry.setText(c.name);
             }
         }
     }
@@ -58,26 +57,26 @@ public class PhoneNumberActivity extends AbstractActivity {
             return;
 
         setContentView(R.layout.activity_phone_number);
-        context = this;
+        mContext = this;
 
-        phone = (EditText) findViewById(R.id.a_phone_number_phone);
+        mPhone = (EditText) findViewById(R.id.a_phone_number_phone);
         TextView info = (TextView) findViewById(R.id.a_phone_number_info);
         Country c = CountryManager.defineCountry(this);
 
-        country = (EditText) findViewById(R.id.a_phone_number_country);
-        country_code = (EditText) findViewById(R.id.a_phone_number_country_code);
+        mCountry = (EditText) findViewById(R.id.a_phone_number_country);
+        mCountryCode = (EditText) findViewById(R.id.a_phone_number_country_code);
 
-        country.setText(c.name);
-        country_code.setText("+" + c.code);
+        mCountry.setText(c.name);
+        mCountryCode.setText("+" + c.code);
 
-        country.setOnClickListener(new View.OnClickListener() {
+        mCountry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openCountryActivity();
             }
         });
 
-        country.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        mCountry.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
@@ -85,20 +84,20 @@ public class PhoneNumberActivity extends AbstractActivity {
                 }
             }
         });
-        error = (TextView) findViewById(R.id.a_phone_number_error);
-        AndroidUtil.setErrorTextViewTypeface(error);
+        mError = (TextView) findViewById(R.id.a_phone_number_error);
+        AndroidUtil.setErrorTextViewTypeface(mError);
 
         AndroidUtil.setTextViewTypeface(info);
-        AndroidUtil.setEditTextTypeface(phone);
-        AndroidUtil.setEditTextTypeface(country);
-        AndroidUtil.setEditTextTypeface(country_code);
+        AndroidUtil.setEditTextTypeface(mPhone);
+        AndroidUtil.setEditTextTypeface(mCountry);
+        AndroidUtil.setEditTextTypeface(mCountryCode);
         setToolbar();
 
-        phone.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mPhone.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    processAction(progressView);
+                    processAction(mProgressView);
                     return true;
                 }
                 return false;
@@ -113,38 +112,38 @@ public class PhoneNumberActivity extends AbstractActivity {
         menuItem.setActionView(R.layout.action_check_layout);
         FrameLayout rootView = (FrameLayout) menuItem.getActionView();
         rootView.findViewById(R.id.ic_check);
-        progressView = (CircleProgressView) rootView.findViewById(R.id.progressView);
-        progressView.init(CircleProgressView.FOR_TOOLBAR);
+        mProgressView = (CircleProgressView) rootView.findViewById(R.id.progressView);
+        mProgressView.init(CircleProgressView.FOR_TOOLBAR);
 
         rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                processAction(progressView);
+                processAction(mProgressView);
             }
         });
         return true;
     }
 
     private void processAction(CircleProgressView progressView) {
-        if (!AuthManager.isButtonBlocked) {
-            AuthManager.isButtonBlocked = true;
+        if (!AuthManager.sIsButtonBlocked) {
+            AuthManager.sIsButtonBlocked = true;
             progressView.start();
-            error.setVisibility(View.GONE);
-            phone.setBackgroundResource(R.drawable.edittext_bottom_line);
-            String strPhone = country_code.getText().toString() + phone.getText().toString();
+            mError.setVisibility(View.GONE);
+            mPhone.setBackgroundResource(R.drawable.edittext_bottom_line);
+            String strPhone = mCountryCode.getText().toString() + mPhone.getText().toString();
             new AuthManager(PhoneNumberActivity.this, progressView).setPhoneNumber(strPhone);
         }
     }
 
     @SuppressWarnings("ALL")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            TextView t_toolbar_title = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
-            t_toolbar_title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-            t_toolbar_title.setTextColor(0xffffffff);
-            t_toolbar_title.setTextSize(20);
+            TextView tToolbarTitle = (TextView) toolbar.findViewById(R.id.t_toolbar_title);
+            tToolbarTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+            tToolbarTitle.setTextColor(0xffffffff);
+            tToolbarTitle.setTextSize(20);
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }

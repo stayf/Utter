@@ -14,6 +14,7 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -74,7 +75,7 @@ public class TextMsgView extends AbstractMsgView<TextMsg> {
                 }
             }
         } catch (Exception e) {
-            //Log.w(LOG, "onViewClick", e);
+            Log.w(LOG, "onViewClick", e);
         }
         return false;
     }
@@ -121,7 +122,6 @@ public class TextMsgView extends AbstractMsgView<TextMsg> {
         Linkify.addLinks(builder, Patterns.WEB_URL, "http://");
 
         ChatHelper.addLinks(builder, Pattern.compile("(^|\\s)/(\\w|@)+"), "botHelpLinks");
-        //ChatInfo chatInfo = ChatManager.getCurrentChatInfo();
 
         /*if (chatInfo != null && (chatInfo.isBot || chatInfo.isGroupChat)) {
             BotManager.getManager().linkifyMsg(builder);

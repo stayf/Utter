@@ -31,7 +31,7 @@ import com.stayfprod.utter.ui.view.ObservableScrollView;
 import com.stayfprod.utter.ui.view.ObservableScrollViewCallbacks;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -41,15 +41,29 @@ import java.util.Observer;
 
 public class SettingActivity extends AbstractActivity implements ObservableScrollViewCallbacks, Observer {
 
+    private View mFlexibleSpaceView;
+    private Toolbar mToolbarView;
+    private TextView mTitleView;
+    private TextView mSubTitleView;
+    private ImageView mTitleImage;
+    private int mFlexibleSpaceHeight;
+    private int mFabMargin;
+    private FloatingActionButton mFab;
+    private CachedUser mCachedUser;
+    private TextView mSettingPasscodeStatus;
+    private boolean mIsPassCodeLockEnabled;
+    private ProfilePhotoChoose mProfilePhotoChoose;
+    private Boolean mIsFullWidth;
+
     @Override
     protected void onStart() {
         super.onStart();
         UpdateHandler.getHandler().addObserver(this);
         PassCodeManager passCodeManager = PassCodeManager.getManager();
-        if (isPassCodeLockEnabled = passCodeManager.isEnabledPassCode(this)) {
-            a_setting_passcode_status.setText(AndroidUtil.getResourceString(R.string.enabled));
+        if (mIsPassCodeLockEnabled = passCodeManager.isEnabledPassCode(this)) {
+            mSettingPasscodeStatus.setText(AndroidUtil.getResourceString(R.string.enabled));
         } else {
-            a_setting_passcode_status.setText(AndroidUtil.getResourceString(R.string.disabled));
+            mSettingPasscodeStatus.setText(AndroidUtil.getResourceString(R.string.disabled));
         }
     }
 
@@ -76,11 +90,11 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
         int id = item.getItemId();
         switch (id) {
             case R.id.action_edit_name:
-                if (cachedUser != null) {
+                if (mCachedUser != null) {
                     Bundle bundle = new Bundle();
-                    bundle.putInt("userId", cachedUser.tgUser.id);
-                    bundle.putString("firstName", cachedUser.tgUser.firstName);
-                    bundle.putString("secondName", cachedUser.tgUser.lastName);
+                    bundle.putInt("userId", mCachedUser.tgUser.id);
+                    bundle.putString("firstName", mCachedUser.tgUser.firstName);
+                    bundle.putString("secondName", mCachedUser.tgUser.lastName);
                     Intent intent = new Intent(this, EditNameActivity.class);
                     intent.putExtras(bundle);
                     this.startActivity(intent);
@@ -88,25 +102,12 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
                 }
                 break;
             case R.id.action_log_out:
-                /*StickerManager.getManager().destroy();
-                ChatListManager.getManager().destroy();*/
                 new AuthManager(null, null).reset(this);
                 break;
         }
         return true;
     }
 
-    private View mFlexibleSpaceView;
-    private Toolbar mToolbarView;
-    private TextView mTitleView;
-    private TextView mSubTitleView;
-    private ImageView mTitleImage;
-    private int mFlexibleSpaceHeight;
-    private int mFabMargin;
-    private FloatingActionButton mFab;
-    private CachedUser cachedUser;
-    private TextView a_setting_passcode_status;
-    private boolean isPassCodeLockEnabled;
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -157,7 +158,7 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setFloatingActionButtonColor(Color.WHITE);
-        mFab.setFloatingActionButtonDrawable(FileUtils.decodeResource(R.mipmap.ic_attach_photo));
+        mFab.setFloatingActionButtonDrawable(FileUtil.decodeResource(R.mipmap.ic_attach_photo));
 
         mFab.getLayoutParams().height = Constant.DP_72;
         mFab.getLayoutParams().width = Constant.DP_72;
@@ -167,35 +168,35 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
         mFab.setScaleY(1);
         mFab.showButton();
 
-        TextView a_setting_hash_tag = (TextView) findViewById(R.id.a_setting_hash_tag);
-        a_setting_hash_tag.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_hash_tag.setTextSize(17);
-        a_setting_hash_tag.setTextColor(0xFF222222);
+        TextView settingHashTag = (TextView) findViewById(R.id.a_setting_hash_tag);
+        settingHashTag.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        settingHashTag.setTextSize(17);
+        settingHashTag.setTextColor(0xFF222222);
 
-        TextView a_setting_username = (TextView) findViewById(R.id.a_setting_username);
-        a_setting_username.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_username.setTextSize(14);
-        a_setting_username.setTextColor(0xFF8a8a8a);
+        TextView settingUsername = (TextView) findViewById(R.id.a_setting_username);
+        settingUsername.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        settingUsername.setTextSize(14);
+        settingUsername.setTextColor(0xFF8a8a8a);
 
-        TextView a_setting_phone = (TextView) findViewById(R.id.a_setting_phone);
-        a_setting_phone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_phone.setTextSize(17);
-        a_setting_phone.setTextColor(0xFF222222);
+        TextView settingPhone = (TextView) findViewById(R.id.a_setting_phone);
+        settingPhone.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        settingPhone.setTextSize(17);
+        settingPhone.setTextColor(0xFF222222);
 
-        TextView a_setting_phone2 = (TextView) findViewById(R.id.a_setting_phone2);
-        a_setting_phone2.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_phone2.setTextSize(14);
-        a_setting_phone2.setTextColor(0xFF8a8a8a);
+        TextView settingPhone2 = (TextView) findViewById(R.id.a_setting_phone2);
+        settingPhone2.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        settingPhone2.setTextSize(14);
+        settingPhone2.setTextColor(0xFF8a8a8a);
 
-        TextView a_setting_passcode_lock = (TextView) findViewById(R.id.a_setting_passcode_lock);
-        a_setting_passcode_lock.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_passcode_lock.setTextSize(17);
-        a_setting_passcode_lock.setTextColor(0xFF222222);
+        TextView settingPasscodeLock = (TextView) findViewById(R.id.a_setting_passcode_lock);
+        settingPasscodeLock.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        settingPasscodeLock.setTextSize(17);
+        settingPasscodeLock.setTextColor(0xFF222222);
 
-        a_setting_passcode_status = (TextView) findViewById(R.id.a_setting_passcode_status);
-        a_setting_passcode_status.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        a_setting_passcode_status.setTextSize(16);
-        a_setting_passcode_status.setTextColor(0xFF8a8a8a);
+        mSettingPasscodeStatus = (TextView) findViewById(R.id.a_setting_passcode_status);
+        mSettingPasscodeStatus.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mSettingPasscodeStatus.setTextSize(16);
+        mSettingPasscodeStatus.setTextColor(0xFF8a8a8a);
         //акшион)
 
         mToolbarView.setNavigationOnClickListener(new View.OnClickListener() {
@@ -216,13 +217,13 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
 
             UserManager userManager = UserManager.getManager();
             if (userManager.getCurrUserId() != 0) {
-                cachedUser = userManager.getUserByIdWithRequestAsync(userManager.getCurrUserId());
-                file = cachedUser.tgUser.profilePhoto.small;
-                initials = cachedUser.initials;
-                title = cachedUser.fullName;
+                mCachedUser = userManager.getUserByIdWithRequestAsync(userManager.getCurrUserId());
+                file = mCachedUser.tgUser.profilePhoto.small;
+                initials = mCachedUser.initials;
+                title = mCachedUser.fullName;
                 subTitle = AndroidUtil.getResourceString(R.string.online);
-                a_setting_phone.setText("+" + cachedUser.tgUser.phoneNumber);
-                a_setting_hash_tag.setText(TextUtil.isNotBlank(cachedUser.tgUser.username) ? cachedUser.tgUser.username : AndroidUtil.getResourceString(R.string.unknown));
+                settingPhone.setText("+" + mCachedUser.tgUser.phoneNumber);
+                settingHashTag.setText(TextUtil.isNotBlank(mCachedUser.tgUser.username) ? mCachedUser.tgUser.username : AndroidUtil.getResourceString(R.string.unknown));
                 id = userManager.getCurrUserId();
             }
 
@@ -233,11 +234,11 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
             Crashlytics.logException(e);
         }
 
-        RelativeLayout a_setting_content_2 = findView(R.id.a_setting_content_2);
-        a_setting_content_2.setOnClickListener(new View.OnClickListener() {
+        RelativeLayout settingContent2 = findView(R.id.a_setting_content_2);
+        settingContent2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isPassCodeLockEnabled) {
+                if (mIsPassCodeLockEnabled) {
                     PassCodeManager passCodeManager = PassCodeManager.getManager();
                     passCodeManager.openEnterPassCodeActivity(SettingActivity.this, true);
                 } else {
@@ -248,11 +249,11 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
             }
         });
 
-        profilePhotoChoose = new ProfilePhotoChoose(ProfilePhotoChoose.TYPE_SETTING_PHOTO);
+        mProfilePhotoChoose = new ProfilePhotoChoose(ProfilePhotoChoose.TYPE_SETTING_PHOTO);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                profilePhotoChoose.showDialog(SettingActivity.this);
+                mProfilePhotoChoose.showDialog(SettingActivity.this);
             }
         });
     }
@@ -271,8 +272,6 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
     public void onUpOrCancelMotionEvent(ScrollState scrollState) {
 
     }
-
-    private Boolean isFullWidth;
 
     private void updateFlexibleSpaceText(final int scrollY) {
         mFlexibleSpaceView.setTranslationY(-scrollY);
@@ -311,31 +310,23 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
         mFab.setTranslationX(mFlexibleSpaceView.getWidth() - mFabMargin - mFab.getWidth());
         mFab.setTranslationY(fabTranslationY + getToolBarSize());
 
-       /* if (fabTranslationY <= (minFabTranslationY)) {
-            mFab.hideButtonAnimated();
-        } else {
-            mFab.showButtonAnimated();
-        }*/
-
         if (fabTranslationY <= (minFabTranslationY)) {
-            if (isFullWidth == null || isFullWidth) {
-                isFullWidth = false;
+            if (mIsFullWidth == null || mIsFullWidth) {
+                mIsFullWidth = false;
                 ((RelativeLayout.LayoutParams) mTitleView.getLayoutParams()).rightMargin = Constant.DP_100;
                 mTitleView.requestLayout();
                 mTitleView.invalidate();
             }
             mFab.hideButtonAnimated();
         } else {
-            if (isFullWidth == null || !isFullWidth) {
-                isFullWidth = true;
+            if (mIsFullWidth == null || !mIsFullWidth) {
+                mIsFullWidth = true;
                 ((RelativeLayout.LayoutParams) mTitleView.getLayoutParams()).rightMargin = Constant.DP_36;
                 mTitleView.requestLayout();
                 mTitleView.invalidate();
             }
             mFab.showButtonAnimated();
         }
-
-
     }
 
     @Override
@@ -345,18 +336,14 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
             final IconDrawable dr;
             switch (nObject.getMessageCode()) {
                 case NotificationObject.USER_IMAGE_UPDATE:
-                    try {
-                        dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, ((TdApi.File) nObject.getWhat()).path);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mTitleImage != null)
-                                    mTitleImage.setImageDrawable(dr);
-                            }
-                        });
-                    } catch (Exception e) {
-                        //
-                    }
+                    dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, ((TdApi.File) nObject.getWhat()).path);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mTitleImage != null)
+                                mTitleImage.setImageDrawable(dr);
+                        }
+                    });
                     break;
 
                 case NotificationObject.USER_DATA_UPDATE:
@@ -376,10 +363,8 @@ public class SettingActivity extends AbstractActivity implements ObservableScrol
         }
     }
 
-    private ProfilePhotoChoose profilePhotoChoose;
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        profilePhotoChoose.processImage(requestCode, resultCode, data, this);
+        mProfilePhotoChoose.processImage(requestCode, resultCode, data, this);
     }
 }

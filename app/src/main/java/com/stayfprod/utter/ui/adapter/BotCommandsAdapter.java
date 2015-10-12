@@ -19,7 +19,7 @@ import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -27,12 +27,12 @@ import java.util.List;
 
 public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.ViewHolder> {
 
-    private List<BotCommand> botCommands;
-    private Context context;
+    private List<BotCommand> mBotCommands;
+    private Context mContext;
 
     public BotCommandsAdapter(List<BotCommand> botCommands, Context context) {
-        this.botCommands = botCommands;
-        this.context = context;
+        this.mBotCommands = botCommands;
+        this.mContext = context;
     }
 
     @Override
@@ -44,10 +44,10 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         holder.itemView.setTag(position);
 
-        BotCommand botCommand = botCommands.get(position);
+        BotCommand botCommand = mBotCommands.get(position);
 
         TdApi.File small = botCommand.cachedUser.tgUser.profilePhoto.small;
-        if (FileUtils.isTDFileEmpty(small)) {
+        if (FileUtil.isTDFileEmpty(small)) {
             IconDrawable iconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.BOT_COMMAND, botCommand.cachedUser.tgUser.id, botCommand.cachedUser.initials);
             holder.icon.setImageDrawable(iconDrawable);
             if (small.id > 0)
@@ -69,13 +69,12 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
             holder.title.setTag("");
         }
 
-
         holder.desc.setText(botCommand.tgBotCommand.description);
     }
 
     @Override
     public int getItemCount() {
-        return botCommands.size();
+        return mBotCommands.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -85,7 +84,7 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
         public TextView desc;
 
         public ViewHolder() {
-            super(new RelativeLayout(context));
+            super(new RelativeLayout(mContext));
 
             RelativeLayout mainLayout = (RelativeLayout) itemView;
             RelativeLayout.LayoutParams paramsML = new RelativeLayout.LayoutParams(
@@ -114,7 +113,7 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
             });
 
             //иконка
-            icon = new ImageView(context);
+            icon = new ImageView(mContext);
             icon.setId(AndroidUtil.generateViewId());
             mainLayout.addView(icon);
 
@@ -126,7 +125,7 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
             //иконка end
 
             //команда
-            title = new TextView(context);
+            title = new TextView(mContext);
             title.setId(AndroidUtil.generateViewId());
             title.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
             title.setTextColor(0xFF222222);
@@ -144,7 +143,7 @@ public class BotCommandsAdapter extends RecyclerView.Adapter<BotCommandsAdapter.
             //команда end
 
             //описание
-            desc = new TextView(context);
+            desc = new TextView(mContext);
             desc.setSingleLine();
             desc.setEllipsize(TextUtils.TruncateAt.END);
             desc.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);

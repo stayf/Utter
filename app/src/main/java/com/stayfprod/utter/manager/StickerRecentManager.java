@@ -5,10 +5,10 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.ui.activity.AbstractActivity;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -23,7 +23,10 @@ public class StickerRecentManager {
     private static final Object LOCK = new Object();
     private static StickerRecentManager sInstance;
 
-    List<TdApi.Sticker> tempStickerSet;//используется для сохранения
+    private List<TdApi.Sticker> mTempStickerSet;//используется для сохранения
+
+    public int loadRecentCollectionSize;
+    public int currentRecentCollectionSize;
 
     public static StickerRecentManager getInstance() {
         if (sInstance == null) {
@@ -36,23 +39,20 @@ public class StickerRecentManager {
         return sInstance;
     }
 
-    public int loadRecentCollectionSize;
-    public int currentRecentCollectionSize;
-
     public void loadRecents() {
         try {
-            File file = FileUtils.createRecentStickersFile();
-            tempStickerSet = FileUtils.loadObject(file);
-            if (tempStickerSet == null) {
+            File file = FileUtil.createRecentStickersFile();
+            mTempStickerSet = FileUtil.loadObject(file);
+            if (mTempStickerSet == null) {
                 loadRecentCollectionSize = 0;
-                tempStickerSet = new ArrayList<>(10);
+                mTempStickerSet = new ArrayList<>(10);
             } else {
-                loadRecentCollectionSize = tempStickerSet.size();
+                loadRecentCollectionSize = mTempStickerSet.size();
             }
             currentRecentCollectionSize = loadRecentCollectionSize;
             List<TdApi.Sticker> cachedStickers = StickerManager.getManager().getCachedStickers();
             cachedStickers.clear();
-            cachedStickers.addAll(tempStickerSet);
+            cachedStickers.addAll(mTempStickerSet);
         } catch (Exception e) {
             Log.w(LOG, "", e);
         }
@@ -61,7 +61,7 @@ public class StickerRecentManager {
     public void deleteRecentStickers() {
         try {
             File file = new File(Environment.getExternalStorageDirectory(), App.STG_RECENT_STICKERS);
-            FileUtils.cleanDirectory(file);
+            FileUtil.cleanDirectory(file);
         } catch (Exception e) {
             //
         }
@@ -97,7 +97,7 @@ public class StickerRecentManager {
 
         recentSticker.thumb.photo = stickerThumbPhoto;
 
-        Iterator<TdApi.Sticker> iterator = tempStickerSet.iterator();
+        Iterator<TdApi.Sticker> iterator = mTempStickerSet.iterator();
         while (iterator.hasNext()) {
             TdApi.Sticker stickerTmp = iterator.next();
             //info удаляем gags и копии того же самого стикера!!
@@ -112,22 +112,22 @@ public class StickerRecentManager {
             }
         }
 
-        tempStickerSet.add(0, recentSticker);
+        mTempStickerSet.add(0, recentSticker);
 
-        final int columnMaxCount = AbstractActivity.WINDOW_CURRENT_WIDTH / EmojiConstants.STICKER_THUMB_WIDTH;
-        final int rowsCount = (int) Math.ceil((double) tempStickerSet.size() / columnMaxCount);
+        final int columnMaxCount = AbstractActivity.sWindowCurrentWidth / EmojConstant.sStickerThumbWidth;
+        final int rowsCount = (int) Math.ceil((double) mTempStickerSet.size() / columnMaxCount);
         final int maxStickers = rowsCount * columnMaxCount;
 
-        final int dif = maxStickers - tempStickerSet.size();
+        final int dif = maxStickers - mTempStickerSet.size();
 
-        StickerManager.getManager().addGags(dif, tempStickerSet);
+        StickerManager.getManager().addGags(dif, mTempStickerSet);
     }
 
     @SuppressLint("CommitPrefEdits")
     public void saveRecents() {
         try {
-            File file = FileUtils.createRecentStickersFile();
-            FileUtils.saveObject(file, tempStickerSet);
+            File file = FileUtil.createRecentStickersFile();
+            FileUtil.saveObject(file, mTempStickerSet);
             List<TdApi.Sticker> cachedStickers = StickerManager.getManager().getCachedStickers();
 
             Iterator<TdApi.Sticker> iterator = cachedStickers.iterator();
@@ -140,8 +140,8 @@ public class StickerRecentManager {
                     break;
                 }
             }
-            currentRecentCollectionSize = tempStickerSet.size();
-            cachedStickers.addAll(0, tempStickerSet);
+            currentRecentCollectionSize = mTempStickerSet.size();
+            cachedStickers.addAll(0, mTempStickerSet);
         } catch (Exception e) {
             Log.e(LOG, "", e);
             Crashlytics.logException(e);

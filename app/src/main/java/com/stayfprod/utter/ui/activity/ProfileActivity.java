@@ -46,7 +46,7 @@ import com.stayfprod.utter.ui.view.ObservableRecyclerView;
 import com.stayfprod.utter.ui.view.ObservableScrollViewCallbacks;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -60,9 +60,14 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
 
     private static final String LOG = ProfileActivity.class.getSimpleName();
 
-    public static volatile boolean isNeedUpdateUserList;
+    private static volatile boolean sIsClickOnItemBlocked;
 
-    private ObservableRecyclerView recyclerView;
+    public static volatile boolean sIsNeedUpdateUserList;
+    public static int sOpenedProfileCounter = 0;
+
+    public Boolean isSubProfile;
+
+    private ObservableRecyclerView mRecyclerView;
     private View mFlexibleSpaceView;
     private Toolbar mToolbarView;
     private TextView mTitleView;
@@ -71,20 +76,14 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
     private int mFlexibleSpaceHeight;
     private int mFabMargin;
     private FloatingActionButton mFab;
-    private ProfilePhotoChoose profilePhotoChoose;
+    private ProfilePhotoChoose mProfilePhotoChoose;
 
-    private static volatile boolean isClickOnItemBlocked;
-
-    Boolean isGroup;
-    Boolean isMuted;
-    public Boolean isSubProfile;
-
+    private Boolean mIsGroup;
+    private Boolean mIsMuted;
+    private Boolean mIsFullWidth;
     private ProfileManager.FOR mFor;
-
-    private final ArrayList<Object> items = new ArrayList<Object>(203);
-    private ProfileAdapter profileAdapter;
-
-    public static int openedProfileCounter = 0;
+    private ProfileAdapter mProfileAdapter;
+    private final ArrayList<Object> mItems = new ArrayList<Object>(203);
 
     @Override
     public void onBackPressed() {
@@ -113,11 +112,9 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         SharedMediaManager.getManager().addObserver(this);
         super.onStart();
 
-        if (isNeedUpdateUserList) {
+        if (sIsNeedUpdateUserList) {
             updateUserList();
         }
-
-
     }
 
     @Override
@@ -144,19 +141,18 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         openedProfileCounterDown();
     }
 
-
     private void openedProfileCounterDown() {
-        openedProfileCounter--;
-        if (openedProfileCounter < 0) {
-            openedProfileCounter = 0;
+        sOpenedProfileCounter--;
+        if (sOpenedProfileCounter < 0) {
+            sOpenedProfileCounter = 0;
         }
     }
 
     private void openedProfileCounterUp() {
-        if (openedProfileCounter < 0) {
-            openedProfileCounter = 0;
+        if (sOpenedProfileCounter < 0) {
+            sOpenedProfileCounter = 0;
         }
-        openedProfileCounter++;
+        sOpenedProfileCounter++;
     }
 
     @Override
@@ -166,7 +162,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         if (App.isBadAppContext(this))
             return;
 
-        isNeedUpdateUserList = false;
+        sIsNeedUpdateUserList = false;
 
         openedProfileCounterUp();
 
@@ -177,12 +173,12 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         ProfileManager profileManager = ProfileManager.getManager();
         final ChatInfo chatInfo = profileManager.getChatInfo();
         if (bundle != null) {
-            isGroup = bundle.getBoolean("isGroup");
-            isMuted = bundle.getBoolean("isMuted");
+            mIsGroup = bundle.getBoolean("isGroup");
+            mIsMuted = bundle.getBoolean("isMuted");
             isSubProfile = bundle.getBoolean("isSubProfile", false);
             if (chatInfo.isBot)
                 mFor = ProfileManager.FOR.BOT;
-            else if (isGroup)
+            else if (mIsGroup)
                 mFor = ProfileManager.FOR.GROUP;
             else
                 mFor = ProfileManager.FOR.USER;
@@ -194,11 +190,11 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        recyclerView = (ObservableRecyclerView) findViewById(R.id.recycler);
-        recyclerView.setScrollViewCallbacks(this);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(false);
-        recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        mRecyclerView = (ObservableRecyclerView) findViewById(R.id.recycler);
+        mRecyclerView.setScrollViewCallbacks(this);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setHasFixedSize(false);
+        mRecyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         mTitleImage = findView(R.id.t_parallax_icon);
         mTitleView = findView(R.id.t_parallax_title);
@@ -223,17 +219,17 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         AndroidUtil.addOnGlobalLayoutListener(mTitleView, new Runnable() {
             @Override
             public void run() {
-                updateFlexibleSpaceText(recyclerView.getCurrentScrollY());
+                updateFlexibleSpaceText(mRecyclerView.getCurrentScrollY());
             }
         });
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setFloatingActionButtonColor(Color.WHITE);
 
-        if (isGroup && UserManager.getManager().getCurrUserId() == chatInfo.groupChatFull.adminId) {
-            mFab.setFloatingActionButtonDrawable(FileUtils.decodeResource(R.mipmap.ic_attach_photo));
+        if (mIsGroup && UserManager.getManager().getCurrUserId() == chatInfo.groupChatFull.adminId) {
+            mFab.setFloatingActionButtonDrawable(FileUtil.decodeResource(R.mipmap.ic_attach_photo));
         } else {
-            mFab.setFloatingActionButtonDrawable(FileUtils.decodeResource(R.mipmap.ic_message));
+            mFab.setFloatingActionButtonDrawable(FileUtil.decodeResource(R.mipmap.ic_message));
         }
 
         mFab.getLayoutParams().height = Constant.DP_72;
@@ -242,12 +238,12 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isGroup) {
+                if (mIsGroup) {
                     if (UserManager.getManager().getCurrUserId() == chatInfo.groupChatFull.adminId) {
-                        if (profilePhotoChoose == null) {
-                            profilePhotoChoose = new ProfilePhotoChoose(ProfilePhotoChoose.TYPE_CHAT_PHOTO);
+                        if (mProfilePhotoChoose == null) {
+                            mProfilePhotoChoose = new ProfilePhotoChoose(ProfilePhotoChoose.TYPE_CHAT_PHOTO);
                         }
-                        profilePhotoChoose.showDialog(ProfileActivity.this);
+                        mProfilePhotoChoose.showDialog(ProfileActivity.this);
                     } else {
                         onBackPressed();
                     }
@@ -255,8 +251,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                     if (!isSubProfile) {
                         onBackPressed();
                     } else {
-                        if (!isClickOnItemBlocked) {
-                            isClickOnItemBlocked = true;
+                        if (!sIsClickOnItemBlocked) {
+                            sIsClickOnItemBlocked = true;
                             if (chatInfo.isBot) {
                                 if (BotManager.getManager().isEmptyBotInfo((int) chatInfo.tgChatObject.id)) {
                                     UserManager.getManager().getUserFull((int) chatInfo.tgChatObject.id, new ResultController() {
@@ -271,7 +267,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                                     break;
                                                 }
                                                 default: {
-                                                    isClickOnItemBlocked = false;
+                                                    sIsClickOnItemBlocked = false;
                                                 }
                                             }
                                         }
@@ -341,19 +337,19 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                 TdApi.UserTypeBot userTypeBot = (TdApi.UserTypeBot) user.type;
                 CachedUser cachedUser = UserManager.getManager().getUserByIdWithRequestAsync(user.id);
 
-                items.add(0, new String[]{TextUtil.isBlank(user.username) ? AndroidUtil.getResourceString(R.string.unknown) : "@" + user.username});
-                items.add(1, new String[]{((TdApi.BotInfoGeneral) cachedUser.botInfo).shareText});
+                mItems.add(0, new String[]{TextUtil.isBlank(user.username) ? AndroidUtil.getResourceString(R.string.unknown) : "@" + user.username});
+                mItems.add(1, new String[]{((TdApi.BotInfoGeneral) cachedUser.botInfo).shareText});
                 if (userTypeBot.canJoinGroupChats) {
-                    items.add(2, new String[]{""});
+                    mItems.add(2, new String[]{""});
                 } else {
-                    items.add(2, null);
+                    mItems.add(2, null);
                 }
-                items.add(3, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                mItems.add(3, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
                 break;
             }
             case GROUP: {
-                items.add(0, new String[]{""});
-                items.add(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                mItems.add(0, new String[]{""});
+                mItems.add(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
                 //список людей
                 break;
             }
@@ -361,17 +357,17 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
             default: {
                 TdApi.User user = ((TdApi.PrivateChatInfo) chatInfo.tgChatObject.type).user;
                 CachedUser cachedUser = UserManager.getManager().getUserByIdWithRequestAsync(user.id);
-                items.add(0, new String[]{TextUtil.isBlank(user.username) ? AndroidUtil.getResourceString(R.string.unknown) : "@" + user.username});
-                items.add(1, new String[]{TextUtil.isNotBlank(user.phoneNumber) ? ("+" + user.phoneNumber) : AndroidUtil.getResourceString(R.string.unknown)});
-                items.add(2, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                mItems.add(0, new String[]{TextUtil.isBlank(user.username) ? AndroidUtil.getResourceString(R.string.unknown) : "@" + user.username});
+                mItems.add(1, new String[]{TextUtil.isNotBlank(user.phoneNumber) ? ("+" + user.phoneNumber) : AndroidUtil.getResourceString(R.string.unknown)});
+                mItems.add(2, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
             }
         }
 
         SharedMediaManager sharedMediaManager = SharedMediaManager.getManager();
         sharedMediaManager.cleanSearchMedia(true, !isSubProfile);
-        profileAdapter = new ProfileAdapter(this, mFor, items);
+        mProfileAdapter = new ProfileAdapter(this, mFor, mItems);
 
-        recyclerView.setAdapter(profileAdapter);
+        mRecyclerView.setAdapter(mProfileAdapter);
         sharedMediaManager.searchMedia(chatInfo.tgChatObject.id, UserManager.getManager().getCurrUserId(), true, !isSubProfile);
 
         updateUserList();
@@ -383,7 +379,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
             public void run() {
                 try {
                     Bundle bundle = new Bundle();
-                    bundle.putBoolean("isGroup", isGroup);
+                    bundle.putBoolean("isGroup", mIsGroup);
                     bundle.putBoolean("isMuted", ChatHelper.isChatMuted(chatInfo));
                     Intent intent = new Intent(ProfileActivity.this, ChatActivity.class);
                     intent.putExtras(bundle);
@@ -393,9 +389,9 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                     startActivity(intent);
                     overridePendingTransition(R.anim.slide_in, R.anim.slide_out);
                     ProfileManager.getManager().forceClose();
-                    isClickOnItemBlocked = false;
+                    sIsClickOnItemBlocked = false;
                 } catch (Exception e) {
-                    isClickOnItemBlocked = false;
+                    sIsClickOnItemBlocked = false;
                 }
             }
         });
@@ -403,7 +399,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
 
     private void updateUserList() {
         if (mFor == ProfileManager.FOR.GROUP) {
-            isNeedUpdateUserList = false;
+            sIsNeedUpdateUserList = false;
             ThreadService.runTaskBackground(new Runnable() {
                 @Override
                 public void run() {
@@ -436,11 +432,11 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            items.clear();
-                            items.add(0, new String[]{""});
-                            items.add(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
-                            items.addAll(tempContactList);
-                            profileAdapter.notifyDataSetChanged();
+                            mItems.clear();
+                            mItems.add(0, new String[]{""});
+                            mItems.add(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                            mItems.addAll(tempContactList);
+                            mProfileAdapter.notifyDataSetChanged();
                         }
                     });
 
@@ -454,7 +450,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         getMenuInflater().inflate(R.menu.menu_profile, menu);
 
         MenuItem menuNotification = menu.getItem(0);
-        if (!isMuted) {
+        if (!mIsMuted) {
             menuNotification.setIcon(R.mipmap.ic_notifications_on);
         } else {
             menuNotification.setIcon(R.mipmap.ic_notifications_off);
@@ -694,8 +690,6 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
 
     }
 
-    private Boolean isFullWidth;
-
     private void updateFlexibleSpaceText(final int scrollY) {
         mFlexibleSpaceView.setTranslationY(-scrollY);
 
@@ -736,16 +730,16 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
         mFab.setTranslationY(fabTranslationY + getToolBarSize());
 
         if (fabTranslationY <= (minFabTranslationY)) {
-            if (isFullWidth == null || isFullWidth) {
-                isFullWidth = false;
+            if (mIsFullWidth == null || mIsFullWidth) {
+                mIsFullWidth = false;
                 ((RelativeLayout.LayoutParams) mTitleView.getLayoutParams()).rightMargin = Constant.DP_100;
                 mTitleView.requestLayout();
                 mTitleView.invalidate();
             }
             mFab.hideButtonAnimated();
         } else {
-            if (isFullWidth == null || !isFullWidth) {
-                isFullWidth = true;
+            if (mIsFullWidth == null || !mIsFullWidth) {
+                mIsFullWidth = true;
                 ((RelativeLayout.LayoutParams) mTitleView.getLayoutParams()).rightMargin = Constant.DP_36;
                 mTitleView.requestLayout();
                 mTitleView.invalidate();
@@ -756,8 +750,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (profilePhotoChoose != null)
-            profilePhotoChoose.processImage(requestCode, resultCode, data, this);
+        if (mProfilePhotoChoose != null)
+            mProfilePhotoChoose.processImage(requestCode, resultCode, data, this);
     }
 
     @Override
@@ -770,26 +764,26 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                     AndroidUtil.runInUI(new Runnable() {
                         @Override
                         public void run() {
-                            if (profileAdapter != null) {
+                            if (mProfileAdapter != null) {
 
                                 switch (mFor) {
                                     case BOT: {
-                                        items.set(3, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                                        mItems.set(3, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
                                         break;
                                     }
                                     case GROUP: {
-                                        items.set(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                                        mItems.set(1, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
                                         break;
                                     }
                                     case USER:
                                     default: {
-                                        items.set(2, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
+                                        mItems.set(2, new String[]{SharedMediaManager.getManager().getPhotoAndVideoMessagesStringSize(!isSubProfile)});
                                     }
                                 }
 
-                                profileAdapter.notifyDataSetChanged();
-                                if (profileAdapter.getSharedMediaAdapter() != null) {
-                                    profileAdapter.getSharedMediaAdapter().notifyDataSetChanged();
+                                mProfileAdapter.notifyDataSetChanged();
+                                if (mProfileAdapter.getSharedMediaAdapter() != null) {
+                                    mProfileAdapter.getSharedMediaAdapter().notifyDataSetChanged();
                                 }
                             }
 
@@ -827,8 +821,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                         @Override
                         public void run() {
                             if (ProfileManager.getManager().isSameChatId(chatId)) {
-                                if (isMuted != null) {
-                                    isMuted = muteFot > 0;
+                                if (mIsMuted != null) {
+                                    mIsMuted = muteFot > 0;
                                     supportInvalidateOptionsMenu();
                                 }
                             }
@@ -876,7 +870,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
 
                     if (isSubProfile) {
                         if (profileManager.isSameChatId(cachedUserForTitle.tgUser.id)) {
-                            ProfileActivity.isNeedUpdateUserList = true;
+                            ProfileActivity.sIsNeedUpdateUserList = true;
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {
@@ -887,10 +881,10 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                         mTitleImage.setImageDrawable(dr);
                                         ProfileActivity.this.supportInvalidateOptionsMenu();
 
-                                        if (mFor == ProfileManager.FOR.USER && items != null && items.size() > 1 && profileAdapter != null) {
-                                            items.set(1, new String[]{TextUtil.isNotBlank(cachedUserForTitle.tgUser.phoneNumber) ?
+                                        if (mFor == ProfileManager.FOR.USER && mItems != null && mItems.size() > 1 && mProfileAdapter != null) {
+                                            mItems.set(1, new String[]{TextUtil.isNotBlank(cachedUserForTitle.tgUser.phoneNumber) ?
                                                     ("+" + cachedUserForTitle.tgUser.phoneNumber) : AndroidUtil.getResourceString(R.string.unknown)});
-                                            profileAdapter.notifyDataSetChanged();
+                                            mProfileAdapter.notifyDataSetChanged();
                                         }
                                     } catch (Throwable e) {
                                         //
@@ -910,10 +904,10 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                         mTitleImage.setImageDrawable(dr);
                                         ProfileActivity.this.supportInvalidateOptionsMenu();
 
-                                        if (mFor == ProfileManager.FOR.USER && items != null && items.size() > 1 && profileAdapter != null) {
-                                            items.set(1, new String[]{TextUtil.isNotBlank(cachedUserForTitle.tgUser.phoneNumber) ?
+                                        if (mFor == ProfileManager.FOR.USER && mItems != null && mItems.size() > 1 && mProfileAdapter != null) {
+                                            mItems.set(1, new String[]{TextUtil.isNotBlank(cachedUserForTitle.tgUser.phoneNumber) ?
                                                     ("+" + cachedUserForTitle.tgUser.phoneNumber) : AndroidUtil.getResourceString(R.string.unknown)});
-                                            profileAdapter.notifyDataSetChanged();
+                                            mProfileAdapter.notifyDataSetChanged();
                                         }
                                     } catch (Throwable e) {
                                         //

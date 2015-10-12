@@ -15,8 +15,6 @@ import android.widget.ListView;
 import com.crashlytics.android.Crashlytics;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.AuthManager;
-import com.stayfprod.utter.manager.ChatListManager;
-import com.stayfprod.utter.manager.StickerManager;
 import com.stayfprod.utter.manager.UserManager;
 import com.stayfprod.utter.model.DrawerMenu;
 import com.stayfprod.utter.ui.activity.ContactListActivity;
@@ -34,9 +32,9 @@ public class MenuDrawerLayout extends DrawerLayout {
     private static final int CONST_Y = 150;
 
     private View mDrawer;
-    private float x = 0f;
-    private float y = 0f;
-    private boolean dragOpenActivated;
+    private float mX = 0f;
+    private float mY = 0f;
+    private boolean mDragOpenActivated;
 
     public MenuDrawerLayout(Context context) {
         super(context);
@@ -120,20 +118,20 @@ public class MenuDrawerLayout extends DrawerLayout {
             super.onTouchEvent(event);
             return true;
         } else {
-            boolean isGoodY = Math.abs(y - event.getY()) < 0.99f;
-            boolean isGoodXY = (event.getX() > x && isGoodY);
+            boolean isGoodY = Math.abs(mY - event.getY()) < 0.99f;
+            boolean isGoodXY = (event.getX() > mX && isGoodY);
             //не стоит открывать если иксы одинаковы,ждем следующее событие
-            if (isGoodXY || dragOpenActivated) {
+            if (isGoodXY || mDragOpenActivated) {
                 //активируем
-                if (!dragOpenActivated) {
+                if (!mDragOpenActivated) {
                     event.setLocation(-1, CONST_Y);
                     event.setAction(MotionEvent.ACTION_DOWN);
                     super.onTouchEvent(event);
-                    dragOpenActivated = true;
+                    mDragOpenActivated = true;
                 } else {
-                    if (event.getX() != x) {
+                    if (event.getX() != mX) {
                         //продолжаем тянуть
-                        float dif = event.getX() - x;
+                        float dif = event.getX() - mX;
                         dif = dif <= 0f ? 0.1f : dif;
 
                         event.setLocation(dif, CONST_Y);
@@ -158,15 +156,15 @@ public class MenuDrawerLayout extends DrawerLayout {
         switch (event.getAction()) {
             case MotionEvent.ACTION_POINTER_DOWN:
             case MotionEvent.ACTION_POINTER_UP: {
-                if (dragOpenActivated) {
+                if (mDragOpenActivated) {
                     returned = true;
                 }
                 break;
             }
             case MotionEvent.ACTION_DOWN: {
-                x = event.getX();
-                y = event.getY();
-                dragOpenActivated = false;
+                mX = event.getX();
+                mY = event.getY();
+                mDragOpenActivated = false;
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
@@ -175,7 +173,7 @@ public class MenuDrawerLayout extends DrawerLayout {
             }
             case MotionEvent.ACTION_CANCEL: {
                 //тащим в данный момент
-                if (dragOpenActivated) {
+                if (mDragOpenActivated) {
                     //отмена идет как move, но тем не менее нужно отдать следующим обработчикам + обратно вернуть event
                     event.setAction(MotionEvent.ACTION_MOVE);
                     proceedMoveAction(event);
@@ -187,17 +185,17 @@ public class MenuDrawerLayout extends DrawerLayout {
             }
             default: {
                 //последнее действие после открытия дровера обрабатывается дровером
-                if (dragOpenActivated) {
+                if (mDragOpenActivated) {
                     returned = true;
                 }
-                dragOpenActivated = false;
-                x = 0f;
-                y = 0f;
+                mDragOpenActivated = false;
+                mX = 0f;
+                mY = 0f;
                 super.onTouchEvent(event);
             }
         }
 
-        if (dragOpenActivated || isDrawerOpen(mDrawer) || isDrawerVisible(mDrawer)) {
+        if (mDragOpenActivated || isDrawerOpen(mDrawer) || isDrawerVisible(mDrawer)) {
             //не требуем других обработчиков
             returned = true;
         }

@@ -17,7 +17,7 @@ import com.stayfprod.utter.model.DialogDrawParams;
 import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.factory.StaticLayoutFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
@@ -102,9 +102,9 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
         TEXT_START_Y_ILL = TITLE_START_Y + TEXT_MARGIN_TOP;
     }
 
-    private volatile ChatInfo record;
+    private volatile ChatInfo mRecord;
 
-    private IconDrawable iconDrawable;
+    private IconDrawable mIconDrawable;
 
     public DialogView(Context context) {
         super(context);
@@ -114,33 +114,33 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
     protected void onDraw(Canvas canvas) {
         if (isNeedDraw) {
             int i = getOrientatedIndex();
-            DialogDrawParams drawParams = record.drawParams;
+            DialogDrawParams drawParams = mRecord.drawParams;
 
-            if (iconDrawable != null) {
-                iconDrawable.draw(canvas);
+            if (mIconDrawable != null) {
+                mIconDrawable.draw(canvas);
             }
 
-            if (record != null) {
-                if (TextUtil.isNotBlank(record.date))
-                    canvas.drawText(record.date, 0, record.date.length(), drawParams.dateStartX[i], DATE_START_Y, DATA_PAINT);
+            if (mRecord != null) {
+                if (TextUtil.isNotBlank(mRecord.date))
+                    canvas.drawText(mRecord.date, 0, mRecord.date.length(), drawParams.dateStartX[i], DATE_START_Y, DATA_PAINT);
 
-                switch (record.outputMsgIcon) {
+                switch (mRecord.outputMsgIcon) {
                     case ACCEPT_NOT_RED:
-                        BLUE_CYCLE_DRAWABLE.setBounds(record.drawParams.cycleRect[i]);
+                        BLUE_CYCLE_DRAWABLE.setBounds(mRecord.drawParams.cycleRect[i]);
                         BLUE_CYCLE_DRAWABLE.draw(canvas);
                         break;
                     case NOT_SEND:
-                        CLOCK_DRAWABLE.setBounds(record.drawParams.clockRect[i]);
+                        CLOCK_DRAWABLE.setBounds(mRecord.drawParams.clockRect[i]);
                         CLOCK_DRAWABLE.draw(canvas);
                         break;
                 }
 
-                switch (record.inputMsgIcon) {
+                switch (mRecord.inputMsgIcon) {
 
                     case NEW_MSG: {
                         if (drawParams.unreadCountStr != null) {
-                            if (record.drawParams.badgeRect[i] != null) {
-                                BADGE_DRAWABLE.setBounds(record.drawParams.badgeRect[i]);
+                            if (mRecord.drawParams.badgeRect[i] != null) {
+                                BADGE_DRAWABLE.setBounds(mRecord.drawParams.badgeRect[i]);
                                 BADGE_DRAWABLE.draw(canvas);
                                 canvas.drawText(drawParams.unreadCountStr, drawParams.counterStartX[i], COUNTER_START_Y, COUNTER_PAINT);
                             }
@@ -148,21 +148,21 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
                         break;
                     }
                     case ERROR: {
-                        ERROR_DRAWABLE.setBounds(record.drawParams.errorRect[i]);
+                        ERROR_DRAWABLE.setBounds(mRecord.drawParams.errorRect[i]);
                         ERROR_DRAWABLE.draw(canvas);
                         break;
                     }
                 }
 
-                if (record.isGroupChat) {
-                    GROUP_DRAWABLE.setBounds(record.drawParams.groupRect);
+                if (mRecord.isGroupChat) {
+                    GROUP_DRAWABLE.setBounds(mRecord.drawParams.groupRect);
                     GROUP_DRAWABLE.draw(canvas);
                 }
 
                 canvas.drawText(drawParams.drawTitle[i], 0, drawParams.drawTitle[i].length(), drawParams.titleStartX, TITLE_START_Y, TITLE_PAINT);
 
                 if (drawParams.isMute) {
-                    MUTE_DRAWABLE.setBounds(record.drawParams.muteRect[i]);
+                    MUTE_DRAWABLE.setBounds(mRecord.drawParams.muteRect[i]);
                     MUTE_DRAWABLE.draw(canvas);
                 }
 
@@ -210,7 +210,6 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
             int inputMsgStartX = 0;
             int inputMsgEndX = windowWidth - MSG_COUNTER_MARGIN_RIGHT;
 
-            //record.inputMsgIcon = InputMsgIconType.ERROR;
             switch (record.inputMsgIcon) {
                 case NEW_MSG: {
                     if (drawParams.unreadCountStr != null) {
@@ -290,31 +289,17 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
 
             float textEndX = inputMsgStartX - Constant.DP_1;
             int maxTextWidth = (int) (textEndX - groupStartX);
-            //fixme -150????
 
             if (maxTextWidth <= 0) {
                 String msg = maxTextWidth + " " + textEndX + " " + groupStartX + " " + record.inputMsgIcon.name() + " " + inputMsgStartX + " " + windowWidth;
-                //Logs.e(msg);
                 Crashlytics.log(msg);
-
             }
 
             if (i == 0)
                 drawParams.layoutHeight = LAYOUT_HEIGHT;
 
             drawParams.staticTextLayout[i] = StaticLayoutFactory.createSimpleLayout(record.text, TEXT_PAINT, maxTextWidth, TextUtils.TruncateAt.END, 1);
-            //fixme упало с Null
 
-            /*
-            * java.lang.NullPointerException
-               at com.stayfprod.utter.ui.view.DialogView.measure(DialogView.java:289)
-               at com.stayfprod.utter.manager.ChatListManager$5.run(ChatListManager.java:329)
-               at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1112)
-               at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:587)
-               at com.stayfprod.utter.service.ThreadService$1$1.run(ThreadService.java:64)
-               at java.lang.Thread.run(Thread.java:841)
-            *
-            * */
             drawParams.staticTextLayoutStartY[i] = TEXT_START_Y_ILL +
                     (drawParams.staticTextLayout[i].getLineAscent(0) - TEXT_PAINT.ascent())
                     + (drawParams.staticTextLayout[i].getLineDescent(0) == 0 ? TEXT_PAINT.descent() : 0);
@@ -327,30 +312,28 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        //if (isNeedDraw) {
         final int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         final int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         setMeasuredDimension(width, height);
-        //}
     }
 
     public void setValues(ChatInfo record, int i, Context context) {
         this.setTag(i);
-        this.record = record;
+        this.mRecord = record;
 
         switch (record.tgChatObject.type.getConstructor()) {
             case TdApi.PrivateChatInfo.CONSTRUCTOR: {
                 TdApi.User user = ((TdApi.PrivateChatInfo) record.tgChatObject.type).user;
                 TdApi.File file = user.profilePhoto.small;
 
-                if (FileUtils.isTDFileEmpty(file)) {
-                    iconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, user.id, record.initials);
+                if (FileUtil.isTDFileEmpty(file)) {
+                    mIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, user.id, record.initials);
                     if (file.id > 0) {
                         FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_LIST_ICON,
                                 file.id, i, -1, user, this, getItemViewTag());
                     }
                 } else {
-                    iconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT_LIST, file.path, this, getItemViewTag());
+                    mIconDrawable = IconFactory.createBitmapIconForChat(IconFactory.Type.CHAT_LIST, file.path, this, getItemViewTag());
                 }
                 break;
             }
@@ -358,14 +341,14 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
                 TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) record.tgChatObject.type;
                 TdApi.GroupChat groupChat = groupChatInfo.groupChat;
 
-                if (FileUtils.isTDFileEmpty(groupChat.photo.small)) {
-                    iconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, groupChat.id, record.initials);
+                if (FileUtil.isTDFileEmpty(groupChat.photo.small)) {
+                    mIconDrawable = IconFactory.createEmptyIcon(IconFactory.Type.CHAT_LIST, groupChat.id, record.initials);
                     if (groupChat.photo.small.id > 0) {
                         FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_LIST_ICON,
                                 groupChat.photo.small.id, i, -1, groupChat, this, getItemViewTag());
                     }
                 } else {
-                    iconDrawable = IconFactory.createBitmapIconForChat(
+                    mIconDrawable = IconFactory.createBitmapIconForChat(
                             IconFactory.Type.CHAT_LIST, groupChat.photo.small.path, this, getItemViewTag());
                 }
                 break;
@@ -377,11 +360,11 @@ public class DialogView extends AbstractChatView implements IconUpdatable {
     @Override
     public void setIconAsync(IconDrawable iconDrawable, boolean isForward, boolean... animated) {
         if (iconDrawable != null) {
-            this.iconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
-            this.iconDrawable.mPaint = iconDrawable.mPaint;
-            this.iconDrawable.text = iconDrawable.text;
+            this.mIconDrawable.emptyBitmap = iconDrawable.emptyBitmap;
+            this.mIconDrawable.paint = iconDrawable.paint;
+            this.mIconDrawable.text = iconDrawable.text;
 
-            final Rect dirty = this.iconDrawable.getDirtyBounds();
+            final Rect dirty = this.mIconDrawable.getDirtyBounds();
             postInvalidate(dirty.left, dirty.top, dirty.right, dirty.bottom);
         }
     }

@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.model.CachedUser;
 import com.stayfprod.utter.model.Contact;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.ui.adapter.ContactListAdapter;
@@ -24,26 +23,25 @@ import java.util.TreeSet;
 public class ContactListManager extends ResultController {
     private final static String LOG = ChatManager.class.getSimpleName();
 
-    private static volatile ContactListManager contactListManager;
+    private static volatile ContactListManager sContactListManager;
 
     public static final int ACTION_ADD_USER_TO_GROUP = 1;
 
-    private TreeSet<Contact> contactList = new TreeSet<Contact>();
-    private List<Integer> ignoreUsers = new ArrayList<>();
-    private ContactListAdapter listAdapter;
-    private int action;
-
     public static ContactListManager getManager() {
-        if (contactListManager == null) {
+        if (sContactListManager == null) {
             synchronized (ChatListManager.class) {
-                if (contactListManager == null) {
-                    contactListManager = new ContactListManager();
+                if (sContactListManager == null) {
+                    sContactListManager = new ContactListManager();
                 }
             }
         }
-        return contactListManager;
+        return sContactListManager;
     }
 
+    private TreeSet<Contact> mContactList = new TreeSet<Contact>();
+    private List<Integer> mIgnoreUsers = new ArrayList<>();
+    private ContactListAdapter mListAdapter;
+    private int mAction;
 
     @Override
     public boolean hasChanged() {
@@ -51,21 +49,21 @@ public class ContactListManager extends ResultController {
     }
 
     public int getAction() {
-        return action;
+        return mAction;
     }
 
     public void setAction(int action) {
-        this.action = action;
+        this.mAction = action;
     }
 
     public List<Integer> getIgnoreUsers() {
-        return ignoreUsers;
+        return mIgnoreUsers;
     }
 
     public void clean() {
-        contactList.clear();
-        listAdapter = null;
-        action = 0;
+        mContactList.clear();
+        mListAdapter = null;
+        mAction = 0;
     }
 
     public void closeActivity() {
@@ -78,11 +76,11 @@ public class ContactListManager extends ResultController {
     * Проблем с ним больше не должно возникать.
     * */
     public ContactListManager getContacts() {
-        if (contactList.isEmpty()) {
+        if (mContactList.isEmpty()) {
             TdApi.GetContacts func = new TdApi.GetContacts();
             client().send(func, getManager());
         }
-        return contactListManager;
+        return sContactListManager;
     }
 
     public void getChatInfo(int id, Client.ResultHandler handler) {
@@ -94,8 +92,8 @@ public class ContactListManager extends ResultController {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                if (listAdapter != null) {
-                    listAdapter.notifyDataSetChanged();
+                if (mListAdapter != null) {
+                    mListAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -106,8 +104,8 @@ public class ContactListManager extends ResultController {
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(compatActivity);
         recyclerView.setLayoutManager(linearLayoutManager);
-        listAdapter = new ContactListAdapter(compatActivity);
-        recyclerView.setAdapter(listAdapter);
+        mListAdapter = new ContactListAdapter(compatActivity);
+        recyclerView.setAdapter(mListAdapter);
     }
 
     @Override
@@ -118,21 +116,20 @@ public class ContactListManager extends ResultController {
                 TdApi.Contacts contacts = (TdApi.Contacts) object;
                 for (int i = 0; i < contacts.users.length; i++) {
                     TdApi.User user = contacts.users[i];
-                    if ( action == ACTION_ADD_USER_TO_GROUP && !ignoreUsers.isEmpty() && ignoreUsers.contains(user.id)) {
+                    if (mAction == ACTION_ADD_USER_TO_GROUP && !mIgnoreUsers.isEmpty() && mIgnoreUsers.contains(user.id)) {
                         continue;
                     }
                     Contact contact = new Contact(userManager.insertUserInCache(user), ChatHelper.lastSeenUser(user.status));
                     ContactView.measure(contact);
-                    contactList.add(contact);
+                    mContactList.add(contact);
                 }
 
-                listAdapter.setData(contactList);
+                mListAdapter.setData(mContactList);
 
                 notifySetDataChangedAsync();
                 break;
             }
         }
     }
-
 
 }

@@ -17,13 +17,12 @@ import java.util.Observer;
 
 public class ContactListActivity extends AppCompatActivity implements Observer {
 
-    private TextView title;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (App.isBadAppContext(this))
             return;
+
         setContentView(R.layout.activity_contact_list);
 
         ContactListManager contactListManager = ContactListManager.getManager();
@@ -59,10 +58,10 @@ public class ContactListActivity extends AppCompatActivity implements Observer {
 
     @SuppressWarnings("ConstantConditions")
     private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            title = (TextView) toolbar.findViewById(R.id.a_contact_list_title);
+            TextView title = (TextView) toolbar.findViewById(R.id.a_contact_list_title);
             title.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
             title.setTextColor(0xffffffff);
             title.setTextSize(20);

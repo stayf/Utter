@@ -8,24 +8,24 @@ import android.view.MotionEvent;
 
 public class DisabledViewPager extends ViewPager {
 
-    private boolean enabled;
+    private boolean mEnabled;
 
     public DisabledViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.enabled = false;
+        this.mEnabled = false;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return this.enabled && super.onTouchEvent(event);
+        return this.mEnabled && super.onTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return this.enabled && super.onInterceptTouchEvent(event);
+        return this.mEnabled && super.onInterceptTouchEvent(event);
     }
 
     public void setPagingEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.mEnabled = enabled;
     }
 }

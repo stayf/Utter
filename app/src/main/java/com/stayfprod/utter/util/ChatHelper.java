@@ -15,8 +15,6 @@ import android.text.util.Linkify;
 
 import com.crashlytics.android.Crashlytics;
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.manager.BotManager;
-import com.stayfprod.utter.manager.ResultController;
 import com.stayfprod.utter.model.CachedUser;
 import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.InputMsgIconType;
@@ -35,12 +33,12 @@ import java.util.regex.Pattern;
 
 public class ChatHelper {
 
-    public final static int LOCAL_MSG_ID_MIN = 1000000000;
+    public static final int LOCAL_MSG_ID_MIN = 1000000000;
     private static final int SYSTEM_MSG_COLOR = Color.parseColor("#6b9cc2");
 
     public static OutputMsgIconType getTypeOfOutputMsgIcon(TdApi.Chat tgChat, int msgId) {
         //верхнее исходящее, не прочитанное
-        try{
+        try {
             if (msgId < LOCAL_MSG_ID_MIN && msgId > tgChat.lastReadOutboxMessageId && msgId > tgChat.lastReadInboxMessageId && tgChat.unreadCount <= 0) {
                 return OutputMsgIconType.ACCEPT_NOT_RED;
             }
@@ -48,7 +46,7 @@ public class ChatHelper {
                 //иначе ставим часики
                 return OutputMsgIconType.NOT_SEND;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             Crashlytics.logException(e);
         }
 
@@ -306,7 +304,6 @@ public class ChatHelper {
                     prefixes[i].length())) {
                 hasPrefix = true;
 
-                // Fix capitalization if necessary
                 if (!url.regionMatches(false, 0, prefixes[i], 0,
                         prefixes[i].length())) {
                     url = prefixes[i] + url.substring(prefixes[i].length());

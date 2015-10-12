@@ -49,32 +49,32 @@ public class IntermediateHolder extends AbstractHolder<ChatInfo> {
                 DialogView.LAYOUT_HEIGHT));
 
         itemView.setOnTouchListener(new View.OnTouchListener() {
-            private Handler handlerBackground = new Handler();
+            private Handler mHandlerBackground = new Handler();
 
-            Runnable actionChangeBackground = new Runnable() {
+            private Runnable mActionChangeBackground = new Runnable() {
                 @Override
                 public void run() {
                     itemView.setBackgroundColor(0x1A000000);
                 }
             };
 
-            private boolean needOpen;
+            private boolean mNeedOpen;
 
             @Override
             public boolean onTouch(View v, MotionEvent evt) {
 
                 switch (evt.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
-                        handlerBackground.postDelayed(actionChangeBackground, 50);
-                        needOpen = true;
+                        mHandlerBackground.postDelayed(mActionChangeBackground, 50);
+                        mNeedOpen = true;
                         break;
                     }
                     case MotionEvent.ACTION_UP: {
-                        handlerBackground.removeCallbacks(actionChangeBackground);
+                        mHandlerBackground.removeCallbacks(mActionChangeBackground);
                         v.setBackgroundColor(Color.TRANSPARENT);
 
                         //info блокировка нажатия везде!!!
-                        if (needOpen && !isClickOnItemBlocked) {
+                        if (mNeedOpen && !isClickOnItemBlocked) {
                             isClickOnItemBlocked = true;
                             final ChatInfo chatInfo = records.get(getPosition());
                             if ((chatInfo.isGroupChat && chatInfo.groupChatFull == null)) {
@@ -146,9 +146,9 @@ public class IntermediateHolder extends AbstractHolder<ChatInfo> {
                     }
                     case MotionEvent.ACTION_CANCEL:
                     case MotionEvent.ACTION_OUTSIDE: {
-                        handlerBackground.removeCallbacks(actionChangeBackground);
+                        mHandlerBackground.removeCallbacks(mActionChangeBackground);
                         v.setBackgroundColor(Color.TRANSPARENT);
-                        needOpen = false;
+                        mNeedOpen = false;
                         break;
                     }
                     case MotionEvent.ACTION_MOVE: {
@@ -222,7 +222,6 @@ public class IntermediateHolder extends AbstractHolder<ChatInfo> {
                                                     if (i == 0) {
                                                         fromChatId = obj.message.chatId;
                                                     }
-                                                    //chatManager.sendMessage(chatManager.createForwardMsg(obj.message.id));
                                                 }
                                                 chatManager.forwardMessages(msgId, fromChatId);
                                                 sharedMediaSparseArray.clear();
@@ -236,7 +235,6 @@ public class IntermediateHolder extends AbstractHolder<ChatInfo> {
                                                     if (i == 0) {
                                                         fromChatId = obj.message.chatId;
                                                     }
-                                                    //chatManager.sendMessage(chatManager.createForwardMsg(obj.message.id));
                                                 }
 
                                                 chatManager.forwardMessages(msgId, fromChatId);

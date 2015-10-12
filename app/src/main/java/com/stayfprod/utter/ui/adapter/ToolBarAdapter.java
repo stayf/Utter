@@ -28,65 +28,65 @@ public class ToolBarAdapter extends BaseAdapter {
     private static final int DP_5 = Constant.DP_5;
     private static final int DP_2 = Constant.DP_2;
 
-    private final Context context;
+    private final Context mContext;
 
-    private RelativeLayout firstLayout;
-    private RelativeLayout secondLayout;
+    private RelativeLayout mFirstLayout;
+    private RelativeLayout mSecondLayout;
 
-    private TextView mainTitle;
-    private ImageView chatIcon;
-    private TextView chatTitle;
-    private TextView chatSubText;
+    private TextView mMainTitle;
+    private ImageView mChatIcon;
+    private TextView mChatTitle;
+    private TextView mChatSubText;
 
     public void setMainTitle(String val) {
-        mainTitle.setText(val);
+        mMainTitle.setText(val);
         this.notifyDataSetChanged();
     }
 
     public void setAlpha(float slideOffset) {
         int alphaMainTitle = (int) (255 * (1f - slideOffset));
         int alphaChat = (int) (255 * (slideOffset));
-        mainTitle.setTextColor(mainTitle.getTextColors().withAlpha(alphaMainTitle));
-        chatTitle.setTextColor(chatTitle.getTextColors().withAlpha(alphaChat));
-        chatSubText.setTextColor(chatSubText.getTextColors().withAlpha(alphaChat));
-        chatIcon.setAlpha(slideOffset);
+        mMainTitle.setTextColor(mMainTitle.getTextColors().withAlpha(alphaMainTitle));
+        mChatTitle.setTextColor(mChatTitle.getTextColors().withAlpha(alphaChat));
+        mChatSubText.setTextColor(mChatSubText.getTextColors().withAlpha(alphaChat));
+        mChatIcon.setAlpha(slideOffset);
         this.notifyDataSetChanged();
     }
 
     public void setChatTitle(final String title) {
-        ((AppCompatActivity) context).runOnUiThread(new Runnable() {
+        ((AppCompatActivity) mContext).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                chatTitle.setText(title);
+                mChatTitle.setText(title);
                 notifyDataSetChanged();
             }
         });
     }
 
     public void setChatSubTitle(final String subTitle) {
-        ((AppCompatActivity) context).runOnUiThread(new Runnable() {
+        ((AppCompatActivity) mContext).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                chatSubText.setText(subTitle);
+                mChatSubText.setText(subTitle);
                 notifyDataSetChanged();
             }
         });
     }
 
     public void setChatToolBar(final String subTitle, final Spannable title, final IconDrawable iconDrawable) {
-        ((AppCompatActivity) context).runOnUiThread(new Runnable() {
+        ((AppCompatActivity) mContext).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                chatIcon.setImageDrawable(iconDrawable);
-                chatTitle.setText(title);
-                chatSubText.setText(subTitle);
+                mChatIcon.setImageDrawable(iconDrawable);
+                mChatTitle.setText(title);
+                mChatSubText.setText(subTitle);
                 notifyDataSetChanged();
             }
         });
     }
 
     public ToolBarAdapter(Context context) {
-        this.context = context;
+        this.mContext = context;
         createItemOne();
         createItemTwo();
     }
@@ -99,9 +99,9 @@ public class ToolBarAdapter extends BaseAdapter {
     @Override
     public View getItem(int position) {
         if (position == 1) {
-            return secondLayout;
+            return mSecondLayout;
         } else {
-            return firstLayout;
+            return mFirstLayout;
         }
     }
 
@@ -111,73 +111,72 @@ public class ToolBarAdapter extends BaseAdapter {
     }
 
     private void createItemTwo() {
-        RelativeLayout relativeLayout = new RelativeLayout(context);
+        RelativeLayout relativeLayout = new RelativeLayout(mContext);
         relativeLayout.setLayoutParams(new AbsListView.LayoutParams(
                 AbsListView.LayoutParams.MATCH_PARENT, DP_56));
         relativeLayout.setVerticalGravity(Gravity.CENTER);
 
-        chatIcon = new ImageView(context);
-        chatIcon.setId(R.id.i_toolbar_icon);
-        chatIcon.setPadding(DP_4, DP_4, DP_4, DP_4);
-        relativeLayout.addView(chatIcon);
+        mChatIcon = new ImageView(mContext);
+        mChatIcon.setId(R.id.i_toolbar_icon);
+        mChatIcon.setPadding(DP_4, DP_4, DP_4, DP_4);
+        relativeLayout.addView(mChatIcon);
 
-        RelativeLayout.LayoutParams iconToolbarLP = (RelativeLayout.LayoutParams) chatIcon.getLayoutParams();
+        RelativeLayout.LayoutParams iconToolbarLP = (RelativeLayout.LayoutParams) mChatIcon.getLayoutParams();
 
         iconToolbarLP.height = IconFactory.Type.TITLE.getHeight();
         iconToolbarLP.width = IconFactory.Type.TITLE.getHeight();
 
-        chatTitle = new TextView(context);
-        chatTitle.setId(R.id.i_toolbar_title);
-        chatTitle.setSingleLine();
-        chatTitle.setEllipsize(TextUtils.TruncateAt.END);
-        chatTitle.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        chatTitle.setTextSize(18);
-        chatTitle.setTextColor(0xffffffff);
+        mChatTitle = new TextView(mContext);
+        mChatTitle.setId(R.id.i_toolbar_title);
+        mChatTitle.setSingleLine();
+        mChatTitle.setEllipsize(TextUtils.TruncateAt.END);
+        mChatTitle.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mChatTitle.setTextSize(18);
+        mChatTitle.setTextColor(0xffffffff);
 
-        relativeLayout.addView(chatTitle);
+        relativeLayout.addView(mChatTitle);
 
-        RelativeLayout.LayoutParams chatTitleLP = (RelativeLayout.LayoutParams) chatTitle.getLayoutParams();
+        RelativeLayout.LayoutParams chatTitleLP = (RelativeLayout.LayoutParams) mChatTitle.getLayoutParams();
         chatTitleLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
         chatTitleLP.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
         chatTitleLP.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        chatTitleLP.addRule(RelativeLayout.RIGHT_OF, chatIcon.getId());
+        chatTitleLP.addRule(RelativeLayout.RIGHT_OF, mChatIcon.getId());
         chatTitleLP.topMargin = DP_2;
         chatTitleLP.leftMargin = DP_5;
 
-        chatSubText = new TextView(context);
-        chatSubText.setSingleLine();
-        chatSubText.setEllipsize(TextUtils.TruncateAt.END);
-        chatSubText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-        chatSubText.setTextSize(14);
-        chatSubText.setTextColor(0xffd2eafc);
+        mChatSubText = new TextView(mContext);
+        mChatSubText.setSingleLine();
+        mChatSubText.setEllipsize(TextUtils.TruncateAt.END);
+        mChatSubText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+        mChatSubText.setTextSize(14);
+        mChatSubText.setTextColor(0xffd2eafc);
 
-        relativeLayout.addView(chatSubText);
+        relativeLayout.addView(mChatSubText);
 
-        RelativeLayout.LayoutParams chatSubTextLP = (RelativeLayout.LayoutParams) chatSubText.getLayoutParams();
+        RelativeLayout.LayoutParams chatSubTextLP = (RelativeLayout.LayoutParams) mChatSubText.getLayoutParams();
         chatSubTextLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
         chatSubTextLP.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
-        chatSubTextLP.addRule(RelativeLayout.RIGHT_OF, chatIcon.getId());
-        chatSubTextLP.addRule(RelativeLayout.BELOW, chatTitle.getId());
+        chatSubTextLP.addRule(RelativeLayout.RIGHT_OF, mChatIcon.getId());
+        chatSubTextLP.addRule(RelativeLayout.BELOW, mChatTitle.getId());
         chatSubTextLP.leftMargin = DP_5;
 
-        secondLayout = relativeLayout;
-
+        mSecondLayout = relativeLayout;
     }
 
     private void createItemOne() {
-        firstLayout = new RelativeLayout(context);
+        mFirstLayout = new RelativeLayout(mContext);
 
         AbsListView.LayoutParams firstLayoutLP = new AbsListView.LayoutParams(
                 AbsListView.LayoutParams.MATCH_PARENT, DP_56);
-        firstLayout.setLayoutParams(firstLayoutLP);
-        firstLayout.setVerticalGravity(Gravity.CENTER);
-        mainTitle = new TextView(context);
-        firstLayout.addView(mainTitle);
+        mFirstLayout.setLayoutParams(firstLayoutLP);
+        mFirstLayout.setVerticalGravity(Gravity.CENTER);
+        mMainTitle = new TextView(mContext);
+        mFirstLayout.addView(mMainTitle);
 
-        mainTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-        mainTitle.setTextColor(0xffffffff);
-        mainTitle.setTextSize(20);
+        mMainTitle.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+        mMainTitle.setTextColor(0xffffffff);
+        mMainTitle.setTextSize(20);
     }
 
     @SuppressWarnings("SuspiciousNameCombination")
@@ -185,9 +184,9 @@ public class ToolBarAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         switch (position) {
             case 1:
-                return secondLayout;
+                return mSecondLayout;
             default:
-                return firstLayout;
+                return mFirstLayout;
         }
     }
 }

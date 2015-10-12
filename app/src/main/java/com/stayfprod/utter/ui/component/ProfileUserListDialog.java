@@ -20,7 +20,7 @@ import org.drinkless.td.libcore.telegram.TdApi;
 public class ProfileUserListDialog {
     private static final String LOG = ProfileUserListDialog.class.getSimpleName();
 
-    private Contact contact;
+    private Contact mContact;
 
     private void showDialog(final Context context) {
 
@@ -30,11 +30,11 @@ public class ProfileUserListDialog {
         builder.setItems(names, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                if (contact != null) {
+                if (mContact != null) {
                     try {
                         ChatInfo chatInfo = ProfileManager.getManager().getChatInfo();
                         ChatManager chatManager = ChatManager.getManager();
-                        chatManager.deleteChatParticipant(chatInfo.tgChatObject.id, contact.chatParticipant.user.id, new ResultController() {
+                        chatManager.deleteChatParticipant(chatInfo.tgChatObject.id, mContact.chatParticipant.user.id, new ResultController() {
                             @Override
                             public void afterResult(TdApi.TLObject object, int calledConstructor) {
 
@@ -62,7 +62,7 @@ public class ProfileUserListDialog {
 
             if (contact.chatParticipant.inviterId == userManager.getCurrUserId() || chatInfo.groupChatFull.adminId == userManager.getCurrUserId()) {
                 showDialog(context);
-                this.contact = contact;
+                this.mContact = contact;
                 return true;
             } else {
                 return false;

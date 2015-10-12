@@ -26,8 +26,8 @@ public class GeoMsgView extends AbstractMsgView<GeoMsg> implements ImageUpdatabl
     public static final int GEO_WIDTH = Constant.DP_150;
     public static final int GEO_HEIGHT = Constant.DP_100;
 
-    private BitmapDrawable geoDrawable;
-    private TdApi.Location geoPoint;
+    private BitmapDrawable mGeoDrawable;
+    private TdApi.Location mGeoPoint;
 
     public GeoMsgView(Context context) {
         super(context);
@@ -35,7 +35,7 @@ public class GeoMsgView extends AbstractMsgView<GeoMsg> implements ImageUpdatabl
 
     @Override
     public boolean onViewClick(View view, MotionEvent event, boolean isIgnoreEvent) {
-        if (geoDrawable != null && geoPoint != null) {
+        if (mGeoDrawable != null && mGeoPoint != null) {
             try {
                 //лучше это:
                 //if (mapIntent.resolveActivity(InitApp.currContext.getPackageManager()) != null)
@@ -46,10 +46,10 @@ public class GeoMsgView extends AbstractMsgView<GeoMsg> implements ImageUpdatabl
                 }
 
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                        Uri.parse("geo:" + geoPoint.latitude
-                                + "," + geoPoint.longitude
-                                + "?q=" + geoPoint.latitude
-                                + "," + geoPoint.longitude
+                        Uri.parse("geo:" + mGeoPoint.latitude
+                                + "," + mGeoPoint.longitude
+                                + "?q=" + mGeoPoint.latitude
+                                + "," + mGeoPoint.longitude
                                 + "(" + title
                                 + ")&z=10"));
                 intent.setComponent(new ComponentName(
@@ -89,10 +89,10 @@ public class GeoMsgView extends AbstractMsgView<GeoMsg> implements ImageUpdatabl
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (geoDrawable == null) {
+        if (mGeoDrawable == null) {
             canvas.drawRect(0f, 0f, GEO_WIDTH, GEO_HEIGHT, EMPTY_PAINT);
         } else {
-            geoDrawable.draw(canvas);
+            mGeoDrawable.draw(canvas);
         }
     }
 
@@ -101,19 +101,19 @@ public class GeoMsgView extends AbstractMsgView<GeoMsg> implements ImageUpdatabl
         super.setValues(record, i, context, viewHolder);
         if (record.tgMessage.message.getConstructor() == TdApi.MessageLocation.CONSTRUCTOR) {
             TdApi.MessageLocation messageGeoPoint = (TdApi.MessageLocation) record.tgMessage.message;
-            geoPoint = messageGeoPoint.location;
-            geoDrawable = GeoPointManager.getManager().generateAndSetImage(messageGeoPoint.location, this, getItemViewTag());
+            mGeoPoint = messageGeoPoint.location;
+            mGeoDrawable = GeoPointManager.getManager().generateAndSetImage(messageGeoPoint.location, this, getItemViewTag());
         } else {
             TdApi.MessageVenue messageVenue = (TdApi.MessageVenue) record.tgMessage.message;
-            geoPoint = messageVenue.location;
-            geoDrawable = GeoPointManager.getManager().generateAndSetImage(messageVenue.location, this, getItemViewTag());
+            mGeoPoint = messageVenue.location;
+            mGeoDrawable = GeoPointManager.getManager().generateAndSetImage(messageVenue.location, this, getItemViewTag());
         }
         invalidate();
     }
 
     @Override
     public void setImageAndUpdateAsync(BitmapDrawable geoDrawable, boolean... animated) {
-        this.geoDrawable = geoDrawable;
+        this.mGeoDrawable = geoDrawable;
         postInvalidate();
     }
 

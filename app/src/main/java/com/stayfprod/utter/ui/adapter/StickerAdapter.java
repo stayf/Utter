@@ -5,15 +5,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 
-import com.stayfprod.emojicon.EmojiConstants;
-import com.stayfprod.utter.manager.ChatManager;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.ui.view.StickerThumbView;
-import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
+import com.stayfprod.utter.util.FileUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 
@@ -21,22 +18,22 @@ import java.util.List;
 
 public class StickerAdapter extends BaseAdapter {
 
-    List<TdApi.Sticker> data;
-    private final Context context;
+    private List<TdApi.Sticker> mData;
+    private final Context mContext;
 
     public StickerAdapter(Context context, List<TdApi.Sticker> data) {
-        this.data = data;
-        this.context = context;
+        this.mData = data;
+        this.mContext = context;
     }
 
     @Override
     public int getCount() {
-        return data.size();
+        return mData.size();
     }
 
     @Override
     public TdApi.Sticker getItem(int position) {
-        return data.get(position);
+        return mData.get(position);
     }
 
     @Override
@@ -50,19 +47,19 @@ public class StickerAdapter extends BaseAdapter {
         StickerThumbView v = (StickerThumbView) convertView;
 
         if (v == null) {
-            v = new StickerThumbView(context);
+            v = new StickerThumbView(mContext);
             v.setFocusable(false);
             v.setFocusableInTouchMode(false);
-            AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(EmojiConstants.STICKER_THUMB_WIDTH, EmojiConstants.STICKER_THUMB_HEIGHT);
+            AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(EmojConstant.sStickerThumbWidth, EmojConstant.sStickerThumbHeight);
             v.setLayoutParams(layoutParams);
         }
 
-        TdApi.Sticker sticker = data.get(position);
+        TdApi.Sticker sticker = mData.get(position);
         v.setTag(position);
 
         if (sticker != null && sticker.thumb != null) {
             v.setSticker(sticker);
-            if (FileUtils.isTDFileLocal(sticker.thumb.photo)) {
+            if (FileUtil.isTDFileLocal(sticker.thumb.photo)) {
                 BitmapDrawable bitmapDrawable = FileManager.getManager().getStickerFromFile(sticker.thumb.photo.path,
                         FileManager.TypeLoad.USER_STICKER_THUMB, v, v.getTag().toString(), null);
                 v.setStickerDrawable(bitmapDrawable);

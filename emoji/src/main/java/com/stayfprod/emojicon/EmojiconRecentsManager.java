@@ -1,10 +1,12 @@
 package com.stayfprod.emojicon;
+
 import com.stayfprod.emojicon.emoji.Emojicon;
+
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 public class EmojiconRecentsManager extends ArrayList<Emojicon> {
 
@@ -62,7 +64,7 @@ public class EmojiconRecentsManager extends ArrayList<Emojicon> {
     public boolean remove(Object object) {
         return super.remove(object);
     }
-    
+
     private SharedPreferences getPreferences() {
         return mContext.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
     }
@@ -72,15 +74,10 @@ public class EmojiconRecentsManager extends ArrayList<Emojicon> {
         String str = prefs.getString(PREF_RECENTS, "");
         StringTokenizer tokenizer = new StringTokenizer(str, "~");
         while (tokenizer.hasMoreTokens()) {
-            try {
-            	add(new Emojicon(tokenizer.nextToken()));
-            }
-            catch (NumberFormatException e) {
-                //
-            }
+            add(new Emojicon(tokenizer.nextToken()));
         }
     }
-    
+
     public void saveRecents() {
         StringBuilder str = new StringBuilder();
         int c = size();

@@ -36,7 +36,7 @@ import com.stayfprod.utter.ui.activity.AbstractActivity;
 import com.stayfprod.utter.ui.view.CircleProgressView;
 import com.stayfprod.utter.ui.view.LockPatternView;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.LockUtils;
+import com.stayfprod.utter.util.LockUtil;
 import com.stayfprod.utter.util.TextUtil;
 
 import java.util.List;
@@ -52,42 +52,18 @@ public class SetPassCodeActivity extends AbstractActivity {
 
     private LayoutInflater mLayoutInflater;
     private ViewPager mPager;
-    private Spinner spinner;
-    private TextView pin_text;
-    private EditText pas_input;
-    private TextView pas_text;
-    private TextView pattern_text;
-    private TextView gesture_text;
+    private Spinner mSpinner;
+    private TextView mPinText;
+    private EditText mPasInput;
+    private TextView mPasText;
+    private TextView mPatternText;
+    private TextView mGestureText;
 
-    private boolean isRepeatPin;
-    private boolean isRepeatPassword;
-    private boolean isRepeatPattern;
-    private boolean isRepeatGesture;
-    private StringBuilder tmpPin = new StringBuilder();
-
-    private void setTextMainStyle(View view) {
-        if (view != null) {
-            TextView textView = (TextView) view;
-            textView.setTypeface(AndroidUtil.TF_ROBOTO_LIGHT);
-            textView.setTextColor(0xffffffff);
-            textView.setTextSize(38);
-
-            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                ((LinearLayout.LayoutParams) textView.getLayoutParams()).topMargin = 0;
-                ((LinearLayout.LayoutParams) ((LinearLayout) textView.getParent()).getLayoutParams()).width = Constant.DP_76;
-            }
-        }
-    }
-
-    private void setTextSubStyle(View view) {
-        if (view != null) {
-            TextView textView = (TextView) view;
-            textView.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-            textView.setTextColor(0xffD2EAFC);
-            textView.setTextSize(13);
-        }
-    }
-
+    private boolean mIsRepeatPin;
+    private boolean mIsRepeatPassword;
+    private boolean mIsRepeatPattern;
+    private boolean mIsRepeatGesture;
+    private StringBuilder mTmpPin = new StringBuilder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,129 +104,129 @@ public class SetPassCodeActivity extends AbstractActivity {
 
                         p_pin_keyboard_container.setLayoutParams(containerKeyBoardLP);
 
-                        LinearLayout pin_button_1 = (LinearLayout) itemView.findViewById(R.id.pin_button_1);
-                        LinearLayout pin_button_2 = (LinearLayout) itemView.findViewById(R.id.pin_button_2);
-                        LinearLayout pin_button_3 = (LinearLayout) itemView.findViewById(R.id.pin_button_3);
-                        LinearLayout pin_button_4 = (LinearLayout) itemView.findViewById(R.id.pin_button_4);
-                        LinearLayout pin_button_5 = (LinearLayout) itemView.findViewById(R.id.pin_button_5);
-                        LinearLayout pin_button_6 = (LinearLayout) itemView.findViewById(R.id.pin_button_6);
-                        LinearLayout pin_button_7 = (LinearLayout) itemView.findViewById(R.id.pin_button_7);
-                        LinearLayout pin_button_8 = (LinearLayout) itemView.findViewById(R.id.pin_button_8);
-                        LinearLayout pin_button_9 = (LinearLayout) itemView.findViewById(R.id.pin_button_9);
-                        LinearLayout pin_button_0 = (LinearLayout) itemView.findViewById(R.id.pin_button_0);
-                        RelativeLayout pin_button_delete = (RelativeLayout) itemView.findViewById(R.id.pin_button_delete);
+                        LinearLayout pinButton1 = (LinearLayout) itemView.findViewById(R.id.pin_button_1);
+                        LinearLayout pinButton2 = (LinearLayout) itemView.findViewById(R.id.pin_button_2);
+                        LinearLayout pinButton3 = (LinearLayout) itemView.findViewById(R.id.pin_button_3);
+                        LinearLayout pinButton4 = (LinearLayout) itemView.findViewById(R.id.pin_button_4);
+                        LinearLayout pinButton5 = (LinearLayout) itemView.findViewById(R.id.pin_button_5);
+                        LinearLayout pinButton6 = (LinearLayout) itemView.findViewById(R.id.pin_button_6);
+                        LinearLayout pinButton7 = (LinearLayout) itemView.findViewById(R.id.pin_button_7);
+                        LinearLayout pinButton8 = (LinearLayout) itemView.findViewById(R.id.pin_button_8);
+                        LinearLayout pinButton9 = (LinearLayout) itemView.findViewById(R.id.pin_button_9);
+                        LinearLayout pinButton0 = (LinearLayout) itemView.findViewById(R.id.pin_button_0);
+                        RelativeLayout pinButtonDelete = (RelativeLayout) itemView.findViewById(R.id.pin_button_delete);
 
-                        setTextMainStyle(pin_button_1.getChildAt(0));
-                        setTextSubStyle(pin_button_1.getChildAt(1));
-                        setTextMainStyle(pin_button_2.getChildAt(0));
-                        setTextSubStyle(pin_button_2.getChildAt(1));
-                        setTextMainStyle(pin_button_3.getChildAt(0));
-                        setTextSubStyle(pin_button_3.getChildAt(1));
-                        setTextMainStyle(pin_button_4.getChildAt(0));
-                        setTextSubStyle(pin_button_4.getChildAt(1));
-                        setTextMainStyle(pin_button_5.getChildAt(0));
-                        setTextSubStyle(pin_button_5.getChildAt(1));
-                        setTextMainStyle(pin_button_6.getChildAt(0));
-                        setTextSubStyle(pin_button_6.getChildAt(1));
-                        setTextMainStyle(pin_button_7.getChildAt(0));
-                        setTextSubStyle(pin_button_7.getChildAt(1));
-                        setTextMainStyle(pin_button_8.getChildAt(0));
-                        setTextSubStyle(pin_button_8.getChildAt(1));
-                        setTextMainStyle(pin_button_9.getChildAt(0));
-                        setTextSubStyle(pin_button_9.getChildAt(1));
-                        setTextMainStyle(pin_button_0.getChildAt(0));
-                        setTextSubStyle(pin_button_0.getChildAt(1));
+                        setTextMainStyle(pinButton1.getChildAt(0));
+                        setTextSubStyle(pinButton1.getChildAt(1));
+                        setTextMainStyle(pinButton2.getChildAt(0));
+                        setTextSubStyle(pinButton2.getChildAt(1));
+                        setTextMainStyle(pinButton3.getChildAt(0));
+                        setTextSubStyle(pinButton3.getChildAt(1));
+                        setTextMainStyle(pinButton4.getChildAt(0));
+                        setTextSubStyle(pinButton4.getChildAt(1));
+                        setTextMainStyle(pinButton5.getChildAt(0));
+                        setTextSubStyle(pinButton5.getChildAt(1));
+                        setTextMainStyle(pinButton6.getChildAt(0));
+                        setTextSubStyle(pinButton6.getChildAt(1));
+                        setTextMainStyle(pinButton7.getChildAt(0));
+                        setTextSubStyle(pinButton7.getChildAt(1));
+                        setTextMainStyle(pinButton8.getChildAt(0));
+                        setTextSubStyle(pinButton8.getChildAt(1));
+                        setTextMainStyle(pinButton9.getChildAt(0));
+                        setTextSubStyle(pinButton9.getChildAt(1));
+                        setTextMainStyle(pinButton0.getChildAt(0));
+                        setTextSubStyle(pinButton0.getChildAt(1));
 
-                        final TextView pin_input = (TextView) itemView.findViewById(R.id.pin_input);
-                        pin_text = (TextView) itemView.findViewById(R.id.pin_text);
+                        final TextView pinInput = (TextView) itemView.findViewById(R.id.pin_input);
+                        mPinText = (TextView) itemView.findViewById(R.id.pin_text);
 
                         View.OnClickListener onClickListenerPin = new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                tmpPin.append(v.getTag().toString());
-                                int length = pin_input.getText().length();
+                                mTmpPin.append(v.getTag().toString());
+                                int length = pinInput.getText().length();
                                 if (length < 12) {
-                                    pin_input.append("\u25CF" + "  ");
+                                    pinInput.append("\u25CF" + "  ");
                                 }
 
                                 if (length >= 9) {
                                     PassCodeManager passCodeManager = PassCodeManager.getManager();
-                                    if (!isRepeatPin) {
-                                        passCodeManager.addPassCode(tmpPin.toString(), LockUtils.Type.PIN, true);
-                                        tmpPin.setLength(0);
-                                        isRepeatPin = true;
-                                        pin_text.setText(AndroidUtil.getResourceString(R.string.repeat_your_pin));
-                                        pin_input.setText("");
-                                        spinner.setEnabled(false);
+                                    if (!mIsRepeatPin) {
+                                        passCodeManager.addPassCode(mTmpPin.toString(), LockUtil.Type.PIN, true);
+                                        mTmpPin.setLength(0);
+                                        mIsRepeatPin = true;
+                                        mPinText.setText(AndroidUtil.getResourceString(R.string.repeat_your_pin));
+                                        pinInput.setText("");
+                                        mSpinner.setEnabled(false);
                                     } else {
-                                        boolean isSame = passCodeManager.comparePassCode(tmpPin.toString(), LockUtils.Type.PIN, true);
+                                        boolean isSame = passCodeManager.comparePassCode(mTmpPin.toString(), LockUtil.Type.PIN, true);
                                         if (!isSame) {
-                                            TextUtil.shakeText(pin_text);
-                                            pin_input.setText("");
+                                            TextUtil.shakeText(mPinText);
+                                            pinInput.setText("");
                                             AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.passcodes_do_not_match));
                                         } else {
-                                            pin_input.setText("");
-                                            passCodeManager.addPassCode(tmpPin.toString(), LockUtils.Type.PIN, false);
-                                            passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtils.Type.PIN);
+                                            pinInput.setText("");
+                                            passCodeManager.addPassCode(mTmpPin.toString(), LockUtil.Type.PIN, false);
+                                            passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtil.Type.PIN);
                                             onBackPressed();
                                         }
-                                        tmpPin.setLength(0);
+                                        mTmpPin.setLength(0);
                                     }
                                 }
                             }
                         };
 
-                        pin_button_1.setOnClickListener(onClickListenerPin);
-                        pin_button_2.setOnClickListener(onClickListenerPin);
-                        pin_button_3.setOnClickListener(onClickListenerPin);
-                        pin_button_4.setOnClickListener(onClickListenerPin);
-                        pin_button_5.setOnClickListener(onClickListenerPin);
-                        pin_button_6.setOnClickListener(onClickListenerPin);
-                        pin_button_7.setOnClickListener(onClickListenerPin);
-                        pin_button_8.setOnClickListener(onClickListenerPin);
-                        pin_button_9.setOnClickListener(onClickListenerPin);
-                        pin_button_0.setOnClickListener(onClickListenerPin);
+                        pinButton1.setOnClickListener(onClickListenerPin);
+                        pinButton2.setOnClickListener(onClickListenerPin);
+                        pinButton3.setOnClickListener(onClickListenerPin);
+                        pinButton4.setOnClickListener(onClickListenerPin);
+                        pinButton5.setOnClickListener(onClickListenerPin);
+                        pinButton6.setOnClickListener(onClickListenerPin);
+                        pinButton7.setOnClickListener(onClickListenerPin);
+                        pinButton8.setOnClickListener(onClickListenerPin);
+                        pinButton9.setOnClickListener(onClickListenerPin);
+                        pinButton0.setOnClickListener(onClickListenerPin);
 
-                        pin_button_delete.setOnClickListener(new View.OnClickListener() {
+                        pinButtonDelete.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                String text = pin_input.getText().toString();
+                                String text = pinInput.getText().toString();
 
-                                String tmp = tmpPin.toString();
-                                tmpPin.setLength(0);
+                                String tmp = mTmpPin.toString();
+                                mTmpPin.setLength(0);
                                 if (tmp.length() > 0)
-                                    tmpPin.append(tmp.substring(0, tmp.length() - 1));
+                                    mTmpPin.append(tmp.substring(0, tmp.length() - 1));
 
                                 if (TextUtil.isNotBlank(text)) {
                                     StringBuilder stringBuilder = new StringBuilder(text).reverse().replace(0, 3, "").reverse();
-                                    pin_input.setText(stringBuilder.toString());
+                                    pinInput.setText(stringBuilder.toString());
                                 }
                             }
                         });
 
-                        LinearLayout pin_main = (LinearLayout) itemView.findViewById(R.id.pin_main);
-                        pin_main.setOrientation(getResources().getConfiguration().orientation);
+                        LinearLayout pinMain = (LinearLayout) itemView.findViewById(R.id.pin_main);
+                        pinMain.setOrientation(getResources().getConfiguration().orientation);
 
                         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            ((LinearLayout.LayoutParams) pin_main.getChildAt(0).getLayoutParams()).weight = 1;
-                            ((RelativeLayout) pin_input.getParent()).setGravity(Gravity.NO_GRAVITY);
+                            ((LinearLayout.LayoutParams) pinMain.getChildAt(0).getLayoutParams()).weight = 1;
+                            ((RelativeLayout) pinInput.getParent()).setGravity(Gravity.NO_GRAVITY);
                         }
 
-                        pin_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-                        pin_text.setTextColor(0xffD2EAFC);
-                        pin_text.setTextSize(14);
+                        mPinText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+                        mPinText.setTextColor(0xffD2EAFC);
+                        mPinText.setTextSize(14);
 
-                        pin_input.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-                        pin_input.setTextColor(Color.WHITE);
-                        pin_input.setTextSize(22);
+                        pinInput.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+                        pinInput.setTextColor(Color.WHITE);
+                        pinInput.setTextSize(22);
                         break;
                     case PAGE_PASSWORD:
                         itemView = mLayoutInflater.inflate(R.layout.pager_setting_password, container, false);
 
-                        pas_input = (EditText) itemView.findViewById(R.id.pas_input);
-                        pas_text = (TextView) itemView.findViewById(R.id.pas_text);
+                        mPasInput = (EditText) itemView.findViewById(R.id.pas_input);
+                        mPasText = (TextView) itemView.findViewById(R.id.pas_text);
 
-                        pas_input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                        mPasInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                             @Override
                             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                                 if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -261,16 +237,16 @@ public class SetPassCodeActivity extends AbstractActivity {
                             }
                         });
 
-                        pas_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-                        pas_text.setTextColor(0xffD2EAFC);
-                        pas_text.setTextSize(14);
+                        mPasText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+                        mPasText.setTextColor(0xffD2EAFC);
+                        mPasText.setTextSize(14);
 
-                        pas_input.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
-                        pas_input.setTextColor(Color.WHITE);
-                        pas_input.setTextSize(16);
+                        mPasInput.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
+                        mPasInput.setTextColor(Color.WHITE);
+                        mPasInput.setTextSize(16);
 
                         if (App.CURRENT_VERSION_SDK >= 21) {
-                            pas_input.setLetterSpacing(0.7f);
+                            mPasInput.setLetterSpacing(0.7f);
                         }
                         break;
                     case PAGE_PATTERN:
@@ -298,21 +274,21 @@ public class SetPassCodeActivity extends AbstractActivity {
                                     AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.minimum_count_of_points_is_2));
                                 } else {
                                     PassCodeManager passCodeManager = PassCodeManager.getManager();
-                                    if (!isRepeatPattern) {
-                                        passCodeManager.addPassCode(pattern, LockUtils.Type.PATTERN, true);
-                                        isRepeatPattern = true;
-                                        pattern_text.setText(AndroidUtil.getResourceString(R.string.repeat_your_pattern));
-                                        spinner.setEnabled(false);
+                                    if (!mIsRepeatPattern) {
+                                        passCodeManager.addPassCode(pattern, LockUtil.Type.PATTERN, true);
+                                        mIsRepeatPattern = true;
+                                        mPatternText.setText(AndroidUtil.getResourceString(R.string.repeat_your_pattern));
+                                        mSpinner.setEnabled(false);
                                         lockPattern.clearPattern();
                                     } else {
-                                        boolean isSame = passCodeManager.comparePassCode(pattern, LockUtils.Type.PATTERN, true);
+                                        boolean isSame = passCodeManager.comparePassCode(pattern, LockUtil.Type.PATTERN, true);
                                         if (!isSame) {
-                                            TextUtil.shakeText(pattern_text);
+                                            TextUtil.shakeText(mPatternText);
                                             AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.passcodes_do_not_match));
                                             lockPattern.clearPattern();
                                         } else {
-                                            passCodeManager.addPassCode(pattern, LockUtils.Type.PATTERN, false);
-                                            passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtils.Type.PATTERN);
+                                            passCodeManager.addPassCode(pattern, LockUtil.Type.PATTERN, false);
+                                            passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtil.Type.PATTERN);
                                             lockPattern.clearPattern();
                                             onBackPressed();
                                         }
@@ -320,17 +296,10 @@ public class SetPassCodeActivity extends AbstractActivity {
                                 }
                             }
                         });
-                        pattern_text = (TextView) itemView.findViewById(R.id.pattern_text);
-                        pattern_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-                        pattern_text.setTextColor(0xffD2EAFC);
-                        pattern_text.setTextSize(14);
-
-                        /*if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) ((LinearLayout) itemView).getChildAt(0).getLayoutParams();
-                            layoutParams.weight = 0;
-                            layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                            layoutParams.weight = LinearLayout.LayoutParams.WRAP_CONTENT;
-                        }*/
+                        mPatternText = (TextView) itemView.findViewById(R.id.pattern_text);
+                        mPatternText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+                        mPatternText.setTextColor(0xffD2EAFC);
+                        mPatternText.setTextSize(14);
 
                         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             FrameLayout zeroChild = (FrameLayout) ((ViewGroup) ((RelativeLayout) itemView).getChildAt(0)).getChildAt(0);
@@ -345,10 +314,10 @@ public class SetPassCodeActivity extends AbstractActivity {
                     case PAGE_GESTURE:
                         itemView = mLayoutInflater.inflate(R.layout.pager_setting_gesture, container, false);
 
-                        gesture_text = (TextView) itemView.findViewById(R.id.gesture_text);
-                        gesture_text.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
-                        gesture_text.setTextColor(0xffD2EAFC);
-                        gesture_text.setTextSize(14);
+                        mGestureText = (TextView) itemView.findViewById(R.id.gesture_text);
+                        mGestureText.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+                        mGestureText.setTextColor(0xffD2EAFC);
+                        mGestureText.setTextSize(14);
 
                         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) ((LinearLayout) itemView).getChildAt(0).getLayoutParams();
@@ -367,19 +336,19 @@ public class SetPassCodeActivity extends AbstractActivity {
                                 overlay.clear(true);
 
                                 PassCodeManager passCodeManager = PassCodeManager.getManager();
-                                if (!isRepeatGesture) {
-                                    passCodeManager.addPassCode(gesture, LockUtils.Type.GESTURE, true);
-                                    isRepeatGesture = true;
-                                    gesture_text.setText(AndroidUtil.getResourceString(R.string.repeat_your_gesture));
-                                    spinner.setEnabled(false);
+                                if (!mIsRepeatGesture) {
+                                    passCodeManager.addPassCode(gesture, LockUtil.Type.GESTURE, true);
+                                    mIsRepeatGesture = true;
+                                    mGestureText.setText(AndroidUtil.getResourceString(R.string.repeat_your_gesture));
+                                    mSpinner.setEnabled(false);
                                 } else {
-                                    boolean isSame = passCodeManager.comparePassCode(gesture, LockUtils.Type.GESTURE, true);
+                                    boolean isSame = passCodeManager.comparePassCode(gesture, LockUtil.Type.GESTURE, true);
                                     if (!isSame) {
-                                        TextUtil.shakeText(gesture_text);
+                                        TextUtil.shakeText(mGestureText);
                                         AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.passcodes_do_not_match));
                                     } else {
-                                        passCodeManager.addPassCode(gesture, LockUtils.Type.GESTURE, false);
-                                        passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtils.Type.GESTURE);
+                                        passCodeManager.addPassCode(gesture, LockUtil.Type.GESTURE, false);
+                                        passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtil.Type.GESTURE);
                                         onBackPressed();
                                     }
                                 }
@@ -407,7 +376,7 @@ public class SetPassCodeActivity extends AbstractActivity {
 
             @Override
             public void onPageSelected(int position) {
-                spinner.setSelection(position, true);
+                mSpinner.setSelection(position, true);
             }
 
             @Override
@@ -436,19 +405,19 @@ public class SetPassCodeActivity extends AbstractActivity {
                 switch (mPager.getCurrentItem()) {
                     case PAGE_PIN:
                         AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.please_)
-                                + pin_text.getText() + ". \r\n " + AndroidUtil.getResourceString(R.string.must_be_4_numbers));
-                        TextUtil.shakeText(pin_text);
+                                + mPinText.getText() + ". \r\n " + AndroidUtil.getResourceString(R.string.must_be_4_numbers));
+                        TextUtil.shakeText(mPinText);
                         break;
                     case PAGE_PASSWORD:
                         checkPassword();
                         break;
                     case PAGE_PATTERN:
-                        AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.please_) + pattern_text.getText() + ".");
-                        TextUtil.shakeText(pattern_text);
+                        AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.please_) + mPatternText.getText() + ".");
+                        TextUtil.shakeText(mPatternText);
                         break;
                     case PAGE_GESTURE:
-                        AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.please_) + gesture_text.getText() + ".");
-                        TextUtil.shakeText(gesture_text);
+                        AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.please_) + mGestureText.getText() + ".");
+                        TextUtil.shakeText(mGestureText);
                         break;
                 }
             }
@@ -456,29 +425,52 @@ public class SetPassCodeActivity extends AbstractActivity {
         return true;
     }
 
+    private void setTextMainStyle(View view) {
+        if (view != null) {
+            TextView textView = (TextView) view;
+            textView.setTypeface(AndroidUtil.TF_ROBOTO_LIGHT);
+            textView.setTextColor(0xffffffff);
+            textView.setTextSize(38);
+
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                ((LinearLayout.LayoutParams) textView.getLayoutParams()).topMargin = 0;
+                ((LinearLayout.LayoutParams) ((LinearLayout) textView.getParent()).getLayoutParams()).width = Constant.DP_76;
+            }
+        }
+    }
+
+    private void setTextSubStyle(View view) {
+        if (view != null) {
+            TextView textView = (TextView) view;
+            textView.setTypeface(AndroidUtil.TF_ROBOTO_REGULAR);
+            textView.setTextColor(0xffD2EAFC);
+            textView.setTextSize(13);
+        }
+    }
+
     private void checkPassword() {
         PassCodeManager passCodeManager = PassCodeManager.getManager();
-        if (pas_input.getText().length() < 4) {
+        if (mPasInput.getText().length() < 4) {
             AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.minimum_length_for_password_is_4));
-            TextUtil.shakeText(pas_text);
+            TextUtil.shakeText(mPasText);
             return;
         }
-        if (!isRepeatPassword) {
-            passCodeManager.addPassCode(pas_input.getText().toString(), LockUtils.Type.PASSWORD, true);
-            isRepeatPassword = true;
-            pas_text.setText(AndroidUtil.getResourceString(R.string.repeat_your_password));
-            pas_input.setText("");
-            spinner.setEnabled(false);
+        if (!mIsRepeatPassword) {
+            passCodeManager.addPassCode(mPasInput.getText().toString(), LockUtil.Type.PASSWORD, true);
+            mIsRepeatPassword = true;
+            mPasText.setText(AndroidUtil.getResourceString(R.string.repeat_your_password));
+            mPasInput.setText("");
+            mSpinner.setEnabled(false);
         } else {
-            boolean isSame = passCodeManager.comparePassCode(pas_input.getText().toString(), LockUtils.Type.PASSWORD, true);
+            boolean isSame = passCodeManager.comparePassCode(mPasInput.getText().toString(), LockUtil.Type.PASSWORD, true);
             if (!isSame) {
-                TextUtil.shakeText(pas_text);
-                pas_input.setText("");
+                TextUtil.shakeText(mPasText);
+                mPasInput.setText("");
                 AndroidUtil.showToastShort(AndroidUtil.getResourceString(R.string.passcodes_do_not_match));
             } else {
-                passCodeManager.addPassCode(pas_input.getText().toString(), LockUtils.Type.PASSWORD, false);
-                passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtils.Type.PASSWORD);
-                pas_input.setText("");
+                passCodeManager.addPassCode(mPasInput.getText().toString(), LockUtil.Type.PASSWORD, false);
+                passCodeManager.setEnablePassCode(SetPassCodeActivity.this, true, LockUtil.Type.PASSWORD);
+                mPasInput.setText("");
                 onBackPressed();
             }
         }
@@ -486,12 +478,12 @@ public class SetPassCodeActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
 
-            spinner = (Spinner) findViewById(R.id.t_set_pass_code_spinner);
-            spinner.setBackgroundColor(0xFF5B95C2);
+            mSpinner = (Spinner) findViewById(R.id.t_set_pass_code_spinner);
+            mSpinner.setBackgroundColor(0xFF5B95C2);
             CharSequence[] strings = getResources().getTextArray(R.array.pass_code_list);
             ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, strings) {
                 @Override
@@ -515,14 +507,14 @@ public class SetPassCodeActivity extends AbstractActivity {
             };
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
-            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            mSpinner.setAdapter(adapter);
+            mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (pas_input != null) {
+                    if (mPasInput != null) {
                         try {
                             InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                            inputMethodManager.hideSoftInputFromWindow(pas_input.getWindowToken(), 0);
+                            inputMethodManager.hideSoftInputFromWindow(mPasInput.getWindowToken(), 0);
                         } catch (Exception e) {
                             //
                         }

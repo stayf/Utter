@@ -8,6 +8,4 @@
     android:orientation="vertical"
     tools:context="com.stayfprod.utter.ui.activity.TestActivity">
 
-
-
 </LinearLayout>

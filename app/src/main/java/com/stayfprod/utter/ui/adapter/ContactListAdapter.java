@@ -12,36 +12,36 @@ import java.util.TreeSet;
 
 public class ContactListAdapter extends RecyclerView.Adapter<ContactHolder> {
 
-    private Contact[] records;
-    private Context context;
+    private Contact[] mRecords;
+    private Context mContext;
 
     public ContactListAdapter(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     public ContactListAdapter(TreeSet<Contact> records, Context context) {
-        this.records = new Contact[records.size()];
-        records.toArray(this.records);
-        this.context = context;
+        this.mRecords = new Contact[records.size()];
+        records.toArray(this.mRecords);
+        this.mContext = context;
     }
 
     public void setData(TreeSet<Contact> records) {
-        this.records = new Contact[records.size()];
-        records.toArray(this.records);
+        this.mRecords = new Contact[records.size()];
+        records.toArray(this.mRecords);
     }
 
     @Override
     public ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ContactHolder(context);
+        return new ContactHolder(mContext);
     }
 
     @Override
     public void onBindViewHolder(ContactHolder holder, int position) {
-        holder.setValues(records[position], position, context);
+        holder.setValues(mRecords[position], position, mContext);
     }
 
     @Override
     public int getItemCount() {
-        return records == null ? 0 : records.length;
+        return mRecords == null ? 0 : mRecords.length;
     }
 }

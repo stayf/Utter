@@ -18,7 +18,7 @@ public class ToolBarListView {
     private final static String LOG = ToolBarListView.class.getSimpleName();
 
     private ListView mView;
-    private Method method;
+    private Method mMethod;
 
     public ToolBarListView(ListView view, final ToolBarAdapter toolBarAdapter) {
         mView = view;
@@ -57,8 +57,8 @@ public class ToolBarListView {
         });
 
         try {
-            method = AbsListView.class.getDeclaredMethod("trackMotionScroll", int.class, int.class);
-            method.setAccessible(true);
+            mMethod = AbsListView.class.getDeclaredMethod("trackMotionScroll", int.class, int.class);
+            mMethod.setAccessible(true);
         } catch (Exception ex) {
             Log.e(LOG, "trackMotionScroll", ex);
             Crashlytics.logException(ex);
@@ -75,7 +75,7 @@ public class ToolBarListView {
 
     private void trackMotionScroll(int deltaY, int incrementalDeltaY) {
         try {
-            method.invoke(mView, deltaY, incrementalDeltaY);
+            mMethod.invoke(mView, deltaY, incrementalDeltaY);
         } catch (Exception ex) {
             Log.e(LOG, "trackMotionScroll", ex);
             Crashlytics.logException(ex);

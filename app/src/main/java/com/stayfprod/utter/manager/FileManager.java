@@ -14,7 +14,7 @@ import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.ui.view.chat.PhotoMsgView;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.App;
 
@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 public class FileManager extends ResultController {
     private static final String LOG = FileManager.class.getSimpleName();
@@ -74,71 +73,64 @@ public class FileManager extends ResultController {
         }
     }
 
-    public static volatile boolean canDownloadFile = true;
-    private static volatile FileManager fileManager;
+    public static volatile boolean sCanDownloadFile = true;
+    private static volatile FileManager sFileManager;
 
     //Ключ: file_id
-    private final ConcurrentHashMap<Integer, StorageObject> storageMap = new ConcurrentHashMap<Integer, StorageObject>(40);
+    private final ConcurrentHashMap<Integer, StorageObject> mStorageMap = new ConcurrentHashMap<Integer, StorageObject>(40);
     //Если по одному и тому же id имется элементы на разных позициях
-    private final ConcurrentHashMap<Integer, List<StorageObject>> storageAdditionMap = new ConcurrentHashMap<Integer, List<StorageObject>>(40);
-    //info Индекс по msgId. Все что добавляется в storageMap и storageAdditionMap индесируется им
-    private final ConcurrentHashMap<Integer, StorageObject> indexStorageAndAdditionMap = new ConcurrentHashMap<Integer, StorageObject>(40);
-
+    private final ConcurrentHashMap<Integer, List<StorageObject>> mStorageAdditionMap = new ConcurrentHashMap<Integer, List<StorageObject>>(40);
+    //info Индекс по msgId. Все что добавляется в mStorageMap и mStorageAdditionMap индесируется им
+    private final ConcurrentHashMap<Integer, StorageObject> mIndexStorageAndAdditionMap = new ConcurrentHashMap<Integer, StorageObject>(40);
 
     //Временно хранилище документов на закачку
-    private final ConcurrentHashMap<Integer, TempStorageObject> tempStorageMap = new ConcurrentHashMap<Integer, TempStorageObject>(40);
+    private final ConcurrentHashMap<Integer, TempStorageObject> mTempStorageMap = new ConcurrentHashMap<Integer, TempStorageObject>(40);
 
     public static FileManager getManager() {
-        if (fileManager == null) {
+        if (sFileManager == null) {
             synchronized (ChatListManager.class) {
-                if (fileManager == null) {
-                    fileManager = new FileManager();
+                if (sFileManager == null) {
+                    sFileManager = new FileManager();
                 }
             }
         }
-        return fileManager;
+        return sFileManager;
     }
 
     public StorageObject getAndRemoveStorageObject(int key) {
-        synchronized (storageMap) {
-            //synchronized (indexStorageAndAdditionMap) {
-            return storageMap.remove(key);
-            //}
+        synchronized (mStorageMap) {
+            return mStorageMap.remove(key);
         }
     }
 
     //нужен для элементов с прогресс барами
     public StorageObject getStorageObject(int fileId) {
-        return storageMap.get(fileId);
+        return mStorageMap.get(fileId);
     }
 
     public List<FileManager.StorageObject> getAdditionStorageObject(int fileId) {
-        return storageAdditionMap.get(fileId);
+        return mStorageAdditionMap.get(fileId);
     }
 
     public boolean isHaveStorageObjectByFileID(int fileId, int msgId) {
-        return storageMap.get(fileId) != null;
+        return mStorageMap.get(fileId) != null;
     }
 
     //стикеры, изображения, фамбы
     public List<StorageObject> getAndRemoveAdditionStorageObject(int key) {
-        synchronized (storageMap) {
-            //synchronized (indexStorageAndAdditionMap) {
-            return storageAdditionMap.remove(key);
-            //}
+        synchronized (mStorageMap) {
+            return mStorageAdditionMap.remove(key);
         }
     }
 
     public void removeIndexStorageAndAdditionMap(Integer msgId) {
         if (msgId != null) {
-            indexStorageAndAdditionMap.remove(msgId);
+            mIndexStorageAndAdditionMap.remove(msgId);
         }
     }
 
-    public StorageObject updateStorageObjectAsync(final TypeLoad typeLoad, final int fileId,
-                                                  final int msgId, final Object... obj) {
-        //synchronized (indexStorageAndAdditionMap) {
-        StorageObject storageObject = indexStorageAndAdditionMap.get(msgId);
+    public StorageObject updateStorageObjectAsync(final TypeLoad typeLoad, final int fileId, final int msgId, final Object... obj) {
+        StorageObject storageObject = mIndexStorageAndAdditionMap.get(msgId);
 
         if (storageObject != null && storageObject.typeLoad != typeLoad) {
             return null;
@@ -147,7 +139,7 @@ public class FileManager extends ResultController {
         if (storageObject != null) {
             storageObject.obj = obj;
         } else {
-            StorageObject storageObjectMap = storageMap.get(fileId);
+            StorageObject storageObjectMap = mStorageMap.get(fileId);
             if (storageObjectMap != null) {
                 uploadFileAsync(typeLoad, fileId, -1, msgId, obj);
                 return storageObjectMap;
@@ -156,15 +148,14 @@ public class FileManager extends ResultController {
             }
         }
         return storageObject;
-        //}
     }
 
     private boolean addToStorageObject(TypeLoad typeLoad, Object[] obj, int fileId, int pos, int msgId) {
-        if (storageMap.get(fileId) == null) {
+        if (mStorageMap.get(fileId) == null) {
             StorageObject storageObject = new StorageObject(typeLoad, obj, pos, msgId);
-            storageMap.put(fileId, storageObject);
+            mStorageMap.put(fileId, storageObject);
             if (msgId > 0)
-                indexStorageAndAdditionMap.put(msgId, storageObject);
+                mIndexStorageAndAdditionMap.put(msgId, storageObject);
             return true;
         }
         return false;
@@ -172,15 +163,14 @@ public class FileManager extends ResultController {
 
     private void addToAdditionStorageObject(TypeLoad typeLoad, Object[] obj, int fileId, int pos, int msgId) {
         StorageObject storageObject = new StorageObject(typeLoad, obj, pos, msgId);
-        //Logs.e("addToAdditionStorageObject==" + fileId);
-        if (storageAdditionMap.get(fileId) == null) {
+        if (mStorageAdditionMap.get(fileId) == null) {
             List<StorageObject> objectList = new ArrayList<StorageObject>();
             objectList.add(storageObject);
-            storageAdditionMap.put(fileId, objectList);
+            mStorageAdditionMap.put(fileId, objectList);
             if (msgId > 0)
-                indexStorageAndAdditionMap.put(msgId, storageObject);
+                mIndexStorageAndAdditionMap.put(msgId, storageObject);
         } else {
-            List<StorageObject> objectList = storageAdditionMap.get(fileId);
+            List<StorageObject> objectList = mStorageAdditionMap.get(fileId);
             boolean insert = true;
             //повторения не нужны
             for (int i = 0; i < objectList.size(); i++) {
@@ -205,7 +195,7 @@ public class FileManager extends ResultController {
             if (insert) {
                 objectList.add(storageObject);
                 if (msgId > 0)
-                    indexStorageAndAdditionMap.put(msgId, storageObject);
+                    mIndexStorageAndAdditionMap.put(msgId, storageObject);
             }
         }
 
@@ -213,16 +203,16 @@ public class FileManager extends ResultController {
 
     //todo если удалили запись не успев загрузить нужно очистить хранилища с этой итерацией + отменить загрузку
     public void uploadFile(TypeLoad typeLoad, Object[] obj, int fileId, int pos, int msgId) {
-        synchronized (storageMap) {
+        synchronized (mStorageMap) {
             //info pos == -1  если юзер нажал на кнопку загрузки
-            if (canDownloadFile || pos == -1) {
+            if (sCanDownloadFile || pos == -1) {
                 if (addToStorageObject(typeLoad, obj, fileId, pos, msgId)) {
                     TdApi.DownloadFile downloadFile = new TdApi.DownloadFile();
                     downloadFile.fileId = fileId;
                     client().send(downloadFile, getManager());
                 } else {
                     //точно ли не тот же самый элемент ломится
-                    StorageObject storageObject = storageMap.get(fileId);
+                    StorageObject storageObject = mStorageMap.get(fileId);
                     if (storageObject != null) {
                         //info исправили на сравнение Id-шника сообщения вместо позиции
                         //если это не контент из списка сообщений
@@ -247,7 +237,7 @@ public class FileManager extends ResultController {
             } else {
                 //info На данный момент pos == -2 нигде нет
                 if (pos != -2) {
-                    this.tempStorageMap.put(msgId, new TempStorageObject(typeLoad, obj, fileId, pos, msgId));
+                    this.mTempStorageMap.put(msgId, new TempStorageObject(typeLoad, obj, fileId, pos, msgId));
                 }
             }
         }
@@ -272,8 +262,8 @@ public class FileManager extends ResultController {
     }
 
     public void proceedLoad(int fileId, int msgId, boolean isSendRequest) {
-        if (indexStorageAndAdditionMap.containsKey(msgId)) {
-            StorageObject storageObject = indexStorageAndAdditionMap.get(msgId);
+        if (mIndexStorageAndAdditionMap.containsKey(msgId)) {
+            StorageObject storageObject = mIndexStorageAndAdditionMap.get(msgId);
             storageObject.isCanceled = false;
             TdApi.DownloadFile downloadFile = new TdApi.DownloadFile();
             downloadFile.fileId = fileId;
@@ -284,7 +274,7 @@ public class FileManager extends ResultController {
     }
 
     public void cancelDownloadFile(final int fileId, final int msgId, boolean isSendRequest) {
-        if (indexStorageAndAdditionMap.containsKey(msgId)) {
+        if (mIndexStorageAndAdditionMap.containsKey(msgId)) {
             TdApi.CancelDownloadFile downloadFile = new TdApi.CancelDownloadFile();
             downloadFile.fileId = fileId;
             if (isSendRequest) {
@@ -292,15 +282,15 @@ public class FileManager extends ResultController {
                     @Override
                     public void afterResult(TdApi.TLObject object, int calledConstructor) {
                         if (object.getConstructor() == TdApi.Ok.CONSTRUCTOR) {
-                            if (indexStorageAndAdditionMap.containsKey(msgId)) {
-                                StorageObject storageObject = indexStorageAndAdditionMap.get(msgId);
+                            if (mIndexStorageAndAdditionMap.containsKey(msgId)) {
+                                StorageObject storageObject = mIndexStorageAndAdditionMap.get(msgId);
                                 storageObject.isCanceled = true;
                             }
                         }
                     }
                 });
             } else {
-                StorageObject storageObject = indexStorageAndAdditionMap.get(msgId);
+                StorageObject storageObject = mIndexStorageAndAdditionMap.get(msgId);
                 storageObject.isCanceled = true;
             }
         }
@@ -311,13 +301,13 @@ public class FileManager extends ResultController {
             @Override
             public void run() {
                 //смотрим на текуще видимые элементы
-                if (!tempStorageMap.isEmpty()) {
+                if (!mTempStorageMap.isEmpty()) {
                     ChatManager manager = ChatManager.getManager();
                     for (int i = firstVisible - 2; i <= lastVisible + 2; i++) {
                         AbstractChatMsg chatMsg = manager.getChatMsgByPos(i);
 
-                        if (chatMsg != null && chatMsg.tgMessage != null && tempStorageMap.containsKey(chatMsg.tgMessage.id)) {
-                            TempStorageObject tempStorageObject = tempStorageMap.remove(chatMsg.tgMessage.id);
+                        if (chatMsg != null && chatMsg.tgMessage != null && mTempStorageMap.containsKey(chatMsg.tgMessage.id)) {
+                            TempStorageObject tempStorageObject = mTempStorageMap.remove(chatMsg.tgMessage.id);
                             uploadFileAsync(tempStorageObject.typeLoad, tempStorageObject.fileId, i, tempStorageObject.msgId, tempStorageObject.obj);
                         }
                     }
@@ -327,17 +317,17 @@ public class FileManager extends ResultController {
     }
 
     public void cleanTempStorage() {
-        storageMap.clear();
-        tempStorageMap.clear();
-        storageAdditionMap.clear();
-        indexStorageAndAdditionMap.clear();
+        mStorageMap.clear();
+        mTempStorageMap.clear();
+        mStorageAdditionMap.clear();
+        mIndexStorageAndAdditionMap.clear();
     }
 
     @Deprecated
     public BitmapDrawable getBitmapIconFromFile(String path) {
         BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
-            bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(path, FileUtils.prepareOptions(path, IconFactory.MAX_ICON_HEIGHT, FileUtils.CalculateType.BOTH));
+            bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path, FileUtil.prepareOptions(path, IconFactory.MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH));
             CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
@@ -354,15 +344,12 @@ public class FileManager extends ResultController {
                         if (AndroidUtil.isItemViewVisible(imageView, tag)) {
                             BitmapDrawable bitmapDrawable = new BitmapDrawable(App.getAppResources(), MediaStore.Images.Thumbnails.getThumbnail(
                                     context.getContentResolver(), id,
-                                    MediaStore.Images.Thumbnails.MINI_KIND,
-                                    //info inBitmap тут лучше не юзать, иначе не всегда может декодироваться картинка
-                                    /*FileUtils.superBitmapOptions()*/ null));
+                                    MediaStore.Images.Thumbnails.MINI_KIND, null));
                             AndroidUtil.setImageAsyncWithAnim(imageView, bitmapDrawable, imageView, tag);
                             CacheService.getManager().addBitmapToMemoryCache(path + id, bitmapDrawable);
                         }
                     } catch (Throwable e) {
-                        //AndroidUtil.showToastShort(e.getMessage());
-                        //боимся много открытых курсоров
+                        //много открытых курсоров?
                     }
                 }
             });
@@ -372,7 +359,7 @@ public class FileManager extends ResultController {
 
     public BitmapDrawable getBitmapFullScreen(File f) {
         String filePath = f.getAbsolutePath();
-        return FileUtils.decodeFileInBitmapDrawable(filePath, FileUtils.prepareOptions(filePath, AndroidUtil.WINDOW_PORTRAIT_WIDTH, FileUtils.CalculateType.BY_WIDTH));
+        return FileUtil.decodeFileInBitmapDrawable(filePath, FileUtil.prepareOptions(filePath, AndroidUtil.WINDOW_PORTRAIT_WIDTH, FileUtil.CalculateType.BY_WIDTH));
     }
 
     private BitmapDrawable processSticker(String path, TypeLoad type, boolean... async) {
@@ -384,7 +371,7 @@ public class FileManager extends ResultController {
             }
         }
         int maxHeight = StickerMsgView.getStickerMaxHeight(type);
-        return FileUtils.decodeFileInBitmapDrawable(path, maxHeight != 0 ? FileUtils.prepareOptions(path, maxHeight, FileUtils.CalculateType.BY_HEIGHT) : FileUtils.superBitmapOptions());
+        return FileUtil.decodeFileInBitmapDrawable(path, maxHeight != 0 ? FileUtil.prepareOptions(path, maxHeight, FileUtil.CalculateType.BY_HEIGHT) : FileUtil.superBitmapOptions());
     }
 
     //для микро фамбов
@@ -479,7 +466,7 @@ public class FileManager extends ResultController {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(path);
+                        BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path);
                         if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(bitmapDrawable);
                         }
@@ -497,7 +484,7 @@ public class FileManager extends ResultController {
     public BitmapDrawable getNoResizeBitmapFromFile(String path) {
         BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
-            bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(path);
+            bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path);
             CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
@@ -513,7 +500,7 @@ public class FileManager extends ResultController {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        BitmapDrawable bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(path);
+                        BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path);
                         if (AndroidUtil.isItemViewVisible(itemView, tag))
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(bitmapDrawable);
 
@@ -531,7 +518,7 @@ public class FileManager extends ResultController {
     public BitmapDrawable getImageFromFile(String path) {
         BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
-            bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(path, FileUtils.prepareOptions(path, PhotoMsgView.MAX_IMAGE_CHAT_WIDTH, FileUtils.CalculateType.BOTH));
+            bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path, FileUtil.prepareOptions(path, PhotoMsgView.MAX_IMAGE_CHAT_WIDTH, FileUtil.CalculateType.BOTH));
             CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
@@ -548,7 +535,7 @@ public class FileManager extends ResultController {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        BitmapDrawable drawable = FileUtils.decodeFileInBitmapDrawable(path, FileUtils.prepareOptions(path, PhotoMsgView.MAX_IMAGE_CHAT_WIDTH, FileUtils.CalculateType.BOTH));
+                        BitmapDrawable drawable = FileUtil.decodeFileInBitmapDrawable(path, FileUtil.prepareOptions(path, PhotoMsgView.MAX_IMAGE_CHAT_WIDTH, FileUtil.CalculateType.BOTH));
                         if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(drawable);
                         }

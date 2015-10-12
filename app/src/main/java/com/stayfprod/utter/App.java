@@ -12,7 +12,7 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.stayfprod.emojicon.EmojiCache;
-import com.stayfprod.emojicon.EmojiConstants;
+import com.stayfprod.emojicon.EmojConstant;
 import com.stayfprod.emojicon.EmojiconRecentsManager;
 import com.stayfprod.utter.manager.NotificationManager;
 import com.stayfprod.utter.manager.PassCodeManager;
@@ -22,7 +22,7 @@ import com.stayfprod.utter.ui.activity.EnterPassCodeActivity;
 import com.stayfprod.utter.ui.activity.InitActivity;
 import com.stayfprod.utter.ui.listener.AppStatusListener;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -39,8 +39,8 @@ public class App extends Application {
     public static final String STG_RECENT_STICKERS = STG_FOLDER_MAIN + File.separator + "RecentStickers";
     public static final String STG_RECORD_VOICE = STG_FOLDER_MAIN + File.separator + "VoiceRecords";
 
-    public static volatile Context appContext;
-    public static volatile Handler appHandler;
+    private static volatile Context sAppContext;
+    private static volatile Handler sAppHandler;
 
     public static final int CURRENT_VERSION_SDK = android.os.Build.VERSION.SDK_INT;
 
@@ -53,7 +53,15 @@ public class App extends Application {
     private static volatile boolean isFirstInit = true;
 
     public static Context getAppContext() {
-        return appContext;
+        return sAppContext;
+    }
+
+    public static Handler getAppHandler() {
+        return sAppHandler;
+    }
+
+    public static void setAppContext(Context appContext) {
+        sAppContext = appContext;
     }
 
     public static boolean isAppInForeground() {
@@ -65,7 +73,7 @@ public class App extends Application {
     }
 
     public static boolean isBadAppContext(Context context) {
-        if (!(appContext instanceof AppCompatActivity)) {
+        if (!(sAppContext instanceof AppCompatActivity)) {
             Intent intent = new Intent(context, InitActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -80,13 +88,13 @@ public class App extends Application {
     }
 
     public static void checkAppContext(Context context) {
-        if (!(appContext instanceof AppCompatActivity)) {
-            appContext = context;
+        if (!(sAppContext instanceof AppCompatActivity)) {
+            sAppContext = context;
         }
     }
 
     public static Resources getAppResources() {
-        return appContext.getResources();
+        return sAppContext.getResources();
     }
 
     private void initCrashHandler() {
@@ -115,8 +123,8 @@ public class App extends Application {
         Fabric.with(this, new Crashlytics());
         initCrashHandler();
 
-        appContext = getApplicationContext();
-        appHandler = new Handler(this.getMainLooper());
+        sAppContext = getApplicationContext();
+        sAppHandler = new Handler(this.getMainLooper());
 
         //заставляем gc работать жещще
         if (CURRENT_VERSION_SDK < Build.VERSION_CODES.LOLLIPOP) {
@@ -124,18 +132,18 @@ public class App extends Application {
             ByteBuffer huckBuffer = ByteBuffer.allocate(1024 * 1024 * 4);
             huckBuffer.clear();
         }
-        EmojiConstants.init(appContext);
+        EmojConstant.init(sAppContext);
 
         //info 563 миллескунды на слабом устройстве только initEmojiBitmaps, на нормальном 78 миллисекунд
         //todo вынести в аснихронное получение, разбить на части
-        EmojiCache.getInstance().initEmojiBitmaps(appContext.getResources());
+        EmojiCache.getInstance().initEmojiBitmaps(sAppContext.getResources());
 
         ThreadService.runSingleTaskWithLowestPriority(new Runnable() {
             @Override
             public void run() {
                 //поднимаем закешированные смайлы
-                EmojiconRecentsManager.getInstance(appContext);
-                FileUtils.cleanOldTempDirectory();
+                EmojiconRecentsManager.getInstance(sAppContext);
+                FileUtil.cleanOldTempDirectory();
             }
         });
 
@@ -150,7 +158,7 @@ public class App extends Application {
                 isInBackground = false;
                 final PassCodeManager passCodeManager = PassCodeManager.getManager();
                 if ((isAwakeFromBackground && isAppInForeground()) || isFirstInit) {
-                    if (ChatListActivity.isChatListActivityStarted && !EnterPassCodeActivity.isOpenedActivity) {
+                    if (ChatListActivity.sIsChatListActivityStarted && !EnterPassCodeActivity.sIsOpenedActivity) {
                         if (passCodeManager.isNeedPassCode(getAppContext())) {
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
@@ -163,7 +171,7 @@ public class App extends Application {
                         }
                     }
 
-                    if (ChatListActivity.isChatListActivityStarted) {
+                    if (ChatListActivity.sIsChatListActivityStarted) {
                         isFirstInit = false;
                     }
                 } else {

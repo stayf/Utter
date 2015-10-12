@@ -7,9 +7,9 @@ import android.view.View;
 
 public class EmojiView extends View {
 
-    private static final int TRANSLATE = EmojiConstants.EMOJI_DP_LAYOUT_SIZE - EmojiConstants.EMOJI_DP_SMILE_LIST;
+    private static final int TRANSLATE = EmojConstant.sEmojDpLayoutSize - EmojConstant.sEmojDpSimpleList;
 
-    private EmojDrawable emojDrawable;
+    private EmojDrawable mEmojDrawable;
 
     public EmojiView(Context context) {
         super(context);
@@ -26,17 +26,17 @@ public class EmojiView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.translate(TRANSLATE, TRANSLATE);
-        emojDrawable.draw(canvas);
+        mEmojDrawable.draw(canvas);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(EmojiConstants.EMOJI_DP_LAYOUT_SIZE, EmojiConstants.EMOJI_DP_LAYOUT_SIZE);
+        setMeasuredDimension(EmojConstant.sEmojDpLayoutSize, EmojConstant.sEmojDpLayoutSize);
     }
 
     public void setEmojDrawable(String text) {
         int pos = EmojiconHandler.getEmojiPosition(text);
-        String key = pos + "_" + EmojiConstants.EMOJI_DP_SMILE_LIST;
-        emojDrawable = EmojiCache.getInstance().getEmojDrawableFromCache(key, getResources());
+        String key = pos + "_" + EmojConstant.sEmojDpSimpleList;
+        mEmojDrawable = EmojiCache.getInstance().getEmojDrawableFromCache(key, getResources());
     }
 }

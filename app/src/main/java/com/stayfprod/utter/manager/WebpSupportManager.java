@@ -17,7 +17,7 @@ import com.stayfprod.utter.service.CacheService;
 import com.stayfprod.utter.service.WebpSupportService;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,33 +59,32 @@ public class WebpSupportManager {
 
     public static final boolean IS_NEED_NATIVE_LIB = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2;
 
-    private static WebpSupportManager manager;
+    private static WebpSupportManager sManager;
 
-    private WebpReceiver webpReceiver;
-    private SparseArray<Object[]> objectSparseList = new SparseArray<Object[]>();
-    private ConcurrentLinkedQueue<QueueEntry> concurrentLinkedQueue = new ConcurrentLinkedQueue<QueueEntry>();
-    private ConcurrentHashMap<String, String> tmpFileHashMap = new ConcurrentHashMap<String, String>();
+    private WebpReceiver mWebpReceiver;
+    private SparseArray<Object[]> mObjectSparseList = new SparseArray<Object[]>();
+    private ConcurrentLinkedQueue<QueueEntry> mConcurrentLinkedQueue = new ConcurrentLinkedQueue<QueueEntry>();
+    private ConcurrentHashMap<String, String> mTmpFileHashMap = new ConcurrentHashMap<String, String>();
 
-    private AtomicInteger counterList = new AtomicInteger(0);
-
-    private AtomicBoolean isRunnable = new AtomicBoolean(false);
+    private AtomicInteger mCounterList = new AtomicInteger(0);
+    private AtomicBoolean mIsRunnable = new AtomicBoolean(false);
 
     public static WebpSupportManager getManager() {
-        if (manager == null) {
+        if (sManager == null) {
             synchronized (WebpSupportManager.class) {
-                if (manager == null) {
-                    manager = new WebpSupportManager();
+                if (sManager == null) {
+                    sManager = new WebpSupportManager();
                 }
             }
         }
-        return manager;
+        return sManager;
     }
 
     private WebpReceiver getWebpReceiver() {
-        if (webpReceiver == null) {
-            webpReceiver = new WebpReceiver();
+        if (mWebpReceiver == null) {
+            mWebpReceiver = new WebpReceiver();
         }
-        return webpReceiver;
+        return mWebpReceiver;
     }
 
     public void handleReceived(final int key, final String tmpFile, final String path) {
@@ -94,7 +93,7 @@ public class WebpSupportManager {
             @Override
             public void run() {
                 while (true) {
-                    QueueEntry queueObjects = concurrentLinkedQueue.poll();
+                    QueueEntry queueObjects = mConcurrentLinkedQueue.poll();
                     if (queueObjects != null) {
                         if (AndroidUtil.isItemViewVisible(queueObjects.itemView, queueObjects.tag)) {
                             if (queueObjects.type == FileManager.TypeLoad.USER_STICKER_MICRO_THUMB) {
@@ -106,12 +105,12 @@ public class WebpSupportManager {
                         } else
                             continue;
                     }
-                    isRunnable.set(false);
+                    mIsRunnable.set(false);
                     break;
                 }
 
-                tmpFileHashMap.put(path, tmpFile);
-                Object[] objects = objectSparseList.get(key);
+                mTmpFileHashMap.put(path, tmpFile);
+                Object[] objects = mObjectSparseList.get(key);
                 if (objects != null) {
                     FileManager.TypeLoad type = (FileManager.TypeLoad) objects[4];
 
@@ -134,9 +133,8 @@ public class WebpSupportManager {
                             getAndDisplayImage(tmpFile, path, itemView, tag, type, bounds, animate);
                         }
                     }
-                    objectSparseList.remove(key);
+                    mObjectSparseList.remove(key);
                 }
-                //FileUtils.deleteFile(tmpFile);
             }
         });
     }
@@ -144,7 +142,7 @@ public class WebpSupportManager {
     private boolean getAndDisplayImage(final String tmpFile, String path, final View itemView, final String tag, final FileManager.TypeLoad type, final int[] bounds, final boolean animate) {
         BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
         if (bitmapDrawable == null) {
-            bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(tmpFile, FileUtils.superBitmapOptions());
+            bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(tmpFile, FileUtil.superBitmapOptions());
             if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
                 StickerMsgView.setStickerBounds(bitmapDrawable, type, bounds);
                 CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
@@ -164,7 +162,7 @@ public class WebpSupportManager {
         final BitmapDrawable cachedBitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
         final BitmapDrawable bitmapDrawable;
         if (cachedBitmapDrawable == null) {
-            bitmapDrawable = FileUtils.decodeFileInBitmapDrawable(tmpFile, FileUtils.superBitmapOptions());
+            bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(tmpFile, FileUtil.superBitmapOptions());
             if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
                 CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
             }
@@ -189,20 +187,18 @@ public class WebpSupportManager {
 
     public void loadWebP(final String path, final FileManager.TypeLoad type, final View itemView, final String tag, final int[] bounds, final boolean... animate) {
         boolean localAnimate = (animate.length > 0 && animate[0]);
-        if (tmpFileHashMap.containsKey(path)) {
-            boolean answer = getAndDisplayImage(tmpFileHashMap.get(path), path, itemView, tag, type, bounds, localAnimate);
+        if (mTmpFileHashMap.containsKey(path)) {
+            boolean answer = getAndDisplayImage(mTmpFileHashMap.get(path), path, itemView, tag, type, bounds, localAnimate);
             if (!answer) {
-                tmpFileHashMap.remove(path);
-                //задача, ложить в очередь и если на данный момент сервис не работает то запустить его
-                concurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, bounds));
-                if (AndroidUtil.isItemViewVisible(itemView, tag) && isRunnable.compareAndSet(false, true)) {
+                mTmpFileHashMap.remove(path);
+                mConcurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, bounds));
+                if (AndroidUtil.isItemViewVisible(itemView, tag) && mIsRunnable.compareAndSet(false, true)) {
                     senRequest(path, type, itemView, tag, localAnimate, bounds);
                 }
             }
         } else {
-            //задача, ложить в очередь и если на данный момент сервис не работает то запустить его
-            concurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, bounds));
-            if (AndroidUtil.isItemViewVisible(itemView, tag) && isRunnable.compareAndSet(false, true)) {
+            mConcurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, bounds));
+            if (AndroidUtil.isItemViewVisible(itemView, tag) && mIsRunnable.compareAndSet(false, true)) {
                 senRequest(path, type, itemView, tag, localAnimate, bounds);
             }
         }
@@ -210,46 +206,41 @@ public class WebpSupportManager {
 
     public void loadWebP(final String path, final FileManager.TypeLoad type, final View itemView, final String tag, final ImageView imageView, final boolean... animate) {
         boolean localAnimate = (animate.length > 0 && animate[0]);
-        if (tmpFileHashMap.containsKey(path)) {
-            boolean answer = getAndDisplayImage(tmpFileHashMap.get(path), path, itemView, tag, type, imageView, localAnimate);
-            if(!answer){
-                //задача, ложить в очередь и если на данный момент сервис не работает то запустить его
-                concurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, imageView));
-                if (AndroidUtil.isItemViewVisible(itemView, tag) && isRunnable.compareAndSet(false, true)) {
+        if (mTmpFileHashMap.containsKey(path)) {
+            boolean answer = getAndDisplayImage(mTmpFileHashMap.get(path), path, itemView, tag, type, imageView, localAnimate);
+            if (!answer) {
+                mTmpFileHashMap.remove(path);
+                mConcurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, imageView));
+                if (AndroidUtil.isItemViewVisible(itemView, tag) && mIsRunnable.compareAndSet(false, true)) {
                     senRequest(path, type, itemView, tag, localAnimate, imageView);
                 }
             }
         } else {
-            //задача, ложить в очередь и если на данный момент сервис не работает то запустить его
-            concurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, imageView));
-            if (AndroidUtil.isItemViewVisible(itemView, tag) && isRunnable.compareAndSet(false, true)) {
+            mConcurrentLinkedQueue.add(new QueueEntry(path, type, itemView, tag, localAnimate, imageView));
+            if (AndroidUtil.isItemViewVisible(itemView, tag) && mIsRunnable.compareAndSet(false, true)) {
                 senRequest(path, type, itemView, tag, localAnimate, imageView);
             }
         }
     }
 
     private void senRequest(final String path, final FileManager.TypeLoad type, final View itemView, final String tag, final boolean localAnimate, int[] bounds) {
-        int maxHeight = StickerMsgView.getStickerMaxHeight(type);
-        Context context = App.getAppContext();
-        int key = counterList.incrementAndGet();
-        objectSparseList.put(key, new Object[]{itemView, tag, localAnimate, bounds, type});
-        Intent service = new Intent(context, WebpSupportService.class);
-        service.putExtra("maxHeight", maxHeight);
-        service.putExtra("path", path);
-        service.putExtra("key", key);
-        context.startService(service);
+        int key = mCounterList.incrementAndGet();
+        mObjectSparseList.put(key, new Object[]{itemView, tag, localAnimate, bounds, type});
+        startService(StickerMsgView.getStickerMaxHeight(type), path, key);
     }
 
     private void senRequest(final String path, final FileManager.TypeLoad type, final View itemView, final String tag, final boolean localAnimate, final ImageView imageView) {
-        int maxHeight = StickerMsgView.getStickerMaxHeight(type);
-        Context context = App.getAppContext();
-        int key = counterList.incrementAndGet();
-        objectSparseList.put(key, new Object[]{itemView, tag, localAnimate, imageView, type});
-        Intent service = new Intent(context, WebpSupportService.class);
+        int key = mCounterList.incrementAndGet();
+        mObjectSparseList.put(key, new Object[]{itemView, tag, localAnimate, imageView, type});
+        startService(StickerMsgView.getStickerMaxHeight(type), path, key);
+    }
+
+    private void startService(int maxHeight, String path, int key) {
+        Intent service = new Intent(App.getAppContext(), WebpSupportService.class);
         service.putExtra("maxHeight", maxHeight);
         service.putExtra("path", path);
         service.putExtra("key", key);
-        context.startService(service);
+        App.getAppContext().startService(service);
     }
 
     public void registerReceiver(Context context) {

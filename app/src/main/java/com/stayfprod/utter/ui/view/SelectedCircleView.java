@@ -9,14 +9,14 @@ import android.os.Build;
 import android.util.AttributeSet;
 
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 public class SelectedCircleView extends AbstractScaleAnimatedView {
 
     private static final BitmapDrawable SELECTED_DRAWABLE;
 
     static {
-        SELECTED_DRAWABLE = FileUtils.decodeImageResource(R.mipmap.ic_attach_check);
+        SELECTED_DRAWABLE = FileUtil.decodeImageResource(R.mipmap.ic_attach_check);
     }
 
     public SelectedCircleView(Context context) {

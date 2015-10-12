@@ -15,7 +15,7 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,17 +26,17 @@ public class CameraManager extends Observable {
 
     public static final int REQUEST_TAKE_PHOTO = 1;
 
-    private static volatile CameraManager cameraManager;
+    private static volatile CameraManager sCameraManager;
 
     public static CameraManager getManager() {
-        if (cameraManager == null) {
+        if (sCameraManager == null) {
             synchronized (CameraManager.class) {
-                if (cameraManager == null) {
-                    cameraManager = new CameraManager();
+                if (sCameraManager == null) {
+                    sCameraManager = new CameraManager();
                 }
             }
         }
-        return cameraManager;
+        return sCameraManager;
     }
 
     @Override
@@ -51,8 +51,8 @@ public class CameraManager extends Observable {
             public void run() {
                 try {
                     File inputFile = new File(path);
-                    File galleryFile = FileUtils.createGalleryFile(inputFile);
-                    FileUtils.copyFile(inputFile, galleryFile);
+                    File galleryFile = FileUtil.createGalleryFile(inputFile);
+                    FileUtil.copyFile(inputFile, galleryFile);
                     ContentValues values = new ContentValues();
                     values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
                     values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
@@ -80,7 +80,7 @@ public class CameraManager extends Observable {
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     new String[]{MediaStore.Images.Media._ID},
                     MediaStore.Images.Media.DATA + "=? ",
-                    new String[]{FileUtils.createGalleryFile(imageFile).getAbsolutePath()}, null);
+                    new String[]{FileUtil.createGalleryFile(imageFile).getAbsolutePath()}, null);
 
             if (cursor != null) {
                 returned = cursor.moveToFirst();
@@ -99,7 +99,7 @@ public class CameraManager extends Observable {
         if (takePictureIntent.resolveActivity(context.getPackageManager()) != null) {
             File photoFile = null;
             try {
-                photoFile = FileUtils.createTakePhotoFile();
+                photoFile = FileUtil.createTakePhotoFile();
                 imgPath = photoFile.getAbsolutePath();
             } catch (IOException ex) {
                 Log.w(LOG, "dispatchTakePictureIntent", ex);

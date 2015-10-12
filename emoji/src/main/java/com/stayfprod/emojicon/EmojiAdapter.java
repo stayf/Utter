@@ -6,28 +6,27 @@ import java.util.Arrays;
 import java.util.List;
 
 import android.content.Context;
-import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
-import android.widget.TextView;
 
 public class EmojiAdapter extends BaseAdapter {
+
     EmojiconGridView.OnEmojiconClickedListener emojiClickListener;
 
-    private List<Emojicon> data;
-    private Context context;
+    private List<Emojicon> mData;
+    private Context mContext;
 
     public EmojiAdapter(Context context, List<Emojicon> data) {
-        this.data = data;
-        this.context = context;
+        this.mData = data;
+        this.mContext = context;
     }
 
     public EmojiAdapter(Context context, Emojicon[] data) {
-        this.data = Arrays.asList(data);
-        this.context = context;
+        this.mData = Arrays.asList(data);
+        this.mContext = context;
     }
 
     public void setEmojiClickListener(EmojiconGridView.OnEmojiconClickedListener listener) {
@@ -36,12 +35,12 @@ public class EmojiAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return data.size();
+        return mData.size();
     }
 
     @Override
     public Emojicon getItem(int i) {
-        return data.get(i);
+        return mData.get(i);
     }
 
     @Override
@@ -52,13 +51,13 @@ public class EmojiAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
-        EmojiView v = (EmojiView)convertView;
+        EmojiView v = (EmojiView) convertView;
         if (v == null) {
-            v = new EmojiView(context);
+            v = new EmojiView(mContext);
             v.setFocusable(false);
             v.setFocusableInTouchMode(false);
             v.setLayoutParams(new AbsListView.LayoutParams(
-                    EmojiConstants.EMOJI_DP_LAYOUT_SIZE, EmojiConstants.EMOJI_DP_LAYOUT_SIZE));
+                    EmojConstant.sEmojDpLayoutSize, EmojConstant.sEmojDpLayoutSize));
         }
 
         Emojicon emoji = getItem(position);

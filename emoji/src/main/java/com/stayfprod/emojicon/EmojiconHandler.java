@@ -1,20 +1,13 @@
 package com.stayfprod.emojicon;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.text.Spannable;
-import android.text.style.ImageSpan;
-import android.util.Log;
-import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 public final class EmojiconHandler {
-    private EmojiconHandler() {
-    }
 
     private static final SparseIntArray sEmojisMap = new SparseIntArray(846);
+    private static final int MAX_EMOJICON_COUNT = 50;
 
     static {
         // People
@@ -856,8 +849,7 @@ public final class EmojiconHandler {
         sEmojisMap.put(0x1f539, 1408);
     }
 
-
-    public static SparseIntArray getSEmojisMap() {
+    public static SparseIntArray getEmojisMap() {
         return sEmojisMap;
     }
 
@@ -973,14 +965,11 @@ public final class EmojiconHandler {
         return 0;
     }
 
-    private static final int MAX_EMOJICON_COUNT = 50;
-
     public static void addEmojis(Context context, Spannable text, int emojiSize, int index, int length, boolean isEditText) {
         int textLength = text.length();
         int textLengthToProcessMax = textLength - index;
         int textLengthToProcess = length < 0 || length >= textLengthToProcessMax ? textLength : (length + index);
 
-        // remove spans throughout all text
         int counter = 0;
         EmojiconSpan[] oldSpans = text.getSpans(0, textLength, EmojiconSpan.class);
 
@@ -992,7 +981,6 @@ public final class EmojiconHandler {
                 text.removeSpan(oldSpans[i]);
             }
         }
-
 
         int skip;
         counter = 0;

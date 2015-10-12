@@ -2,7 +2,6 @@ package com.stayfprod.utter.ui.activity;
 
 
 import android.content.Context;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.Visualizer;
@@ -37,7 +36,7 @@ public class EqualizerActivity extends AbstractActivity {
     private LinearLayout mLinearLayout;
     private VisualizerView mVisualizerView;
     private Toolbar mToolbar;
-    private Spinner spinner;
+    private Spinner mSpinner;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,13 +65,11 @@ public class EqualizerActivity extends AbstractActivity {
             layoutParams.topMargin = Constant.DP_18;
             layoutParams.addRule(RelativeLayout.BELOW, mToolbar.getId());
 
-
             setupVisualizerFxAndUI();
             setupEqualizerFxAndUI();
 
-
-            spinner = (Spinner) findViewById(R.id.a_equalizer_spinner);
-            spinner.setBackgroundColor(0xFF5B95C2);
+            mSpinner = (Spinner) findViewById(R.id.a_equalizer_spinner);
+            mSpinner.setBackgroundColor(0xFF5B95C2);
 
             ArrayList<String> items = new ArrayList<String>();
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
@@ -104,8 +101,8 @@ public class EqualizerActivity extends AbstractActivity {
             }
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
-            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            mSpinner.setAdapter(adapter);
+            mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     AudioPlayer audioPlayer = AudioPlayer.getPlayer();
@@ -133,7 +130,7 @@ public class EqualizerActivity extends AbstractActivity {
                 }
             });
 
-            spinner.setSelection(audioPlayer.getEqualizerPreset());
+            mSpinner.setSelection(audioPlayer.getEqualizerPreset());
         } catch (Exception e) {
             AndroidUtil.showToastShort(e.getMessage());
         }
@@ -253,7 +250,7 @@ public class EqualizerActivity extends AbstractActivity {
 
     @SuppressWarnings("ConstantConditions")
     private void setToolbar() {
-        mToolbar = (Toolbar) findViewById(R.id.a_actionBar);
+        mToolbar = (Toolbar) findViewById(R.id.a_action_bar);
         if (mToolbar != null) {
             setSupportActionBar(mToolbar);
             setSupportActionBar(mToolbar);

@@ -16,7 +16,7 @@ import com.stayfprod.utter.model.chat.PhotoMsg;
 import com.stayfprod.utter.ui.drawable.DeterminateProgressDrawable;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.util.ChatHelper;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;
@@ -25,13 +25,12 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
 
     public static final int MAX_IMAGE_CHAT_WIDTH = Constant.DP_180;
 
-    private DeterminateProgressDrawable progressDrawable;
-    private BitmapDrawable bitmapDrawable;
-
+    private DeterminateProgressDrawable mProgressDrawable;
+    private BitmapDrawable mBitmapDrawable;
 
     public PhotoMsgView(Context context) {
         super(context);
-        progressDrawable = new DeterminateProgressDrawable() {
+        mProgressDrawable = new DeterminateProgressDrawable() {
             @Override
             public void invalidate() {
                 PhotoMsgView.this.invalidate();
@@ -59,12 +58,12 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
 
     @Override
     public void setImageAndUpdateAsync(BitmapDrawable bitmapDrawable, boolean... animated) {
-        this.bitmapDrawable = bitmapDrawable;
+        this.mBitmapDrawable = bitmapDrawable;
         postInvalidate();
     }
 
     public DeterminateProgressDrawable getProgressDrawable() {
-        return progressDrawable;
+        return mProgressDrawable;
     }
 
     public boolean isLocalMsg() {
@@ -75,7 +74,7 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
     public void setValues(PhotoMsg record, int i, final Context context, RecyclerView.ViewHolder viewHolder) {
         super.setValues(record, i, context, viewHolder);
 
-        bitmapDrawable = null;
+        mBitmapDrawable = null;
 
         TdApi.MessagePhoto messagePhoto = (TdApi.MessagePhoto) record.tgMessage.message;
         final TdApi.PhotoSize[] photoSizes = messagePhoto.photo.photos;
@@ -86,21 +85,21 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
 
         DeterminateProgressDrawable.LoadStatus loadStatus = DeterminateProgressDrawable.LoadStatus.NO_LOAD;
 
-        if (FileUtils.isTDFileLocal(photoSize.photo)) {
-            bitmapDrawable = FileManager.getManager().getImageFromFile(photoSize.photo.path, this, getItemViewTag());
-            progressDrawable.clean();
+        if (FileUtil.isTDFileLocal(photoSize.photo)) {
+            mBitmapDrawable = FileManager.getManager().getImageFromFile(photoSize.photo.path, this, getItemViewTag());
+            mProgressDrawable.clean();
         } else {
-            progressDrawable.clean();
+            mProgressDrawable.clean();
             //фамб существует
             if (record.thumbIndex != -1) {
                 TdApi.PhotoSize photoSizeThumb = photoSizes[record.thumbIndex];
-                if (FileUtils.isTDFileEmpty(photoSizeThumb.photo)) {
+                if (FileUtil.isTDFileEmpty(photoSizeThumb.photo)) {
                     //скачиваем фамб, а потом сразу полную картинку, если позиция видна
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.PHOTO_THUMB,
                             photoSizeThumb.photo.id, i, record.tgMessage.id, this, photoSizeThumb, photoSize.photo.id, photoSize, i, getItemViewTag());
                 } else {
                     //у нас есть фамб но нет картинки, показываем фамб, картинку на кач
-                    bitmapDrawable = FileManager.getManager().getNoResizeBitmapFromFile(photoSizeThumb.photo.path, this, getItemViewTag());
+                    mBitmapDrawable = FileManager.getManager().getNoResizeBitmapFromFile(photoSizeThumb.photo.path, this, getItemViewTag());
                     FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.PHOTO,
                             photoSize.photo.id, i, record.tgMessage.id, this, photoSize, getItemViewTag());
                 }
@@ -110,17 +109,17 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
             }
         }
 
-        progressDrawable.setMainSettings(
+        mProgressDrawable.setMainSettings(
                 loadStatus, null,
                 DeterminateProgressDrawable.ColorRange.BLACK,
                 LoadingContentType.PHOTO, true, false);
 
-        progressDrawable.setBounds(record.progressStartX, record.progressStartY);
-        progressDrawable.setVisibility(false);
+        mProgressDrawable.setBounds(record.progressStartX, record.progressStartY);
+        mProgressDrawable.setVisibility(false);
 
         //todo нужно ложить файл в отдельный список на загрузку в сеть
         if (processLoad != -1) {
-            progressDrawable.setProgressWithForceAnimation(processLoad);
+            mProgressDrawable.setProgressWithForceAnimation(processLoad);
         }
         invalidate();
     }
@@ -128,14 +127,14 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (bitmapDrawable == null) {
+        if (mBitmapDrawable == null) {
             canvas.drawRect(0f, 0f, (float) record.photoWidth, (float) record.photoHeight, EMPTY_PAINT);
         } else {
-            bitmapDrawable.setBounds(0, 0, record.photoWidth, record.photoHeight);
-            bitmapDrawable.draw(canvas);
+            mBitmapDrawable.setBounds(0, 0, record.photoWidth, record.photoHeight);
+            mBitmapDrawable.draw(canvas);
         }
 
-        progressDrawable.draw(canvas);
+        mProgressDrawable.draw(canvas);
     }
 
     public static void measure(PhotoMsg chatMessage, TdApi.MessageContent message) {
@@ -158,15 +157,15 @@ public class PhotoMsgView extends AbstractMsgView<PhotoMsg> implements ImageUpda
             }
             prevIteration = j;
         }
-        chatMessage.thumbIndex = /*UiHelper.WINDOW_PORTRAIT_WIDTH > 1000 &&*/ a != -1 ? a : s;
+        chatMessage.thumbIndex = a != -1 ? a : s;
 
         final TdApi.PhotoSize photoSize = photoSizes[prevIteration];
         if (photoSize.width == 0 || photoSize.height == 0) {
             //если сообщение я отправил
 
-            if (FileUtils.isTDFileLocal(photoSize.photo)) {
+            if (FileUtil.isTDFileLocal(photoSize.photo)) {
                 //читаем размеры из файла
-                int[] size = FileUtils.readFileSize(photoSize.photo.path);
+                int[] size = FileUtil.readFileSize(photoSize.photo.path);
                 int[] newSize = PhotoMsgView.calculateImageSize(size[1], size[0]);
                 photoSize.height = size[0];
                 photoSize.width = size[1];

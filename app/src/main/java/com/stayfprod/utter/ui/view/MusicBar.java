@@ -17,11 +17,9 @@ import android.view.View;
 
 import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.R;
-import com.stayfprod.utter.model.Contact;
 import com.stayfprod.utter.ui.activity.AbstractActivity;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
+import com.stayfprod.utter.util.FileUtil;
 
 public class MusicBar extends View {
     private static final Paint SHADOW_LINE_PAINT = new Paint();
@@ -52,38 +50,37 @@ public class MusicBar extends View {
         TEXT_PAINT.setTypeface(AndroidUtil.TF_ROBOTO_MEDIUM);
         TEXT_PAINT.setTextSize(Constant.DP_16);
 
-        PAUSE_DRAWABLE = FileUtils.decodeImageResource(R.mipmap.ic_pausepl);
-        PLAY_DRAWABLE = FileUtils.decodeImageResource(R.mipmap.ic_playpl);
-        CLOSE_DRAWABLE = FileUtils.decodeImageResource(R.mipmap.ic_closeplayer);
+        PAUSE_DRAWABLE = FileUtil.decodeImageResource(R.mipmap.ic_pausepl);
+        PLAY_DRAWABLE = FileUtil.decodeImageResource(R.mipmap.ic_playpl);
+        CLOSE_DRAWABLE = FileUtil.decodeImageResource(R.mipmap.ic_closeplayer);
 
         Paint.FontMetrics metrics = TEXT_PAINT.getFontMetrics();
         NAME_HEIGHT = (metrics.descent - metrics.ascent + metrics.leading);
     }
 
-    private StringBuilder originalName = new StringBuilder();
-    private StringBuilder drawName = new StringBuilder();
-    private int maxTextWidth = -1;
-    private boolean isPlaying = true;
-    private volatile float progress = 0;
+    private StringBuilder mOriginalName = new StringBuilder();
+    private StringBuilder mDrawName = new StringBuilder();
+    private int mMaxTextWidth = -1;
+    private boolean mIsPlaying = true;
+    private volatile float mProgress = 0;
 
-    private View.OnClickListener onCloseClickListener;
-    private View.OnClickListener onPlayClickListener;
+    private View.OnClickListener mOnCloseClickListener;
+    private View.OnClickListener mOnPlayClickListener;
 
     public void setOnPlayClickListener(OnClickListener onPlayClickListener) {
-        this.onPlayClickListener = onPlayClickListener;
+        this.mOnPlayClickListener = onPlayClickListener;
     }
 
     public void setOnCloseClickListener(OnClickListener onCloseClickListener) {
-        this.onCloseClickListener = onCloseClickListener;
+        this.mOnCloseClickListener = onCloseClickListener;
     }
 
     public float getProgress() {
-        return progress;
+        return mProgress;
     }
 
     public void setProgress(float progress) {
-        this.progress = progress;
-        //invalidateUI();
+        this.mProgress = progress;
     }
 
     public MusicBar(Context context) {
@@ -111,8 +108,8 @@ public class MusicBar extends View {
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         if (((event.getX() >= 2 && event.getX() <= PLAY_MARGIN_LEFT + PAUSE_DRAWABLE.getIntrinsicWidth() + NAME_MARGIN_LEFT))) {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (onPlayClickListener != null)
-                    onPlayClickListener.onClick(this);
+                if (mOnPlayClickListener != null)
+                    mOnPlayClickListener.onClick(this);
             }
             return true;
         }
@@ -120,8 +117,8 @@ public class MusicBar extends View {
         if (((event.getX() >= getWidth() - CLOSE_MARGIN_RIGHT - getHeight()
                 && event.getX() <= getWidth()))) {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (onCloseClickListener != null)
-                    onCloseClickListener.onClick(this);
+                if (mOnCloseClickListener != null)
+                    mOnCloseClickListener.onClick(this);
             }
             return true;
         }
@@ -129,26 +126,24 @@ public class MusicBar extends View {
     }
 
     public void init() {
-        //setWillNotDraw(false);
-        //setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        originalName.append("");
-        progress = 0;
+        mOriginalName.append("");
+        mProgress = 0;
     }
 
     public void setName(String name) {
-        originalName.setLength(0);
-        originalName.append(name);
+        mOriginalName.setLength(0);
+        mOriginalName.append(name);
         measureName();
     }
 
     public boolean isEmptyDrawName() {
-        return drawName.length() == 0;
+        return mDrawName.length() == 0;
     }
 
     private void measureName() {
-        if (maxTextWidth != -1) {
-            drawName.setLength(0);
-            drawName.append(TextUtils.ellipsize(originalName.toString(), TEXT_PAINT, maxTextWidth, TextUtils.TruncateAt.END));
+        if (mMaxTextWidth != -1) {
+            mDrawName.setLength(0);
+            mDrawName.append(TextUtils.ellipsize(mOriginalName.toString(), TEXT_PAINT, mMaxTextWidth, TextUtils.TruncateAt.END));
         } else {
             AndroidUtil.runInUI(new Runnable() {
                 @Override
@@ -160,18 +155,16 @@ public class MusicBar extends View {
     }
 
     public void play() {
-        isPlaying = true;
-        //invalidateUI();
+        mIsPlaying = true;
     }
 
     public void stop() {
-        isPlaying = false;
-        //invalidateUI();
+        mIsPlaying = false;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (!isPlaying) {
+        if (!mIsPlaying) {
             int startY = (getHeight() - PLAY_DRAWABLE.getIntrinsicHeight()) >> 1;
             PLAY_DRAWABLE.setBounds(PLAY_MARGIN_LEFT, startY, PLAY_MARGIN_LEFT + PLAY_DRAWABLE.getIntrinsicWidth(), startY + PLAY_DRAWABLE.getIntrinsicHeight());
             PLAY_DRAWABLE.draw(canvas);
@@ -186,11 +179,10 @@ public class MusicBar extends View {
         CLOSE_DRAWABLE.setBounds(startXClose, startYClose, startXClose + CLOSE_DRAWABLE.getIntrinsicWidth(), startYClose + CLOSE_DRAWABLE.getIntrinsicHeight());
         CLOSE_DRAWABLE.draw(canvas);
 
-        //canvas.drawRect(0, getHeight() - Constant.DP_2, getWidth(), getHeight(), SHADOW_LINE_PAINT);
-        canvas.drawRect(0, getHeight() - Constant.DP_2, (progress * getWidth()) / 100, getHeight(), PROGRESS_PAINT);
+        canvas.drawRect(0, getHeight() - Constant.DP_2, (mProgress * getWidth()) / 100, getHeight(), PROGRESS_PAINT);
 
         float startYName = ((getHeight() - NAME_HEIGHT) / 2) + Constant.DP_15;
-        canvas.drawText(drawName.toString(), PLAY_MARGIN_LEFT + PAUSE_DRAWABLE.getIntrinsicWidth() + NAME_MARGIN_LEFT, startYName, TEXT_PAINT);
+        canvas.drawText(mDrawName.toString(), PLAY_MARGIN_LEFT + PAUSE_DRAWABLE.getIntrinsicWidth() + NAME_MARGIN_LEFT, startYName, TEXT_PAINT);
     }
 
     @Override
@@ -201,7 +193,7 @@ public class MusicBar extends View {
     }
 
     private void recalculateMaxTextWidth() {
-        maxTextWidth = AbstractActivity.WINDOW_CURRENT_WIDTH - PLAY_MARGIN_LEFT - PAUSE_DRAWABLE.getIntrinsicWidth()
+        mMaxTextWidth = AbstractActivity.sWindowCurrentWidth - PLAY_MARGIN_LEFT - PAUSE_DRAWABLE.getIntrinsicWidth()
                 - NAME_MARGIN_LEFT - NAME_MARGIN_RIGHT
                 - CLOSE_DRAWABLE.getIntrinsicWidth() - CLOSE_MARGIN_RIGHT;
     }

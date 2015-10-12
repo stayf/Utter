@@ -30,7 +30,6 @@ import com.stayfprod.utter.ui.view.DialogView;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.util.DateUtil;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.R;
 
@@ -45,39 +44,39 @@ import java.util.concurrent.CountDownLatch;
 public class ChatListManager extends ResultController {
 
     private final static String LOG = ChatListManager.class.getSimpleName();
-    private static volatile ChatListManager chatListManager;
-
-    private final SparseIntArray indexPosUserMap = new SparseIntArray();//userID, pos in chat
-    private final LongSparseArray<Integer> indexPosChatList = new LongSparseArray<Integer>();//chatId, pos in chat
-    private final List<ChatInfo> chatList = Collections.synchronizedList(new ArrayList<ChatInfo>());
-
-    private volatile boolean isFirstInit = true;
-    private volatile boolean needDownloadMore = true;
-
-    private ChatListAdapter chatListAdapter;
-    private LinearLayoutManager chatListLayoutManager;
-    private volatile int chatOffset = 0;
-    private int chatLimit = 10;
-    private boolean isFirstGetChats = true;
-    private int findFirstVisibleItemPosition;
+    private static volatile ChatListManager sChatListManager;
 
     public static ChatListManager getManager() {
-        if (chatListManager == null) {
+        if (sChatListManager == null) {
             synchronized (ChatListManager.class) {
-                if (chatListManager == null) {
-                    chatListManager = new ChatListManager();
+                if (sChatListManager == null) {
+                    sChatListManager = new ChatListManager();
                 }
             }
         }
-        return chatListManager;
+        return sChatListManager;
     }
+
+    private final SparseIntArray mIndexPosUserMap = new SparseIntArray();//userID, pos in chat
+    private final LongSparseArray<Integer> mIndexPosChatList = new LongSparseArray<Integer>();//chatId, pos in chat
+    private final List<ChatInfo> mChatList = Collections.synchronizedList(new ArrayList<ChatInfo>());
+
+    private volatile boolean mIsFirstInit = true;
+    private volatile boolean mNeedDownloadMore = true;
+
+    private ChatListAdapter mChatListAdapter;
+    private LinearLayoutManager mChatListLayoutManager;
+    private volatile int mChatOffset = 0;
+    private int mChatLimit = 10;
+    private boolean mIsFirstGetChats = true;
+    private int mFirstVisibleItemPosition;
 
     public void initRecycleView(Context context, final MenuDrawerLayout drawerLayout) {
         final SimpleRecyclerView recyclerView = (SimpleRecyclerView) ((Activity) context).findViewById(R.id.a_chat_list_recycler_view);
         recyclerView.setHasFixedSize(true);
-        chatListLayoutManager = new LinearLayoutManager(context);
-        recyclerView.setLayoutManager(chatListLayoutManager);
-        chatListAdapter = new ChatListAdapter(chatList, context);
+        mChatListLayoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(mChatListLayoutManager);
+        mChatListAdapter = new ChatListAdapter(mChatList, context);
 
         drawerLayout.setDrawerListener(new DrawerClosedListener() {
             @Override
@@ -104,7 +103,7 @@ public class ChatListManager extends ResultController {
         };
 
         recyclerView.setOnTouchListener(onTouchListener);
-        chatListAdapter.setOnItemTouchListener(onTouchListener);
+        mChatListAdapter.setOnItemTouchListener(onTouchListener);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             int visibleItemCount;
@@ -119,21 +118,21 @@ public class ChatListManager extends ResultController {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if (needDownloadMore) {
-                    visibleItemCount = chatListLayoutManager.getChildCount();
-                    totalItemCount = chatListLayoutManager.getItemCount();
-                    findFirstVisibleItemPosition = chatListLayoutManager.findFirstVisibleItemPosition();
-                    if ((visibleItemCount + findFirstVisibleItemPosition) >= totalItemCount * 0.8) {
-                        needDownloadMore = false;
+                if (mNeedDownloadMore) {
+                    visibleItemCount = mChatListLayoutManager.getChildCount();
+                    totalItemCount = mChatListLayoutManager.getItemCount();
+                    mFirstVisibleItemPosition = mChatListLayoutManager.findFirstVisibleItemPosition();
+                    if ((visibleItemCount + mFirstVisibleItemPosition) >= totalItemCount * 0.8) {
+                        mNeedDownloadMore = false;
                         getChats(false);
                     }
                 }
             }
         });
 
-        recyclerView.setAdapter(chatListAdapter);
-        if (isFirstInit) {
-            isFirstInit = false;
+        recyclerView.setAdapter(mChatListAdapter);
+        if (mIsFirstInit) {
+            mIsFirstInit = false;
             getManager().getChats(10, 0, true);
         }
     }
@@ -145,46 +144,45 @@ public class ChatListManager extends ResultController {
     }
 
     public void getChats(int limit, int offset, boolean isFirstGetChats) {
-        this.chatOffset = offset;
-        this.chatLimit = limit;
+        this.mChatOffset = offset;
+        this.mChatLimit = limit;
         getChats(isFirstGetChats);
     }
 
     public void getChats(boolean isFirstGetChats) {
-        this.isFirstGetChats = isFirstGetChats;
+        this.mIsFirstGetChats = isFirstGetChats;
         TdApi.GetChats func = new TdApi.GetChats();
-        if (!this.isFirstGetChats) {
-            func.limit = chatLimit;
+        if (!this.mIsFirstGetChats) {
+            func.limit = mChatLimit;
         } else {
             func.limit = AndroidUtil.WINDOW_PORTRAIT_HEIGHT / DialogView.LAYOUT_HEIGHT + 5;
         }
 
-        func.offset = chatOffset;
+        func.offset = mChatOffset;
         if (func.offset == 0) {
-            this.indexPosUserMap.clear();
-            this.chatList.clear();
+            this.mIndexPosUserMap.clear();
+            this.mChatList.clear();
         }
 
-        chatListAdapter.setLoadingData();
+        mChatListAdapter.setLoadingData();
         client().send(func, getManager());
     }
 
     public void addToIndexPosUserMap(int userId, int pos) {
-        synchronized (indexPosChatList) {
-            indexPosUserMap.put(userId, pos);
+        synchronized (mIndexPosChatList) {
+            mIndexPosUserMap.put(userId, pos);
         }
     }
 
     public int getIndexPosByUserId(int userId) {
-        synchronized (indexPosChatList) {
-            return indexPosUserMap.get(userId);
+        synchronized (mIndexPosChatList) {
+            return mIndexPosUserMap.get(userId);
         }
     }
 
     //info самые правильные блоки
-
     public void updateMembersInGroupChat(TdApi.UpdateChatParticipantsCount updateChatParticipantsCount, TdApi.GroupChatFull groupChatFull) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             final ChatInfo chatInfo = getChatInfoByChatId(updateChatParticipantsCount.chatId);
             if (chatInfo != null) {
                 TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
@@ -223,7 +221,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateChatPhoto(TdApi.UpdateChatPhoto updateChatPhoto) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             final ChatInfo chatInfo = getChatInfoByChatId(updateChatPhoto.chatId);
             if (chatInfo != null) {
                 if (!chatInfo.isGroupChat) {
@@ -249,16 +247,16 @@ public class ChatListManager extends ResultController {
         ThreadService.runTaskBackground(new Runnable() {
             @Override
             public void run() {
-                synchronized (indexPosChatList) {
+                synchronized (mIndexPosChatList) {
                     final ChatInfo chatInfo = getChatInfoByChatId(chatId);
                     if (chatInfo != null) {
                         final CountDownLatch countDownLatch = new CountDownLatch(1);
                         AndroidUtil.runInUI(new Runnable() {
                             @Override
                             public void run() {
-                                if (chatListAdapter != null && chatList.size() > chatInfo.currentPosInList) {
-                                    chatList.remove(chatInfo.currentPosInList);
-                                    chatListAdapter.notifyItemRemoved(chatInfo.currentPosInList);
+                                if (mChatListAdapter != null && mChatList.size() > chatInfo.currentPosInList) {
+                                    mChatList.remove(chatInfo.currentPosInList);
+                                    mChatListAdapter.notifyItemRemoved(chatInfo.currentPosInList);
                                 }
                                 countDownLatch.countDown();
                             }
@@ -277,7 +275,7 @@ public class ChatListManager extends ResultController {
 
 
     public void updateMessageId(final TdApi.UpdateMessageId updateMessageId) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(updateMessageId.chatId);
             if (chatInfo != null) {
                 chatInfo.tgChatObject.topMessage.id = updateMessageId.newId;
@@ -289,7 +287,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateMuteForChat(Long chatId, int muteFor) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(chatId);
             if (chatInfo != null) {
                 TdApi.NotificationSettings currentSettings = chatInfo.tgChatObject.notificationSettings;
@@ -301,7 +299,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateNotificationSettingForChat(long chatId, TdApi.NotificationSettings notificationSettings) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(chatId);
             if (chatInfo != null) {
                 TdApi.NotificationSettings currentSettings = chatInfo.tgChatObject.notificationSettings;
@@ -316,7 +314,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateDialogTitle(TdApi.UpdateChatTitle updateChatTitle) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(updateChatTitle.chatId);
             if (chatInfo != null) {
                 chatInfo.chatName = new SpannableString(updateChatTitle.title);
@@ -328,7 +326,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateDialogTitleWithSingleUser(int userId, CachedUser cachedUser) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByUserId(userId);
             if (chatInfo != null) {
                 chatInfo.chatName = new SpannableString(cachedUser.fullName);
@@ -340,7 +338,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void refreshDialogByUserId(int userId) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByUserId(userId);
             if (chatInfo != null) {
                 DialogView.measure(chatInfo);
@@ -352,7 +350,7 @@ public class ChatListManager extends ResultController {
     private LongSparseArray<TdApi.UpdateChatReadOutbox> updateChatReadOutboxArray = new LongSparseArray<TdApi.UpdateChatReadOutbox>();
 
     public void updateChatReadOutbox(TdApi.UpdateChatReadOutbox chatReadOutbox) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(chatReadOutbox.chatId);
             if (chatInfo != null) {
                 chatInfo.tgChatObject.lastReadOutboxMessageId = chatReadOutbox.lastReadOutboxMessageId;
@@ -368,7 +366,7 @@ public class ChatListManager extends ResultController {
     private LongSparseArray<TdApi.UpdateChatReadInbox> updateChatReadInboxArray = new LongSparseArray<TdApi.UpdateChatReadInbox>();
 
     public void updateChatReadInbox(TdApi.UpdateChatReadInbox chatReadInbox) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(chatReadInbox.chatId);
             if (chatInfo != null) {
                 chatInfo.tgChatObject.lastReadInboxMessageId = chatReadInbox.lastReadInboxMessageId;
@@ -384,7 +382,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateMessageDate(final TdApi.UpdateMessageDate updateMessageDate) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(updateMessageDate.chatId);
             if (chatInfo != null) {
                 chatInfo.tgChatObject.topMessage.date = updateMessageDate.newDate;
@@ -399,7 +397,7 @@ public class ChatListManager extends ResultController {
         ThreadService.runTaskBackground(new Runnable() {
             @Override
             public void run() {
-                synchronized (indexPosChatList) {
+                synchronized (mIndexPosChatList) {
                     ChatInfo chatInfo = getChatInfoByChatId(chatId);
                     if (chatInfo != null) {
                         chatInfo.inputMsgIcon = ChatHelper.getTypeOfInputMsgIcon(chatInfo.tgChatObject);
@@ -413,7 +411,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateMsgContent(final TdApi.UpdateMessageContent updateMessageContent) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(updateMessageContent.chatId);
             if (chatInfo != null) {
                 if (chatInfo.tgChatObject.topMessage.id == updateMessageContent.messageId) {
@@ -448,8 +446,8 @@ public class ChatListManager extends ResultController {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                if (chatListAdapter != null && chatList.size() > pos) {
-                    chatListAdapter.notifyItemChanged(pos);
+                if (mChatListAdapter != null && mChatList.size() > pos) {
+                    mChatListAdapter.notifyItemChanged(pos);
                 }
             }
         });
@@ -459,18 +457,18 @@ public class ChatListManager extends ResultController {
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
-                if (chatListAdapter != null && chatList.size() > 0) {
-                    chatListAdapter.notifyDataSetChanged();
+                if (mChatListAdapter != null && mChatList.size() > 0) {
+                    mChatListAdapter.notifyDataSetChanged();
                 }
             }
         });
     }
 
     private ChatInfo getChatInfoByChatId(Long chatId) {
-        if (indexPosChatList.size() > 0 && chatId != null) {
-            final Integer pos = indexPosChatList.get(chatId);
+        if (mIndexPosChatList.size() > 0 && chatId != null) {
+            final Integer pos = mIndexPosChatList.get(chatId);
             if (pos != null) {
-                ChatInfo chatInfo = chatList.get(pos);
+                ChatInfo chatInfo = mChatList.get(pos);
                 if (chatInfo != null)
                     chatInfo.currentPosInList = pos;
                 return chatInfo;
@@ -480,9 +478,9 @@ public class ChatListManager extends ResultController {
     }
 
     private ChatInfo getChatInfoByUserId(int userId) {
-        if (indexPosUserMap.indexOfKey(userId) >= 0) {
-            int pos = indexPosUserMap.get(userId);
-            ChatInfo chatInfo = chatList.get(pos);
+        if (mIndexPosUserMap.indexOfKey(userId) >= 0) {
+            int pos = mIndexPosUserMap.get(userId);
+            ChatInfo chatInfo = mChatList.get(pos);
             if (chatInfo != null) {
                 chatInfo.currentPosInList = pos;
             }
@@ -492,7 +490,6 @@ public class ChatListManager extends ResultController {
     }
 
     private void updateAllContent(ChatInfo chatInfo) {
-        //fixme java.lang.NullPointerException если в боте удалили все кроме основного сообщения
         if (chatInfo != null) {
             chatInfo.date = DrawPreparer.generateDate(chatInfo.tgChatObject.topMessage.date);
             chatInfo.text = DrawPreparer.generateTopMsgText(chatInfo);
@@ -500,14 +497,13 @@ public class ChatListManager extends ResultController {
             chatInfo.outputMsgIcon = ChatHelper.getTypeOfOutputMsgIcon(chatInfo.tgChatObject, chatInfo.tgChatObject.topMessage.id);
             DialogView.measure(chatInfo);
         }
-
     }
 
     /*
     * Обновление итема без подъема наверх
     * */
     public void justUpdateChat(final Long chatId, final TdApi.Message message) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(chatId);
             if (chatInfo != null && message != null) {
                 chatInfo.tgChatObject.topMessage = message;
@@ -518,7 +514,7 @@ public class ChatListManager extends ResultController {
     }
 
     public void updateReplyMarkupMessageId(TdApi.UpdateChatReplyMarkup updateChatReplyMarkup) {
-        synchronized (indexPosChatList) {
+        synchronized (mIndexPosChatList) {
             ChatInfo chatInfo = getChatInfoByChatId(updateChatReplyMarkup.chatId);
             if (chatInfo != null) {
                 chatInfo.tgChatObject.replyMarkupMessageId = updateChatReplyMarkup.replyMarkupMessageId;
@@ -534,13 +530,13 @@ public class ChatListManager extends ResultController {
         ThreadService.runTaskChatBackground(new Runnable() {
             @Override
             public void run() {
-                synchronized (indexPosChatList) {
+                synchronized (mIndexPosChatList) {
                     final CountDownLatch latchMain = new CountDownLatch(1);
-                    if (indexPosChatList.size() > 0) {
+                    if (mIndexPosChatList.size() > 0) {
                         try {
-                            final Integer pos = indexPosChatList.get(chatId);
+                            final Integer pos = mIndexPosChatList.get(chatId);
                             if (pos != null) {
-                                final ChatInfo chatInfo = chatList.get(pos);
+                                final ChatInfo chatInfo = mChatList.get(pos);
                                 chatInfo.tgChatObject.topMessage = message;
                                 if (upUnread) {
                                     chatInfo.tgChatObject.unreadCount++;
@@ -551,17 +547,17 @@ public class ChatListManager extends ResultController {
                                     AndroidUtil.runInUI(new Runnable() {
                                         @Override
                                         public void run() {
-                                            if (chatListAdapter != null && chatList.size() > pos) {
-                                                chatList.remove((int) pos);
-                                                //chatListAdapter.notifyItemRemoved(pos);
-                                                chatList.add(0, chatInfo);
-                                                //chatListAdapter.notifyItemInserted(0);
-                                                chatListAdapter.notifyDataSetChanged();
-                                                if (findFirstVisibleItemPosition == 0 || findFirstVisibleItemPosition == 1) {
-                                                    chatListLayoutManager.scrollToPosition(0);
+                                            if (mChatListAdapter != null && mChatList.size() > pos) {
+                                                mChatList.remove((int) pos);
+                                                //mChatListAdapter.notifyItemRemoved(pos);
+                                                mChatList.add(0, chatInfo);
+                                                //mChatListAdapter.notifyItemInserted(0);
+                                                mChatListAdapter.notifyDataSetChanged();
+                                                if (mFirstVisibleItemPosition == 0 || mFirstVisibleItemPosition == 1) {
+                                                    mChatListLayoutManager.scrollToPosition(0);
                                                 }
-                                                /*chatListAdapter.notifyItemMoved(pos, 0);
-                                                chatListAdapter.notifyItemChanged(0);*/
+                                                /*mChatListAdapter.notifyItemMoved(pos, 0);
+                                                mChatListAdapter.notifyItemChanged(0);*/
                                             }
                                             latchOne.countDown();
                                         }
@@ -572,7 +568,7 @@ public class ChatListManager extends ResultController {
                                     AndroidUtil.runInUI(new Runnable() {
                                         @Override
                                         public void run() {
-                                            chatListAdapter.notifyItemChanged(0);
+                                            mChatListAdapter.notifyItemChanged(0);
                                             latchTwo.countDown();
                                         }
                                     });
@@ -597,19 +593,19 @@ public class ChatListManager extends ResultController {
                                             switch (object.getConstructor()) {
                                                 case TdApi.Chat.CONSTRUCTOR:
                                                     TdApi.Chat chat = (TdApi.Chat) object;
-                                                    chatOffset++;
+                                                    mChatOffset++;
                                                     if (DrawPreparer.isDisplayingDialog(chat)) {
                                                         final ChatInfo chatInfo = DrawPreparer.prepareChatInfo(chat, -1);
                                                         final CountDownLatch latchThree = new CountDownLatch(1);
                                                         AndroidUtil.runInUI(new Runnable() {
                                                             @Override
                                                             public void run() {
-                                                                if (chatListAdapter != null) {
-                                                                    chatList.add(0, chatInfo);
-                                                                    //chatListAdapter.notifyItemInserted(0);
-                                                                    chatListAdapter.notifyDataSetChanged();
-                                                                    if (findFirstVisibleItemPosition == 0 || findFirstVisibleItemPosition == 1) {
-                                                                        chatListLayoutManager.scrollToPosition(0);
+                                                                if (mChatListAdapter != null) {
+                                                                    mChatList.add(0, chatInfo);
+                                                                    //mChatListAdapter.notifyItemInserted(0);
+                                                                    mChatListAdapter.notifyDataSetChanged();
+                                                                    if (mFirstVisibleItemPosition == 0 || mFirstVisibleItemPosition == 1) {
+                                                                        mChatListLayoutManager.scrollToPosition(0);
                                                                     }
                                                                 }
                                                                 latchThree.countDown();
@@ -648,15 +644,15 @@ public class ChatListManager extends ResultController {
     }
 
     private void rebuildIndex() {
-        indexPosChatList.clear();
-        indexPosUserMap.clear();
-        for (int i = 0; i < chatList.size(); i++) {
-            ChatInfo info = chatList.get(i);
-            indexPosChatList.put(info.tgChatObject.id, i);
+        mIndexPosChatList.clear();
+        mIndexPosUserMap.clear();
+        for (int i = 0; i < mChatList.size(); i++) {
+            ChatInfo info = mChatList.get(i);
+            mIndexPosChatList.put(info.tgChatObject.id, i);
             switch (info.tgChatObject.type.getConstructor()) {
                 case TdApi.PrivateChatInfo.CONSTRUCTOR:
                     TdApi.User user = ((TdApi.PrivateChatInfo) info.tgChatObject.type).user;
-                    indexPosUserMap.put(user.id, i);
+                    mIndexPosUserMap.put(user.id, i);
                     break;
             }
         }
@@ -672,12 +668,12 @@ public class ChatListManager extends ResultController {
                     public void run() {
                         UserManager.getManager().getInfoMeIfNeed();//.getContacts();
                         try {
-                            synchronized (indexPosChatList) {
-                                final int remChatOffset = chatOffset;
+                            synchronized (mIndexPosChatList) {
+                                final int remChatOffset = mChatOffset;
                                 final TdApi.Chat[] chatArr = ((TdApi.Chats) object).chats;
 
-                                needDownloadMore = chatArr.length != 0;
-                                chatOffset += chatArr.length;
+                                mNeedDownloadMore = chatArr.length != 0;
+                                mChatOffset += chatArr.length;
 
                                 final List<ChatInfo> tempChatList = new ArrayList<>(50);
 
@@ -687,7 +683,7 @@ public class ChatListManager extends ResultController {
 
                                     if (DrawPreparer.isDisplayingDialog(chat)) {
                                         //info это на тот случай если чаты пришли в апдейтах
-                                        if (indexPosChatList.indexOfKey(chat.id) < 0) {
+                                        if (mIndexPosChatList.indexOfKey(chat.id) < 0) {
 
                                             TdApi.UpdateChatReadOutbox updateChatReadOutbox = updateChatReadOutboxArray.get(chat.id);
                                             TdApi.UpdateChatReadInbox updateChatReadInbox = updateChatReadInboxArray.get(chat.id);
@@ -704,7 +700,7 @@ public class ChatListManager extends ResultController {
                                             }
 
                                             tempChatList.add(DrawPreparer.prepareChatInfo(chat, pos));
-                                            indexPosChatList.put(chat.id, remChatOffset + pos);
+                                            mIndexPosChatList.put(chat.id, remChatOffset + pos);
                                             pos++;
                                         }
                                     }
@@ -713,9 +709,9 @@ public class ChatListManager extends ResultController {
                                 AndroidUtil.runInUI(new Runnable() {
                                     @Override
                                     public void run() {
-                                        chatList.addAll(tempChatList);
-                                        if (chatListAdapter != null)
-                                            chatListAdapter.updateDataAfterLoading();
+                                        mChatList.addAll(tempChatList);
+                                        if (mChatListAdapter != null)
+                                            mChatListAdapter.updateDataAfterLoading();
                                         latch.countDown();
                                     }
                                 });
@@ -733,11 +729,11 @@ public class ChatListManager extends ResultController {
     }
 
     public void destroy() {
-        chatListAdapter = null;
-        indexPosUserMap.clear();
-        chatList.clear();
-        indexPosChatList.clear();
-        chatListManager = null;
+        mChatListAdapter = null;
+        mIndexPosUserMap.clear();
+        mChatList.clear();
+        mIndexPosChatList.clear();
+        sChatListManager = null;
     }
 
     //############Подготовка перед отрисовкой############
@@ -750,7 +746,7 @@ public class ChatListManager extends ResultController {
 
         /*
         * Если pos == -1 то не добавится в индекс по юзеру,
-        * необходимо если идет блокировка по indexPosChatList
+        * необходимо если идет блокировка по mIndexPosChatList
         * */
         public static ChatInfo prepareChatInfo(TdApi.Chat tgChat, int pos) {
             ChatInfo chatInfo = new ChatInfo();

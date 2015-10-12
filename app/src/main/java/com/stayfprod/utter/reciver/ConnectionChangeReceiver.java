@@ -26,7 +26,6 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
 
     public static void checkConnection(Context context) {
         if (isHaveConnection(context)) {
-            //здесь ui??
             checkConnectionByTimeout();
         } else {
             OptionManager.getManager().setNetworkUnreachableOption(true);

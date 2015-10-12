@@ -30,7 +30,7 @@ import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.ui.view.chat.PhotoMsgView;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
 import com.stayfprod.utter.ui.view.chat.VideoMsgView;
-import com.stayfprod.utter.util.FileUtils;
+import com.stayfprod.utter.util.FileUtil;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
@@ -43,26 +43,22 @@ import java.util.List;
 public class UpdateHandler extends ResultController {
     private static final String LOG = UpdateHandler.class.getSimpleName();
 
-    private static volatile UpdateHandler updateHandler;
+    private static volatile UpdateHandler sUpdateHandler;
 
     @Override
     public boolean hasChanged() {
         return true;
     }
 
-    public static void destroy() {
-        updateHandler = null;
-    }
-
     public static UpdateHandler getHandler() {
-        if (updateHandler == null) {
+        if (sUpdateHandler == null) {
             synchronized (ChatListManager.class) {
-                if (updateHandler == null) {
-                    updateHandler = new UpdateHandler();
+                if (sUpdateHandler == null) {
+                    sUpdateHandler = new UpdateHandler();
                 }
             }
         }
-        return updateHandler;
+        return sUpdateHandler;
     }
 
     @Override
@@ -75,7 +71,7 @@ public class UpdateHandler extends ResultController {
             switch (object.getConstructor()) {
                 case TdApi.UpdateChatPhoto.CONSTRUCTOR: {
                     TdApi.UpdateChatPhoto updateChatPhoto = (TdApi.UpdateChatPhoto) object;
-                    if (FileUtils.isTDFileEmpty(updateChatPhoto.photo.small)) {
+                    if (FileUtil.isTDFileEmpty(updateChatPhoto.photo.small)) {
                         FileManager.getManager().uploadFile(FileManager.TypeLoad.UPDATE_CHAT_PHOTO, new Object[]{updateChatPhoto}, updateChatPhoto.photo.small.id, -1, -1);
                     } else {
                         ChatListManager.getManager().updateChatPhoto(updateChatPhoto);
@@ -468,7 +464,7 @@ public class UpdateHandler extends ResultController {
                     CachedUser cachedUser = userManager.insertUserInCache(updateUser.user);
 
                     if (userManager.getCurrUserId() != null && updateUser.user.id == userManager.getCurrUserId()) {
-                        if (FileUtils.isTDFileEmpty(cachedUser.tgUser.profilePhoto.small)) {
+                        if (FileUtil.isTDFileEmpty(cachedUser.tgUser.profilePhoto.small)) {
                             if (cachedUser.tgUser.profilePhoto.small.id > 0) {
                                 FileManager.getManager().uploadFile(FileManager.TypeLoad.USER_IMAGE, new Object[]{cachedUser.tgUser.id}, cachedUser.tgUser.profilePhoto.small.id, -1, -1);
                             }
@@ -530,8 +526,6 @@ public class UpdateHandler extends ResultController {
             });
         } else {
             BitmapDrawable bitmapDrawable = FileManager.getManager().getStickerFromFile(path, type, bounds);
-            //Logs.e("displayStickerIfVisible2=" + AndroidUtil.isItemViewVisible(stickerView, tag) + " = " + tag);
-
 
             StickerManager stickerManager = StickerManager.getManager();
             if (tag != null && tag.equals("0") && stickerView instanceof StickerThumbView) {
@@ -540,19 +534,15 @@ public class UpdateHandler extends ResultController {
                 if (AndroidUtil.isItemViewVisible(newStickerView, tag)) {
                     ((ImageUpdatable) newStickerView).setImageAndUpdateAsync(bitmapDrawable, animate);
                 }
-                //Logs.e("displayStickerIfVisible2=");
             } else {
                 if (AndroidUtil.isItemViewVisible(stickerView, tag)) {
                     ((ImageUpdatable) stickerView).setImageAndUpdateAsync(bitmapDrawable, animate);
                 }
             }
-
-
         }
     }
 
     private void displayStickerIfVisible(final String path, final FileManager.TypeLoad type, final View stickerView, final String tag, boolean animate, int[] bounds) {
-        //Logs.e("displayStickerIfVisible=" + AndroidUtil.isItemViewVisible(stickerView, tag) + " = " + tag);
         if (AndroidUtil.isItemViewVisible(stickerView, tag))
             displaySticker(path, type, stickerView, tag, animate, bounds);
     }
@@ -769,7 +759,6 @@ public class UpdateHandler extends ResultController {
         final TextView textView = (TextView) storageObject.obj[3];
         final DetermineProgressView progressView = (DetermineProgressView) storageObject.obj[4];
 
-
         AndroidUtil.runInUI(new Runnable() {
             @Override
             public void run() {
@@ -885,10 +874,6 @@ public class UpdateHandler extends ResultController {
             TdApi.InputMessageContent msg = manager.createStickerMsg(sticker.sticker.path);
             manager.sendMessage(msg);
             StickerRecentManager.getInstance().addRecentSticker(sticker);
-            /*if (FileUtils.isTDFileLocal(sticker.thumb.photo)) {
-                TdApi.File fileLocalThumb = sticker.thumb.photo;
-                displayStickerIfVisible(fileLocalThumb.path, FileManager.TypeLoad.USER_STICKER_THUMB, stickerView, tag, false, bounds);
-            }*/
         } else {
             displayStickerIfVisible(fileLocal.path, storageObject.typeLoad, stickerView, tag, false, bounds);
         }
@@ -902,19 +887,10 @@ public class UpdateHandler extends ResultController {
         sticker.thumb.photo = fileLocal;
 
         if (storageObject.typeLoad == FileManager.TypeLoad.USER_STICKER_THUMB) {
-
-            /*if (tag.equals("0")) {
-                Logs.e("bbbbbbbb===" + AndroidUtil.isItemViewVisible(stickerView, tag));
-            }*/
-
             if (AndroidUtil.isItemViewVisible(stickerView, tag)) {
-                //Logs.e("bbbbbbbb===" + tag + " " + sticker.thumb.photo.path);
-                /*FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.USER_STICKER,
-                        (int) storageObject.obj[5], (int) storageObject.obj[6], -1, sticker, stickerView, tag, storageObject.obj[3], storageObject.obj[4]);*/
                 displaySticker(sticker.thumb.photo.path, FileManager.TypeLoad.USER_STICKER_THUMB, stickerView, tag, false, bounds);
             }
         } else {
-            //Logs.e("displaySticker00=" + AndroidUtil.isItemViewVisible(stickerView, tag) + " " + tag);
             if (AndroidUtil.isItemViewVisible(stickerView, tag)) {
                 displaySticker(fileLocal.path, FileManager.TypeLoad.CHAT_STICKER_THUMB, stickerView, tag, false, bounds);
                 FileManager.getManager().uploadFileAsync(FileManager.TypeLoad.CHAT_STICKER,
