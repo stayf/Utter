@@ -1,7 +1,6 @@
-package com.stayfprod.utter.service;
+package com.stayfprod.utter.factory;
 
 import android.annotation.SuppressLint;
-import android.text.DynamicLayout;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextDirectionHeuristic;

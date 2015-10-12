@@ -19,7 +19,7 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.ChatManager;
 import com.stayfprod.utter.manager.ResultController;
 import com.stayfprod.utter.manager.UserManager;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.activity.AbstractActivity;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.view.CircleProgressView;

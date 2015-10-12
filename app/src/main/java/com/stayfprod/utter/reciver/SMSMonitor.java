@@ -1,4 +1,4 @@
-package com.stayfprod.utter.service;
+package com.stayfprod.utter.reciver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

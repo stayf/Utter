@@ -14,19 +14,15 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.stayfprod.emojicon.EmojiconHandler;
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.Constant;
-import com.stayfprod.utter.manager.BotManager;
-import com.stayfprod.utter.manager.ChatManager;
-import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.Patterns;
 import com.stayfprod.utter.model.chat.TextMsg;
-import com.stayfprod.utter.service.StaticLayoutFactory;
+import com.stayfprod.utter.factory.StaticLayoutFactory;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
 

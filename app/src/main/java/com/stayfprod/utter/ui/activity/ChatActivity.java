@@ -61,7 +61,7 @@ import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.ui.listener.AnimatorEndListener;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.ChatHelper;
@@ -71,7 +71,6 @@ import com.stayfprod.emojicon.EmojiconGridView;
 import com.stayfprod.emojicon.EmojiconsPopup;
 import com.stayfprod.emojicon.emoji.Emojicon;
 import com.stayfprod.utter.manager.WebpSupportManager;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 
 import android.view.ViewGroup.LayoutParams;

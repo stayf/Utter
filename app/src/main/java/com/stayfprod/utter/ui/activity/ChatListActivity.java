@@ -20,7 +20,7 @@ import com.stayfprod.utter.manager.UserManager;
 import com.stayfprod.utter.model.Connection;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.service.AudioPlayer;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.adapter.holder.ChatListHolder;
 import com.stayfprod.utter.ui.component.MenuDrawerLayout;
 import com.stayfprod.utter.ui.component.MusicBarWidget;

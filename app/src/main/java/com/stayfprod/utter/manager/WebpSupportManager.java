@@ -12,16 +12,14 @@ import android.widget.ImageView;
 
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.service.ThreadService;
-import com.stayfprod.utter.service.WebpReceiver;
+import com.stayfprod.utter.reciver.WebpReceiver;
 import com.stayfprod.utter.service.CacheService;
 import com.stayfprod.utter.service.WebpSupportService;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
 import com.stayfprod.utter.util.FileUtils;
 import com.stayfprod.utter.util.AndroidUtil;
-import com.stayfprod.utter.util.Logs;
 
-import java.io.FileNotFoundException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;

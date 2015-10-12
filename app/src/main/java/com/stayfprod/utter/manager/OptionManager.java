@@ -1,10 +1,5 @@
 package com.stayfprod.utter.manager;
 
-import com.stayfprod.utter.model.Connection;
-import com.stayfprod.utter.model.NotificationObject;
-import com.stayfprod.utter.service.ConnectionChangeListener;
-import com.stayfprod.utter.util.Logs;
-
 import org.drinkless.td.libcore.telegram.TdApi;
 
 public class OptionManager extends ResultController {

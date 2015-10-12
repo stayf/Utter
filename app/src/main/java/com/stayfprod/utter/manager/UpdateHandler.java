@@ -14,8 +14,8 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.CachedUser;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.model.Connection;
-import com.stayfprod.utter.service.ConnectionChangeListener;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.reciver.ConnectionChangeReceiver;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.view.DetermineProgressView;
 import com.stayfprod.utter.ui.view.IconUpdatable;
@@ -31,7 +31,6 @@ import com.stayfprod.utter.ui.view.chat.PhotoMsgView;
 import com.stayfprod.utter.ui.view.chat.StickerMsgView;
 import com.stayfprod.utter.ui.view.chat.VideoMsgView;
 import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
@@ -212,7 +211,7 @@ public class UpdateHandler extends ResultController {
                                 notifyObservers(new NotificationObject(NotificationObject.CHANGE_CONNECTION, Connection.currentState.text));
 
                                 if (state == Connection.State.Connecting) {
-                                    ConnectionChangeListener.checkConnectionByTimeout();
+                                    ConnectionChangeReceiver.checkConnectionByTimeout();
                                 }
                             }
                             break;

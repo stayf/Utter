@@ -17,7 +17,7 @@ import android.view.ViewConfiguration;
 import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.model.chat.AbstractMainMsg;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.view.AbstractChatView;
 import com.stayfprod.utter.ui.view.IconUpdatable;

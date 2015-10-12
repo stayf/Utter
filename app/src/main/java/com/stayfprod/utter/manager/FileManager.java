@@ -2,7 +2,6 @@ package com.stayfprod.utter.manager;
 
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -10,7 +9,7 @@ import android.widget.ImageView;
 
 import com.stayfprod.utter.model.AbstractChatMsg;
 import com.stayfprod.utter.service.CacheService;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.view.ImageUpdatable;
 import com.stayfprod.utter.ui.view.chat.PhotoMsgView;
@@ -18,7 +17,6 @@ import com.stayfprod.utter.ui.view.chat.StickerMsgView;
 import com.stayfprod.utter.util.FileUtils;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.App;
-import com.stayfprod.utter.util.Logs;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 

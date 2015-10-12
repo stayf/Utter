@@ -1,4 +1,4 @@
-package com.stayfprod.utter.service;
+package com.stayfprod.utter.reciver;
 
 
 import android.content.BroadcastReceiver;
@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.stayfprod.utter.manager.WebpSupportManager;
+import com.stayfprod.utter.service.WebpSupportService;
 
 public class WebpReceiver extends BroadcastReceiver {
 

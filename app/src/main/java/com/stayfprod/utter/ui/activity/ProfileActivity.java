@@ -34,7 +34,7 @@ import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.Contact;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.model.ScrollState;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.activity.setting.EditNameActivity;
 import com.stayfprod.utter.ui.adapter.ProfileAdapter;
@@ -47,7 +47,6 @@ import com.stayfprod.utter.ui.view.ObservableScrollViewCallbacks;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.ChatHelper;
 import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 
 import org.drinkless.td.libcore.telegram.TdApi;

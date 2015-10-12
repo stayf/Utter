@@ -3,7 +3,6 @@ package com.stayfprod.utter.ui.adapter.holder.chat;
 
 import android.content.Context;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -12,7 +11,7 @@ import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.R;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.model.chat.ChangeIconTitleMsg;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.adapter.holder.AbstractHolder;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.FileUtils;

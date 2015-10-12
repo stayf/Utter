@@ -14,12 +14,10 @@ import com.stayfprod.utter.Constant;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.DialogDrawParams;
-import com.stayfprod.utter.model.InputMsgIconType;
-import com.stayfprod.utter.service.IconFactory;
-import com.stayfprod.utter.service.StaticLayoutFactory;
+import com.stayfprod.utter.factory.IconFactory;
+import com.stayfprod.utter.factory.StaticLayoutFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 

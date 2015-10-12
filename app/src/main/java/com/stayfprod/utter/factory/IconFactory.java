@@ -1,10 +1,12 @@
-package com.stayfprod.utter.service;
+package com.stayfprod.utter.factory;
 
 import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.stayfprod.utter.Constant;
+import com.stayfprod.utter.service.CacheService;
+import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.view.IconUpdatable;
 import com.stayfprod.utter.ui.view.chat.ContactMsgView;

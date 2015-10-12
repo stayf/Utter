@@ -15,7 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 
 import com.stayfprod.utter.Constant;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.util.TextUtil;
 import com.stayfprod.utter.util.AndroidUtil;
 

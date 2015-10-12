@@ -1,4 +1,4 @@
-package com.stayfprod.utter.service;
+package com.stayfprod.utter.reciver;
 
 
 import android.content.BroadcastReceiver;
@@ -9,12 +9,14 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.stayfprod.utter.manager.OptionManager;
+import com.stayfprod.utter.service.ThreadService;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class ConnectionChangeListener extends BroadcastReceiver {
+public class ConnectionChangeReceiver extends BroadcastReceiver {
 
-    private final static String LOG = "ConChangeListener";
+    private final static String LOG = "ConChangeReceiver";
     private static volatile boolean isTaskRun = false;
 
     @Override

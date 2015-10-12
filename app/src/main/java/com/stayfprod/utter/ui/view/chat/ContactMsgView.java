@@ -2,33 +2,24 @@ package com.stayfprod.utter.ui.view.chat;
 
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.stayfprod.utter.Constant;
-import com.stayfprod.utter.R;
-import com.stayfprod.utter.manager.ChatManager;
 import com.stayfprod.utter.manager.FileManager;
-import com.stayfprod.utter.manager.ProfileManager;
 import com.stayfprod.utter.manager.ResultController;
 import com.stayfprod.utter.manager.UserManager;
 import com.stayfprod.utter.model.CachedUser;
-import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.model.chat.ContactMsg;
-import com.stayfprod.utter.service.IconFactory;
-import com.stayfprod.utter.service.StaticLayoutFactory;
-import com.stayfprod.utter.ui.activity.AbstractActivity;
-import com.stayfprod.utter.ui.activity.ProfileActivity;
+import com.stayfprod.utter.factory.IconFactory;
+import com.stayfprod.utter.factory.StaticLayoutFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 

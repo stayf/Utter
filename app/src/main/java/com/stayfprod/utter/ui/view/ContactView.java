@@ -24,14 +24,13 @@ import com.stayfprod.utter.manager.UserManager;
 import com.stayfprod.utter.model.CachedUser;
 import com.stayfprod.utter.model.ChatInfo;
 import com.stayfprod.utter.model.Contact;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.activity.AbstractActivity;
 import com.stayfprod.utter.ui.activity.ProfileActivity;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.ui.activity.ChatActivity;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.FileUtils;
-import com.stayfprod.utter.util.Logs;
 
 import org.drinkless.td.libcore.telegram.TdApi;
 

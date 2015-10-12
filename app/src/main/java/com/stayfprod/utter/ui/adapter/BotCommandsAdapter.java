@@ -16,7 +16,7 @@ import com.stayfprod.utter.manager.ChatManager;
 import com.stayfprod.utter.manager.FileManager;
 import com.stayfprod.utter.model.BotCommand;
 import com.stayfprod.utter.model.ChatInfo;
-import com.stayfprod.utter.service.IconFactory;
+import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.ui.drawable.IconDrawable;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.util.FileUtils;
