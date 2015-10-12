@@ -86,6 +86,46 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     private static final String LOG = ChatActivity.class.getSimpleName();
 
+    private static final int SELECT_PHOTO = 100;
+    public static final int OPEN_PHOTO = 55;
+
+    private View popupAttachView;
+    private View popupMuteView;
+    private RecyclerView recyclerViewGallery;
+    private EmojiconEditText emojiconEditText;
+    private GalleryAdapter galleryListAdapter;
+    private RecyclerView.LayoutManager chatListLayoutManager;
+
+    private LinearLayout takePhotoButton;
+    private String photoPath;
+    private EmojiconsPopup popupEmoji;
+    private BotKeyboardPopup popupBotKeyboard;
+    private PopupWindow popupAttach;
+    private PopupWindow popupMute;
+    private RelativeLayout main;
+
+    private Boolean isGroup;
+    private Boolean isLeave;
+    private Boolean isMuted = false;
+    private Boolean isFirstBotOpening;
+    private SimpleRecyclerView botCommandListView;
+    private RelativeLayout bot_popup_commands_layout;
+    private RelativeLayout bot_popup_commands_up_layout;
+    private boolean isPopUpBotCommandsVisible;
+
+    private ImageView a_chat_ic_slash;
+    private ImageView a_chat_ic_comand;
+    private ImageView a_chat_ic_panel_kb;
+    private ImageView sendButton;
+    private RecordVoiceView a_chat_record;
+    private RelativeLayout a_chat_input_holder;
+    private TextView slide_to_cancel_timer;
+    private ImageView emojiButton;
+
+    private MenuItem menuMute;
+
+    private MusicBarWidget musicBarWidget;
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -139,7 +179,6 @@ public class ChatActivity extends AbstractActivity implements Observer {
     public void onPause() {
         super.onPause();
     }
-
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -347,46 +386,6 @@ public class ChatActivity extends AbstractActivity implements Observer {
         stickerManager.cleanStickerViews();
     }
 
-    private static final int SELECT_PHOTO = 100;
-    public static final int OPEN_PHOTO = 55;
-
-    private View popupAttachView;
-    private View popupMuteView;
-    private RecyclerView recyclerViewGallery;
-    private EmojiconEditText emojiconEditText;
-    private GalleryAdapter galleryListAdapter;
-    private RecyclerView.LayoutManager chatListLayoutManager;
-
-    private LinearLayout takePhotoButton;
-    private String photoPath;
-    private EmojiconsPopup popupEmoji;
-    private BotKeyboardPopup popupBotKeyboard;
-    private PopupWindow popupAttach;
-    private PopupWindow popupMute;
-    private RelativeLayout main;
-
-    private Boolean isGroup;
-    private Boolean isLeave;
-    private Boolean isMuted = false;
-    private Boolean isFirstBotOpening;
-    private SimpleRecyclerView botCommandListView;
-    private RelativeLayout bot_popup_commands_layout;
-    private RelativeLayout bot_popup_commands_up_layout;
-    private boolean isPopUpBotCommandsVisible;
-
-    private ImageView a_chat_ic_slash;
-    private ImageView a_chat_ic_comand;
-    private ImageView a_chat_ic_panel_kb;
-    private ImageView sendButton;
-    private RecordVoiceView a_chat_record;
-    private RelativeLayout a_chat_input_holder;
-    private TextView slide_to_cancel_timer;
-    private ImageView emojiButton;
-
-    private MenuItem menuMute;
-
-    private MusicBarWidget musicBarWidget;
-
     public EmojiconsPopup getPopupEmoji() {
         if (popupEmoji == null) {
 
@@ -540,14 +539,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         if (App.isBadAppContext(this))
             return;
-
-        int k = 0;
-
 
         Bundle b = getIntent().getExtras();
 
