@@ -216,17 +216,13 @@ public class ChatListActivity extends AbstractActivity implements Observer {
                     break;
                 }
                 case NotificationObject.USER_IMAGE_UPDATE:
-                    try {
-                        dr = IconFactory.createBitmapIcon(IconFactory.Type.USER, ((TdApi.File) nObject.getWhat()).path);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mUserIcon.setImageDrawable(dr);
-                            }
-                        });
-                    } catch (Exception e) {
-                        //
-                    }
+                    dr = IconFactory.createBitmapIcon(IconFactory.Type.USER, ((TdApi.File) nObject.getWhat()).path);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mUserIcon.setImageDrawable(dr);
+                        }
+                    });
                     break;
 
                 case NotificationObject.USER_DATA_UPDATE:

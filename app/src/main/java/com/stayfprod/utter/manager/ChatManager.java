@@ -178,7 +178,7 @@ public class ChatManager extends ResultController {
                 });
             }
         } catch (Exception e) {
-            //
+            Log.w(LOG, "setVisibilityNoMsges", e);
         }
     }
 
@@ -213,7 +213,7 @@ public class ChatManager extends ResultController {
                         notifyObservers(new NotificationObject(NotificationObject.BOT_SHOW_START, null));
                         mDividersCounter = 1;
                     } catch (Exception e) {
-                        //
+                        Log.w(LOG, "cleanHistory", e);
                     }
                 } else {
                     mDividersCounter = 0;

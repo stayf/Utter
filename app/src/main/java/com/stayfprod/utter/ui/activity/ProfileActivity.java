@@ -479,29 +479,21 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                 }
 
                 if (i == 2) {
-                    try {
-                        int userId = ((TdApi.PrivateChatInfo) chatInfo.tgChatObject.type).user.id;
-                        CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userId);
-                        if (cachedUser.isBlocked) {
-                            mainMenu.setTitle(AndroidUtil.getResourceString(R.string.unblock));
-                        } else {
-                            mainMenu.setTitle(AndroidUtil.getResourceString(R.string.block));
-                        }
-                    } catch (Exception e) {
-                        //
+                    int userId = ((TdApi.PrivateChatInfo) chatInfo.tgChatObject.type).user.id;
+                    CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userId);
+                    if (cachedUser.isBlocked) {
+                        mainMenu.setTitle(AndroidUtil.getResourceString(R.string.unblock));
+                    } else {
+                        mainMenu.setTitle(AndroidUtil.getResourceString(R.string.block));
                     }
                 }
                 if (i == 1) {
-                    try {
-                        int userId = ((TdApi.PrivateChatInfo) chatInfo.tgChatObject.type).user.id;
-                        CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userId);
-                        if (cachedUser.tgUser.myLink.getConstructor() == TdApi.LinkStateContact.CONSTRUCTOR) {
-                            mainMenu.setVisible(true);
-                        } else {
-                            mainMenu.setVisible(false);
-                        }
-                    } catch (Exception e) {
-                        //
+                    int userId = ((TdApi.PrivateChatInfo) chatInfo.tgChatObject.type).user.id;
+                    CachedUser cachedUser = userManager.getUserByIdWithRequestAsync(userId);
+                    if (cachedUser.tgUser.myLink.getConstructor() == TdApi.LinkStateContact.CONSTRUCTOR) {
+                        mainMenu.setVisible(true);
+                    } else {
+                        mainMenu.setVisible(false);
                     }
                 }
             }
@@ -620,7 +612,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                         });
                     }
                 } catch (Exception e) {
-                    //
+                    Log.e(LOG, "action_block", e);
+                    Crashlytics.logException(e);
                 }
                 break;
 
@@ -664,7 +657,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                         }
                                     });
                                 } catch (Exception e) {
-                                    //
+                                    Crashlytics.logException(e);
+                                    Log.e(LOG, "action_delete", e);
                                 }
                             }
                         })
@@ -835,12 +829,8 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                         AndroidUtil.runInUI(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    final IconDrawable dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, updateChatPhoto.photo.small.path);
-                                    mTitleImage.setImageDrawable(dr);
-                                } catch (Exception e) {
-                                    //
-                                }
+                                final IconDrawable dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, updateChatPhoto.photo.small.path);
+                                mTitleImage.setImageDrawable(dr);
                             }
                         });
                     }
@@ -851,15 +841,11 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                         AndroidUtil.runInUI(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    mTitleView.setText(updateChatTitle.title);
-                                    TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
-                                    TdApi.GroupChat groupChat = groupChatInfo.groupChat;
-                                    final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, groupChat.id, chatInfo.initials, groupChat.photo.small);
-                                    mTitleImage.setImageDrawable(dr);
-                                } catch (Exception e) {
-                                    //
-                                }
+                                mTitleView.setText(updateChatTitle.title);
+                                TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
+                                TdApi.GroupChat groupChat = groupChatInfo.groupChat;
+                                final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, groupChat.id, chatInfo.initials, groupChat.photo.small);
+                                mTitleImage.setImageDrawable(dr);
                             }
                         });
                     }
@@ -887,7 +873,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                             mProfileAdapter.notifyDataSetChanged();
                                         }
                                     } catch (Throwable e) {
-                                        //
+                                        Crashlytics.logException(e);
                                     }
                                 }
                             });
@@ -910,7 +896,7 @@ public class ProfileActivity extends AbstractActivity implements Observer, Obser
                                             mProfileAdapter.notifyDataSetChanged();
                                         }
                                     } catch (Throwable e) {
-                                        //
+                                        Crashlytics.logException(e);
                                     }
                                 }
                             });

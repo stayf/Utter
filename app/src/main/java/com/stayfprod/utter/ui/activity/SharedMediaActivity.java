@@ -301,7 +301,6 @@ public class SharedMediaActivity extends AbstractActivity implements Observer {
                             mPager.setCurrentItem(mSelectedPage);
                         }
                     });
-
                     break;
                 }
                 case NotificationObject.UPDATE_MUSIC_PLAYER: {

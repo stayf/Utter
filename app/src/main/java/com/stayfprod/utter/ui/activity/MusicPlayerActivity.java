@@ -335,15 +335,11 @@ public class MusicPlayerActivity extends AbstractActivity implements Observer {
                 AndroidUtil.runInUI(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            mIsHaveBackgroundImage = false;
-                            updateToolBarStyle();
-                            updateStyle();
-                            supportInvalidateOptionsMenu();
-                            mMusicAlbumImage.setImageResource(R.mipmap.ic_nocover);
-                        } catch (Exception e) {
-                            //
-                        }
+                        mIsHaveBackgroundImage = false;
+                        updateToolBarStyle();
+                        updateStyle();
+                        supportInvalidateOptionsMenu();
+                        mMusicAlbumImage.setImageResource(R.mipmap.ic_nocover);
                     }
                 });
             }

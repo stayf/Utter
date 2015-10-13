@@ -98,7 +98,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     private LinearLayout mTakePhotoButton;
     private String mPhotoPath;
-    private EmojIconsPopup mPpopupEmoji;
+    private EmojIconsPopup mPopupEmoji;
     private BotKeyboardPopup mPopupBotKeyboard;
     private PopupWindow mPopupAttach;
     private PopupWindow mPopupMute;
@@ -158,6 +158,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
         super.onStop();
         //info было в onPause
         try {
+            //странное место
             WebpSupportManager.getManager().unregisterReceiver(this);
         } catch (Exception e) {
             Crashlytics.logException(e);
@@ -293,13 +294,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
             return;
         }
 
-        if (mPpopupEmoji != null && getPopupEmoji().isKeyBoardOpen()) {
+        if (mPopupEmoji != null && getPopupEmoji().isKeyBoardOpen()) {
             final InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             inputMethodManager.hideSoftInputFromWindow(mEmojiconEditText.getWindowToken(), 0);
             return;
         }
 
-        if (mPpopupEmoji != null && getPopupEmoji().isShowing()) {
+        if (mPopupEmoji != null && getPopupEmoji().isShowing()) {
             getPopupEmoji().dismiss();
             mMainLayout.setPadding(0, 0, 0, 0);
             return;
@@ -312,7 +313,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
             return;
         }
 
-        if (mPpopupEmoji != null)
+        if (mPopupEmoji != null)
             getPopupEmoji().dismiss();
         mPopupBotKeyboard.dismiss();
         dismissPopUpAttachWithAnimation();
@@ -360,7 +361,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
     public void forceFinish() {
 
-        if (mPpopupEmoji != null && getPopupEmoji() != null)
+        if (mPopupEmoji != null && getPopupEmoji() != null)
             getPopupEmoji().dismiss();
 
         if (mPopupBotKeyboard != null)
@@ -394,12 +395,12 @@ public class ChatActivity extends AbstractActivity implements Observer {
     }
 
     public EmojIconsPopup getPopupEmoji() {
-        if (mPpopupEmoji == null) {
+        if (mPopupEmoji == null) {
 
-            mPpopupEmoji = new EmojIconsPopup(mMainLayout, this, new StickerGridView(this), new StickerMicroThumbAdapterImpl(this));
+            mPopupEmoji = new EmojIconsPopup(mMainLayout, this, new StickerGridView(this), new StickerMicroThumbAdapterImpl(this));
 
-            mPpopupEmoji.setSizeForSoftKeyboard();
-            mPpopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
+            mPopupEmoji.setSizeForSoftKeyboard();
+            mPopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
                 @Override
                 public void onEmojiconBackspaceClicked(View v) {
                     KeyEvent event = new KeyEvent(
@@ -408,7 +409,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 }
             });
 
-            mPpopupEmoji.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            mPopupEmoji.setOnDismissListener(new PopupWindow.OnDismissListener() {
                 @Override
                 public void onDismiss() {
                     changeEmojiKeyboardIcon(mEmojiButton, R.mipmap.ic_smiles);
@@ -416,7 +417,7 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 }
             });
 
-            mPpopupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojIconsPopup.OnSoftKeyboardOpenCloseListener() {
+            mPopupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojIconsPopup.OnSoftKeyboardOpenCloseListener() {
                 @Override
                 public void onKeyboardOpen(int keyBoardHeight) {
                     AndroidUtil.setKeyboardHeight(keyBoardHeight);
@@ -424,11 +425,11 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
                 @Override
                 public void onKeyboardClose() {
-                    if (mPpopupEmoji.isShowing())
-                        mPpopupEmoji.dismiss();
+                    if (mPopupEmoji.isShowing())
+                        mPopupEmoji.dismiss();
                 }
             });
-            mPpopupEmoji.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
+            mPopupEmoji.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener() {
                 @Override
                 public void onEmojiconClicked(Emojicon emojicon) {
                     int selectionCursor = mEmojiconEditText.getSelectionStart();
@@ -436,10 +437,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 }
             });
 
-            mPpopupEmoji.setAnimationStyle(R.style.popup_anim_style);
+            mPopupEmoji.setAnimationStyle(R.style.popup_anim_style);
             mPopupAttach.setAnimationStyle(R.style.popup_anim_style);
 
-            mPpopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
+            mPopupEmoji.setOnEmojiconBackspaceClickedListener(new EmojIconsPopup.OnEmojiconBackspaceClickedListener() {
                 @Override
                 public void onEmojiconBackspaceClicked(View v) {
                     KeyEvent event = new KeyEvent(
@@ -448,10 +449,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                 }
             });
 
-            mPpopupEmoji.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
+            mPopupEmoji.setSize(WindowManager.LayoutParams.MATCH_PARENT, AndroidUtil.getKeyboardHeight());
 
         }
-        return mPpopupEmoji;
+        return mPopupEmoji;
     }
 
     @Override
@@ -489,20 +490,20 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         }
                     };
 
-                    View p_mute_hour_layout = mPopupMuteView.findViewById(R.id.p_mute_hour_layout);
-                    View p_mute_8_hours_layout = mPopupMuteView.findViewById(R.id.p_mute_8_hours_layout);
-                    View p_mute_2_days_layout = mPopupMuteView.findViewById(R.id.p_mute_2_days_layout);
-                    View p_mute_disable_layout = mPopupMuteView.findViewById(R.id.p_mute_disable_layout);
+                    View muteHourLayout = mPopupMuteView.findViewById(R.id.p_mute_hour_layout);
+                    View mute8HoursLayout = mPopupMuteView.findViewById(R.id.p_mute_8_hours_layout);
+                    View mute2DaysLayout = mPopupMuteView.findViewById(R.id.p_mute_2_days_layout);
+                    View muteDisableLayout = mPopupMuteView.findViewById(R.id.p_mute_disable_layout);
 
-                    p_mute_hour_layout.setOnClickListener(onClickListener);
-                    p_mute_8_hours_layout.setOnClickListener(onClickListener);
-                    p_mute_2_days_layout.setOnClickListener(onClickListener);
-                    p_mute_disable_layout.setOnClickListener(onClickListener);
+                    muteHourLayout.setOnClickListener(onClickListener);
+                    mute8HoursLayout.setOnClickListener(onClickListener);
+                    mute2DaysLayout.setOnClickListener(onClickListener);
+                    muteDisableLayout.setOnClickListener(onClickListener);
 
-                    p_mute_hour_layout.setTag(NotificationManager.MUTE_FOR_HOUR);
-                    p_mute_8_hours_layout.setTag(NotificationManager.MUTE_FOR_8_HOURS);
-                    p_mute_2_days_layout.setTag(NotificationManager.MUTE_FOR_2_DAYS);
-                    p_mute_disable_layout.setTag(NotificationManager.MUTE_DISABLE);
+                    muteHourLayout.setTag(NotificationManager.MUTE_FOR_HOUR);
+                    mute8HoursLayout.setTag(NotificationManager.MUTE_FOR_8_HOURS);
+                    mute2DaysLayout.setTag(NotificationManager.MUTE_FOR_2_DAYS);
+                    muteDisableLayout.setTag(NotificationManager.MUTE_DISABLE);
                 }
 
                 if (mIsMuted) {
@@ -569,8 +570,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
 
         mTakePhotoButton = (LinearLayout) mPopupAttachView.findViewById(R.id.p_open_camera);
 
-        RelativeLayout t_layout_main = findView(R.id.t_layout_main);
-        t_layout_main.setOnClickListener(new View.OnClickListener() {
+        RelativeLayout layoutMain = findView(R.id.t_layout_main);
+        layoutMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!mIsGroup) {
@@ -627,8 +628,8 @@ public class ChatActivity extends AbstractActivity implements Observer {
         RelativeLayout openSubLayout = (RelativeLayout) mPopupAttachView.findViewById(R.id.p_open_sub_layout);
         openSubLayout.getLayoutParams().height = AndroidUtil.getKeyboardHeight();
 
-        RelativeLayout p_open_main_layout = (RelativeLayout) mPopupAttachView.findViewById(R.id.p_open_main_layout);
-        p_open_main_layout.setOnClickListener(new View.OnClickListener() {
+        RelativeLayout openMainLayout = (RelativeLayout) mPopupAttachView.findViewById(R.id.p_open_main_layout);
+        openMainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dismissPopUpAttachWithAnimation();
@@ -1404,19 +1405,13 @@ public class ChatActivity extends AbstractActivity implements Observer {
                             @Override
                             public void run() {
                                 if (ChatManager.isHaveChatInfo()) {
-                                    try {
+                                    mChatTitle.setText(updateChatTitle.title);
 
-                                        mChatTitle.setText(updateChatTitle.title);
+                                    TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
+                                    TdApi.GroupChat groupChat = groupChatInfo.groupChat;
 
-                                        TdApi.GroupChatInfo groupChatInfo = (TdApi.GroupChatInfo) chatInfo.tgChatObject.type;
-                                        TdApi.GroupChat groupChat = groupChatInfo.groupChat;
-
-                                        final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, groupChat.id, chatInfo.initials, groupChat.photo.small);
-                                        mChatIcon.setImageDrawable(dr);
-
-                                    } catch (Exception e) {
-                                        //
-                                    }
+                                    final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, groupChat.id, chatInfo.initials, groupChat.photo.small);
+                                    mChatIcon.setImageDrawable(dr);
                                 }
                             }
                         });
@@ -1429,14 +1424,10 @@ public class ChatActivity extends AbstractActivity implements Observer {
                             @Override
                             public void run() {
                                 if (ChatManager.isHaveChatInfo()) {
-                                    try {
-                                        mChatTitle.setText(cachedUserForTitle.fullName);
-                                        final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, cachedUserForTitle.tgUser.id,
-                                                chatInfo.initials, cachedUserForTitle.tgUser.profilePhoto.small);
-                                        mChatIcon.setImageDrawable(dr);
-                                    } catch (Exception e) {
-                                        //
-                                    }
+                                    mChatTitle.setText(cachedUserForTitle.fullName);
+                                    final IconDrawable dr = IconFactory.createIcon(IconFactory.Type.TITLE, cachedUserForTitle.tgUser.id,
+                                            chatInfo.initials, cachedUserForTitle.tgUser.profilePhoto.small);
+                                    mChatIcon.setImageDrawable(dr);
                                 }
                             }
                         });
@@ -1448,13 +1439,9 @@ public class ChatActivity extends AbstractActivity implements Observer {
                         AndroidUtil.runInUI(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    if (ChatManager.isHaveChatInfo()) {
-                                        final IconDrawable dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, updateChatPhoto.photo.small.path);
-                                        mChatIcon.setImageDrawable(dr);
-                                    }
-                                } catch (Exception e) {
-                                    //
+                                if (ChatManager.isHaveChatInfo()) {
+                                    final IconDrawable dr = IconFactory.createBitmapIcon(IconFactory.Type.TITLE, updateChatPhoto.photo.small.path);
+                                    mChatIcon.setImageDrawable(dr);
                                 }
                             }
                         });

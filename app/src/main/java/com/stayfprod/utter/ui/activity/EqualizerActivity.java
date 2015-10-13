@@ -7,6 +7,7 @@ import android.media.audiofx.Equalizer;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -208,7 +209,7 @@ public class EqualizerActivity extends AbstractActivity {
                         try {
                             equalizer.setBandLevel(band, (short) (progress + minEQLevel));
                         } catch (Exception e) {
-                            //
+                            Log.w(LOG, "onProgressChanged", e);
                         }
                     }
 
