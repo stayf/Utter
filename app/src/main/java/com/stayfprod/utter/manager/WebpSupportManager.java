@@ -140,12 +140,12 @@ public class WebpSupportManager {
     }
 
     private boolean getAndDisplayImage(final String tmpFile, String path, final View itemView, final String tag, final FileManager.TypeLoad type, final int[] bounds, final boolean animate) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
         if (bitmapDrawable == null) {
             bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(tmpFile, FileUtil.superBitmapOptions());
             if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
                 StickerMsgView.setStickerBounds(bitmapDrawable, type, bounds);
-                CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
+                CacheService.getInstance().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
             }
         }
         if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
@@ -159,12 +159,12 @@ public class WebpSupportManager {
     }
 
     private boolean getAndDisplayImage(final String tmpFile, String path, final View itemView, final String tag, final FileManager.TypeLoad type, final ImageView imageView, final boolean animate) {
-        final BitmapDrawable cachedBitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+        final BitmapDrawable cachedBitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
         final BitmapDrawable bitmapDrawable;
         if (cachedBitmapDrawable == null) {
             bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(tmpFile, FileUtil.superBitmapOptions());
             if (bitmapDrawable != null && bitmapDrawable.getBitmap() != null) {
-                CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
+                CacheService.getInstance().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
             }
         } else {
             bitmapDrawable = cachedBitmapDrawable;

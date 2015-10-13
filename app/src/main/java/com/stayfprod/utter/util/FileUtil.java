@@ -75,7 +75,7 @@ public class FileUtil {
             }
 
             // Try to find a bitmap to use for inBitmap.
-            Bitmap inBitmap = CacheService.getManager().getBitmapFromReusableSet(options);
+            Bitmap inBitmap = CacheService.getInstance().getBitmapFromReusableSet(options);
             if (inBitmap != null) {
                 // If a suitable bitmap has been found, set it as the value of
                 // inBitmap.

@@ -61,7 +61,7 @@ public class GeoPointManager {
         final double longi = geoPoint.longitude;
 
         final String key = lati + "" + longi;
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(key);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(key);
         if (bitmapDrawable == null) {
             ThreadService.runTaskBackground(new Runnable() {
                 @Override
@@ -77,7 +77,7 @@ public class GeoPointManager {
                             }
                         }
                     });
-                    CacheService.getManager().addBitmapToMemoryCache(key, bitmapDrawable);
+                    CacheService.getInstance().addBitmapToMemoryCache(key, bitmapDrawable);
                 }
             });
         }

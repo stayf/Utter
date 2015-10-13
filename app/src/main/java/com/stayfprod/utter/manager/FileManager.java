@@ -325,16 +325,16 @@ public class FileManager extends ResultController {
 
     @Deprecated
     public BitmapDrawable getBitmapIconFromFile(String path) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path, FileUtil.prepareOptions(path, IconFactory.MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH));
-            CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
+            CacheService.getInstance().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
     }
 
     public BitmapDrawable getBitmapFromGallery(final String path, final int id, final ImageView imageView, final Context context, final String tag) {
-        BitmapDrawable b = CacheService.getManager().getBitmapDrawable(path + id);
+        BitmapDrawable b = CacheService.getInstance().getBitmapDrawable(path + id);
 
         if (b == null) {
             ThreadService.runTaskBackground(new Runnable() {
@@ -346,7 +346,7 @@ public class FileManager extends ResultController {
                                     context.getContentResolver(), id,
                                     MediaStore.Images.Thumbnails.MINI_KIND, null));
                             AndroidUtil.setImageAsyncWithAnim(imageView, bitmapDrawable, imageView, tag);
-                            CacheService.getManager().addBitmapToMemoryCache(path + id, bitmapDrawable);
+                            CacheService.getInstance().addBitmapToMemoryCache(path + id, bitmapDrawable);
                         }
                     } catch (Throwable e) {
                         //много открытых курсоров?
@@ -365,7 +365,7 @@ public class FileManager extends ResultController {
     private BitmapDrawable processSticker(String path, TypeLoad type, boolean... async) {
         //защита от повторений
         if (async.length > 0 && async[0]) {
-            BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+            BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
             if (bitmapDrawable != null) {
                 return bitmapDrawable;
             }
@@ -376,32 +376,32 @@ public class FileManager extends ResultController {
 
     //для микро фамбов
     public BitmapDrawable getStickerFromFile(final String path, final TypeLoad type) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
         if (bitmapDrawable == null) {
             bitmapDrawable = processSticker(path, type);
-            CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
+            CacheService.getInstance().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
         }
         return bitmapDrawable;
     }
 
     public BitmapDrawable getStickerFromFile(final String path, final TypeLoad type, int[] bounds) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
         if (bitmapDrawable == null) {
             bitmapDrawable = processSticker(path, type);
             StickerMsgView.setStickerBounds(bitmapDrawable, type, bounds);
-            CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
+            CacheService.getInstance().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
         }
         return bitmapDrawable;
     }
 
     public BitmapDrawable getStickerFromFile(final String path, final TypeLoad type, final View itemView, final String tag, final ImageView imageView, final int... bounds) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
         if (bitmapDrawable == null) {
             if (WebpSupportManager.IS_NEED_NATIVE_LIB) {
                 ThreadService.runTaskBackground(new Runnable() {
                     @Override
                     public void run() {
-                        final BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path + type.name());
+                        final BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path + type.name());
                         if (bitmapDrawable != null) {
                             if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                                 if (type == TypeLoad.USER_STICKER_MICRO_THUMB) {
@@ -447,7 +447,7 @@ public class FileManager extends ResultController {
                                     ((ImageUpdatable) itemView).setImageAndUpdateAsync(bitmapDrawable, true);
                                 }
                             }
-                            CacheService.getManager().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
+                            CacheService.getInstance().addBitmapToMemoryCache(path + type.name(), bitmapDrawable);
                         }
                     }
                 });
@@ -460,7 +460,7 @@ public class FileManager extends ResultController {
      * Асинхронное получение не скалированного изображения для CircleProgressBar
      * */
     public BitmapDrawable getNoResizeBitmapCircleProgressBar(final String path, final View itemView, final String tag) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             ThreadService.runTaskBackground(new Runnable() {
                 @Override
@@ -470,7 +470,7 @@ public class FileManager extends ResultController {
                         if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(bitmapDrawable);
                         }
-                        CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
+                        CacheService.getInstance().addBitmapToMemoryCache(path, bitmapDrawable);
                     }
                 }
             });
@@ -482,10 +482,10 @@ public class FileManager extends ResultController {
      * Не асинхронное получение не скалированного изображения(чаще всего блюр первью картинки, видео фамба, фамба на стикер) для UpdateHandler
      * */
     public BitmapDrawable getNoResizeBitmapFromFile(String path) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path);
-            CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
+            CacheService.getInstance().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
     }
@@ -494,7 +494,7 @@ public class FileManager extends ResultController {
      * Асинхронное получение не скалированного изображения(чаще всего блюр первью картинки, видео фамба, но не фамба на стикер)
      * */
     public BitmapDrawable getNoResizeBitmapFromFile(final String path, final View itemView, final String tag) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             ThreadService.runTaskBackground(new Runnable() {
                 @Override
@@ -504,7 +504,7 @@ public class FileManager extends ResultController {
                         if (AndroidUtil.isItemViewVisible(itemView, tag))
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(bitmapDrawable);
 
-                        CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
+                        CacheService.getInstance().addBitmapToMemoryCache(path, bitmapDrawable);
                     }
                 }
             });
@@ -516,10 +516,10 @@ public class FileManager extends ResultController {
     * Не асинхронное получение картинке в чате для UpdateHandler
     * */
     public BitmapDrawable getImageFromFile(String path) {
-        BitmapDrawable bitmapDrawable = CacheService.getManager().getBitmapDrawable(path);
+        BitmapDrawable bitmapDrawable = CacheService.getInstance().getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(path, FileUtil.prepareOptions(path, PhotoMsgView.MAX_IMAGE_CHAT_WIDTH, FileUtil.CalculateType.BOTH));
-            CacheService.getManager().addBitmapToMemoryCache(path, bitmapDrawable);
+            CacheService.getInstance().addBitmapToMemoryCache(path, bitmapDrawable);
         }
         return bitmapDrawable;
     }
@@ -528,7 +528,7 @@ public class FileManager extends ResultController {
     * Асинхронное получение картинки в чате
     * */
     public BitmapDrawable getImageFromFile(final String path, final View itemView, final String tag) {
-        CacheService cacheService = CacheService.getManager();
+        CacheService cacheService = CacheService.getInstance();
         BitmapDrawable bitmapDrawable = cacheService.getBitmapDrawable(path);
         if (bitmapDrawable == null) {
             ThreadService.runTaskBackground(new Runnable() {
@@ -539,7 +539,7 @@ public class FileManager extends ResultController {
                         if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                             ((ImageUpdatable) itemView).setImageAndUpdateAsync(drawable);
                         }
-                        CacheService.getManager().addBitmapToMemoryCache(path, drawable);
+                        CacheService.getInstance().addBitmapToMemoryCache(path, drawable);
                     }
                 }
             });

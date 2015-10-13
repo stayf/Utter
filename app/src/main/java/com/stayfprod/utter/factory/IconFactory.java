@@ -71,18 +71,18 @@ public class IconFactory {
         String key;
         if (isUsedImage) {
             key = bitmapPath + type.getHeight();
-            drawable = CacheService.getManager().getIconDrawableFromCache(key);
+            drawable = CacheService.getInstance().getIconDrawableFromCache(key);
             if (drawable == null) {
                 BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
                         FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                 drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                 drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
-                CacheService.getManager().addToDrawableCache(key, drawable);
+                CacheService.getInstance().addToDrawableCache(key, drawable);
             }
         } else {
             key = color + initials + type.getHeight();
             drawable = new IconDrawable(color, initials, type);
-            CacheService.getManager().addToDrawableCache(key, drawable);
+            CacheService.getInstance().addToDrawableCache(key, drawable);
         }
         return drawable;
     }
@@ -90,10 +90,10 @@ public class IconFactory {
     public static IconDrawable createEmptyIcon(Type type, int id, String initials) {
         int color = chooseColor(id);
         String key = color + initials + type.getHeight();
-        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
         if (drawable == null) {
             drawable = new IconDrawable(color, initials, type);
-            CacheService.getManager().addToDrawableCache(key, drawable);
+            CacheService.getInstance().addToDrawableCache(key, drawable);
         }
         return drawable;
     }
@@ -124,13 +124,13 @@ public class IconFactory {
         if (fileLocal != null) {
             final String bitmapPath = fileLocal.path;
             final String key = bitmapPath + type.getHeight();
-            IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+            IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
             if (drawable == null) {
                 BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
                         FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                 drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                 drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
-                CacheService.getManager().addToDrawableCache(key, drawable);
+                CacheService.getInstance().addToDrawableCache(key, drawable);
             }
         }
 
@@ -138,20 +138,20 @@ public class IconFactory {
 
     public static IconDrawable createBitmapIconForContact(final Type type, final String bitmapPath, final ContactMsgView itemView, final String tag) {
         final String key = bitmapPath + type.getHeight();
-        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
         if (drawable == null) {
             drawable = new IconDrawable(type);
             ThreadService.runSingleTaskWithLowestPriority(new Runnable() {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+                        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
                         if (drawable == null) {
                             BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
                                     FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
-                            CacheService.getManager().addToDrawableCache(key, drawable);
+                            CacheService.getInstance().addToDrawableCache(key, drawable);
                             if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                                 itemView.setUserIconDrawableAndUpdateAsync(drawable);
                             }
@@ -167,7 +167,7 @@ public class IconFactory {
 
     public static IconDrawable createBitmapIconForChat(final Type type, final String bitmapPath, final View itemView, final String tag, boolean... isForward) {
         final String key = bitmapPath + type.getHeight();
-        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
         final boolean forward = isForward.length > 0 && isForward[0];
 
         if (drawable == null) {
@@ -176,14 +176,14 @@ public class IconFactory {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+                        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
                         if (drawable == null) {
                             //todo стоит сохранять все же в кеше картинку и проверять ее???
                             BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
                                     FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
-                            CacheService.getManager().addToDrawableCache(key, drawable);
+                            CacheService.getInstance().addToDrawableCache(key, drawable);
                             if (AndroidUtil.isItemViewVisible(itemView, tag)) {
                                 ((IconUpdatable) itemView).setIconAsync(drawable, forward);
                             }
@@ -200,21 +200,21 @@ public class IconFactory {
 
     public static IconDrawable createBitmapIconForImageView(final Type type, final String bitmapPath, final View itemView, final ImageView imageView, final String tag) {
         final String key = bitmapPath + type.getHeight();
-        IconDrawable drawable = CacheService.getManager().getIconDrawableFromCache(key);
+        IconDrawable drawable = CacheService.getInstance().getIconDrawableFromCache(key);
 
         if (drawable == null) {
             ThreadService.runSingleTaskWithLowestPriority(new Runnable() {
                 @Override
                 public void run() {
                     if (AndroidUtil.isItemViewVisible(itemView, tag)) {
-                        final IconDrawable cachedDrawable = CacheService.getManager().getIconDrawableFromCache(key);
+                        final IconDrawable cachedDrawable = CacheService.getInstance().getIconDrawableFromCache(key);
                         if (cachedDrawable == null) {
                             //todo стоит сохранять все же в кеше картинку и проверять ее???
                             BitmapDrawable bitmapDrawable = FileUtil.decodeFileInBitmapDrawable(bitmapPath,
                                     FileUtil.prepareOptions(bitmapPath, MAX_ICON_HEIGHT, FileUtil.CalculateType.BOTH, false));
                             final IconDrawable drawable = new IconDrawable(bitmapDrawable == null ? null : bitmapDrawable.getBitmap(), type);
                             drawable.setBounds(0, 0, type.getHeight(), type.getHeight());
-                            CacheService.getManager().addToDrawableCache(key, drawable);
+                            CacheService.getInstance().addToDrawableCache(key, drawable);
                             AndroidUtil.runInUI(new Runnable() {
                                 @Override
                                 public void run() {

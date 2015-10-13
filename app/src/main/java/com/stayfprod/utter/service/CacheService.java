@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class CacheService {
-    private static volatile CacheService cacheService;
+    private static volatile CacheService sCacheService;
 
     private final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
     private final int cacheSize = maxMemory / 8;
@@ -46,15 +46,15 @@ public class CacheService {
         }
     };
 
-    public static CacheService getManager() {
-        if (cacheService == null) {
+    public static CacheService getInstance() {
+        if (sCacheService == null) {
             synchronized (CacheService.class) {
-                if (cacheService == null) {
-                    cacheService = new CacheService();
+                if (sCacheService == null) {
+                    sCacheService = new CacheService();
                 }
             }
         }
-        return cacheService;
+        return sCacheService;
     }
 
     public void cleanBitmaps() {

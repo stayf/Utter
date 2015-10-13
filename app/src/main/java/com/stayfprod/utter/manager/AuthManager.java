@@ -71,7 +71,7 @@ public class AuthManager extends ResultController {
 
     public void openAuthActivity(AppCompatActivity compatActivity){
         AudioPlayer.getPlayer().stop();
-        CacheService.getManager().cleanBitmaps();
+        CacheService.getInstance().cleanBitmaps();
         UserManager.getManager().cleanUserCache();
         StickerManager.getManager().destroy();
         ChatListManager.getManager().destroy();
