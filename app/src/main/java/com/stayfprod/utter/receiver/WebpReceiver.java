@@ -1,4 +1,4 @@
-package com.stayfprod.utter.reciver;
+package com.stayfprod.utter.receiver;
 
 
 import android.content.BroadcastReceiver;

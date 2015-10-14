@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.manager.AuthManager;
-import com.stayfprod.utter.reciver.SMSMonitor;
+import com.stayfprod.utter.receiver.SMSMonitor;
 import com.stayfprod.utter.ui.view.CircleProgressView;
 import com.stayfprod.utter.util.AndroidUtil;
 import com.stayfprod.utter.ui.activity.AbstractActivity;

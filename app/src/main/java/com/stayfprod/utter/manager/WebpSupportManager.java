@@ -12,7 +12,7 @@ import android.widget.ImageView;
 
 import com.stayfprod.utter.App;
 import com.stayfprod.utter.service.ThreadService;
-import com.stayfprod.utter.reciver.WebpReceiver;
+import com.stayfprod.utter.receiver.WebpReceiver;
 import com.stayfprod.utter.service.CacheService;
 import com.stayfprod.utter.service.WebpSupportService;
 import com.stayfprod.utter.ui.view.ImageUpdatable;

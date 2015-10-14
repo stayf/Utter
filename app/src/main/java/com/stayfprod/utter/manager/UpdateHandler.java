@@ -14,7 +14,7 @@ import com.stayfprod.utter.R;
 import com.stayfprod.utter.model.CachedUser;
 import com.stayfprod.utter.model.NotificationObject;
 import com.stayfprod.utter.model.Connection;
-import com.stayfprod.utter.reciver.ConnectionChangeReceiver;
+import com.stayfprod.utter.receiver.ConnectionChangeReceiver;
 import com.stayfprod.utter.factory.IconFactory;
 import com.stayfprod.utter.service.ThreadService;
 import com.stayfprod.utter.ui.view.DetermineProgressView;
