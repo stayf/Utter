@@ -13,16 +13,16 @@ public class DialogDrawParams {
     public float textStartX;
     public Rect groupRect = new Rect();
 
-    public CharSequence[] drawTitle = new CharSequence[2];
-    public float[] dateStartX = new float[2];
-    public float[] counterStartX = new float[2];
+    final public CharSequence[] drawTitle = new CharSequence[2];
+    final public float[] dateStartX = new float[2];
+    final  public float[] counterStartX = new float[2];
 
-    public Rect[] muteRect = {new Rect(), new Rect()};
-    public Rect[] errorRect = {new Rect(), new Rect()};
-    public Rect[] badgeRect = {new Rect(), new Rect()};
-    public Rect[] clockRect = {new Rect(), new Rect()};
-    public Rect[] cycleRect = {new Rect(), new Rect()};
+    final public Rect[] muteRect = {new Rect(), new Rect()};
+    final public Rect[] errorRect = {new Rect(), new Rect()};
+    final public Rect[] badgeRect = {new Rect(), new Rect()};
+    final public Rect[] clockRect = {new Rect(), new Rect()};
+    final public Rect[] cycleRect = {new Rect(), new Rect()};
 
-    public StaticLayout[] staticTextLayout = new StaticLayout[2];
-    public float[] staticTextLayoutStartY = new float[2];
+    final public StaticLayout[] staticTextLayout = new StaticLayout[2];
+    final public float[] staticTextLayoutStartY = new float[2];
 }

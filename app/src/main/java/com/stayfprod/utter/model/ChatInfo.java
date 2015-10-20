@@ -19,7 +19,7 @@ public class ChatInfo {
     public TdApi.GroupChatFull groupChatFull;
     public int groupMembersOnline;
 
-    public DialogDrawParams drawParams = new DialogDrawParams();
+    final public DialogDrawParams drawParams = new DialogDrawParams();
 
     public int currentPosInList;
 }

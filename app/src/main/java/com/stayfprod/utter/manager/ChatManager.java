@@ -82,7 +82,7 @@ public class ChatManager extends ResultController {
 
     public static ChatManager getManager() {
         if (sChatManager == null) {
-            synchronized (ChatListManager.class) {
+            synchronized (ChatManager.class) {
                 if (sChatManager == null) {
                     sChatManager = new ChatManager();
                 }

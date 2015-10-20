@@ -21,15 +21,15 @@ public class AbstractMainMsg extends AbstractChatMsg {
     public String forwardDate;
     public CachedUser cachedForwardUser;
 
-    public int[] layoutHeight = new int[2];
+    final public int[] layoutHeight = new int[2];
 
-    public Rect[] cycleRect = {new Rect(), new Rect()};
-    public Rect[] clockRect = {new Rect(), new Rect()};
+    final public Rect[] cycleRect = {new Rect(), new Rect()};
+    final public Rect[] clockRect = {new Rect(), new Rect()};
 
-    public CharSequence[] drawName = new CharSequence[2];
-    public CharSequence[] forwardDrawName = new CharSequence[2];
+    final public CharSequence[] drawName = new CharSequence[2];
+    final public CharSequence[] forwardDrawName = new CharSequence[2];
 
-    public float[] dateStartX = new float[2];
-    public float[] forwardDateStartX = new float[2];
+    final public float[] dateStartX = new float[2];
+    final public float[] forwardDateStartX = new float[2];
 
 }

@@ -6,6 +6,6 @@ import android.text.StaticLayout;
 
 public class TextMsg extends AbstractMainMsg {
     public Spannable text;
-    public StaticLayout[] staticTextLayout = new StaticLayout[2];
-    public float[] staticTextLayoutStartY = new float[2];
+    final public StaticLayout[] staticTextLayout = new StaticLayout[2];
+    final public float[] staticTextLayoutStartY = new float[2];
 }

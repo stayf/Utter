@@ -11,8 +11,8 @@ public class Contact implements Comparable<Contact> {
     public String lastSeen;
 
     public TdApi.ChatParticipant chatParticipant;
-    public CharSequence[] drawLastSeen = new CharSequence[2];
-    public CharSequence[] drawTitle = new CharSequence[2];
+    final public CharSequence[] drawLastSeen = new CharSequence[2];
+    final public CharSequence[] drawTitle = new CharSequence[2];
     public boolean isOnline;
     public boolean sortByJoinDate;
 

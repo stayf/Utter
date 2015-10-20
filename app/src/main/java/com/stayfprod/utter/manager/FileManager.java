@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class FileManager extends ResultController {
     private static final String LOG = FileManager.class.getSimpleName();
@@ -88,7 +89,7 @@ public class FileManager extends ResultController {
 
     public static FileManager getManager() {
         if (sFileManager == null) {
-            synchronized (ChatListManager.class) {
+            synchronized (FileManager.class) {
                 if (sFileManager == null) {
                     sFileManager = new FileManager();
                 }
